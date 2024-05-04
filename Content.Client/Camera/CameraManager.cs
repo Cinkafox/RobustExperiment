@@ -6,7 +6,7 @@ namespace Content.Client.Camera;
 [IoCRegister]
 public sealed class CameraManager
 {
-    public (Transform3dComponent, CameraComponent)? Camera;
+    public (Transform3dComponent, CameraComponent, EntityUid uid)? Camera;
     
     public CameraProperties? CameraProperties { 
         get 

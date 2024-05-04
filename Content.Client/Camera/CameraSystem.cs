@@ -1,4 +1,5 @@
-﻿using Content.Shared.Transform;
+﻿using Content.Client.DimensionEnv.ObjRes;
+using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
@@ -17,6 +18,7 @@ public sealed class CameraSystem : EntitySystem
     {
         SubscribeLocalEvent<CameraComponent, LocalPlayerAttachedEvent>(OnAttached);
         SubscribeLocalEvent<CameraComponent, LocalPlayerDetachedEvent>(OnDeattached);
+        
         CommandBinds.Builder
             .Bind(EngineKeyFunctions.MoveUp, new GoInputHandler(this,new Vector3(0, 0, -1)))
             .Bind(EngineKeyFunctions.MoveDown, new GoInputHandler(this,new Vector3(0, 0, 1)))
@@ -35,7 +37,7 @@ public sealed class CameraSystem : EntitySystem
         if(!TryComp<Transform3dComponent>(ent, out var transform3dComponent)) 
             return;
 
-        _cameraManager.Camera = (transform3dComponent, ent.Comp);
+        _cameraManager.Camera = (transform3dComponent, ent.Comp, ent);
     }
 
     public override void Update(float frameTime)

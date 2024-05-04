@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 using Content.Client.Camera;
 using Content.Client.Utils;
 using Robust.Client.Graphics;
@@ -175,6 +176,7 @@ public sealed class DrawingHandle3d : IDisposable
             
                     FlushScreen(triangle);
                     _handleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, _drawingInstance.DrawVertexBuffer);
+                    //_handleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop, _drawingInstance.DrawVertexBuffer.Select(a => a.Position).ToList(), Color.Blue);
                 }
             }
         }

@@ -13,7 +13,7 @@ public sealed class ModelSystem : EntitySystem
 
     private void OnInit(Entity<ModelComponent> ent, ref ComponentInit args)
     {
-        if (!_resourceCache.TryGetResource<ObjResource>(ent.Comp.ObjPath, out var mesh))
+        if (string.IsNullOrEmpty(ent.Comp.ObjPath) || !_resourceCache.TryGetResource<ObjResource>(ent.Comp.ObjPath, out var mesh))
         {
             RemComp(ent, ent.Comp);
             return;

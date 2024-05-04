@@ -10,7 +10,7 @@ public sealed class Mesh
 {
     public List<Vector3> Vertexes = new();
     public List<Vector3> Normals = new();
-    public List<FaceContent> Faces = new();
+    public List<Face> Faces = new();
     public List<Vector2> TextureCoords = new();
     public List<Material> Materials = new();
 
@@ -30,8 +30,8 @@ public sealed class Mesh
                     mesh.Vertexes.Add(vertexContent.Vertex);
                     break;
                 case FaceContent faceContent:
-                    faceContent.MaterialId = currMaterialId;
-                    mesh.Faces.Add(faceContent);
+                    faceContent.Face.MaterialId = currMaterialId;
+                    mesh.Faces.Add(faceContent.Face);
                     break;
                 case TexturePosContent texturePosContent:
                     mesh.TextureCoords.Add(texturePosContent.TexturePos);

@@ -1,7 +1,9 @@
-﻿using Content.Client.Camera;
+﻿using System.Numerics;
+using Content.Client.Camera;
 using Content.Client.ConfigurationUI;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
+using Content.Client.SkyBoxes;
 using Content.Shared.Transform;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
@@ -39,6 +41,30 @@ public sealed class GameViewport : Control
     }
 
     public readonly DrawingInstance DrawingInstance = new();
+
+    private void DrawSkyBox(DrawingHandleScreen handle)
+    {
+        var cameraProp = _cameraManager.CameraProperties;
+        if(!cameraProp.HasValue || 
+           !_entityManager.TryGetComponent<SkyBoxComponent>(_cameraManager.Camera!.Value.uid, out var skyBoxComponent))
+        {
+            return;
+        };
+
+        var rot = (float)(cameraProp.Value.Angle.Yaw.Theta / float.Pi);
+
+        var scale = skyBoxComponent.Texture.Size;
+        var shift = new Vector2(rot, 0);
+        var lefttop = (new Vector2(0 / 4f, 1 / 3f)) * scale;
+        var rightbottom = (new Vector2(4 / 4f, 2 / 3f)) * scale;
+        
+        handle.DrawTextureRectRegion(skyBoxComponent.Texture, new UIBox2(-shift * scale, (Rect.BottomRight*new Vector2(2,1) - shift* scale)), new UIBox2(lefttop , rightbottom));
+
+        if (rot < 0)
+        {
+            handle.DrawTextureRectRegion(skyBoxComponent.Texture, new UIBox2(-shift * scale - new Vector2(Rect.Right ,0), (Rect.BottomRight*new Vector2(2,1) - shift* scale - new Vector2(Rect.Right ,0))), new UIBox2(lefttop , rightbottom));
+        }
+    }
     
     protected override void Draw(DrawingHandleScreen handle)
     {
@@ -50,23 +76,22 @@ public sealed class GameViewport : Control
         {
             return;
         };
-
-        var gr1 = _profManager.Group("Draw3d.HandleInitialize");
+        
+        DrawSkyBox(handle);
+        
         var drawHandle = new DrawingHandle3d(handle, Width, Height, cameraProp.Value, DrawingInstance,_profManager,_parallel);
-        gr1.Dispose();
         
-        
-        var gr2 = _profManager.Group("Draw3d.DrawingQuery");
         var query = _entityManager.EntityQueryEnumerator<Transform3dComponent, ModelComponent>();
-        while (query.MoveNext(out var transform3dComponent, out var modelComponent))
+        while (query.MoveNext(out var uid, out var transform3dComponent, out var modelComponent))
         {
+            if(_cameraManager.Camera!.Value.Item3 == uid) 
+                continue;
+            
             if (!modelComponent.MeshRenderInitialized)
             {
-                var gr4 = _profManager.Group("Draw3d.DrawMeshInit");
                 modelComponent.MeshRender = new MeshRender(modelComponent.CurrentMesh,
                     DrawingInstance.AllocTexture(modelComponent.CurrentMesh.Materials));
                 modelComponent.MeshRenderInitialized = true;
-                gr4.Dispose();
             }
 
             modelComponent.MeshRender.Transform = transform3dComponent.WorldMatrix;
@@ -75,13 +100,10 @@ public sealed class GameViewport : Control
             modelComponent.MeshRender.Draw(drawHandle);
             gr5.Dispose();
         }
-        gr2.Dispose();
 
         Info.Text = $"                  Triangles: {DrawingInstance.TriangleBuffer.Count}, Textures pool: {DrawingInstance.TextureBuffer.Length}";
         
-        var gr3 = _profManager.Group("Draw3d.Flush");
         drawHandle.Flush();
-        gr3.Dispose();
         
         if(!_configuration.GetValueOrDefault<bool>("transform_view_enabled", false))
             return;

@@ -209,16 +209,19 @@ public struct Triangle : IEnumerable<Vector4>
         {
             var outTri1 = new TexturedTriangle();
             outTri1.Triangle.p1 = drawingInstance.InsidePoints[0];
-            outTri1.Triangle.p2 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].ToVec3(),
-                drawingInstance.OutsidePoints[0].ToVec3()).ToVec4();
-            outTri1.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].ToVec3(),
-                drawingInstance.OutsidePoints[1].ToVec3()).ToVec4();
-
-            outTri1.TextureId = inTri.TextureId;
             outTri1.TexturePoint1 = drawingInstance.InsideTex[0];
-            outTri1.TexturePoint2 = (drawingInstance.OutsideTex[0] - drawingInstance.InsideTex[0]) + drawingInstance.InsideTex[0];
-            outTri1.TexturePoint3 = (drawingInstance.OutsideTex[1] - drawingInstance.InsideTex[0]) + drawingInstance.InsideTex[0];
+            
+            outTri1.Triangle.p2 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].ToVec3(),
+                drawingInstance.OutsidePoints[0].ToVec3(), out var t).ToVec4();
+            
+            outTri1.TextureId = inTri.TextureId;
+            outTri1.TexturePoint2 = t * (drawingInstance.OutsideTex[0] - drawingInstance.InsideTex[0]) + drawingInstance.InsideTex[0];
 
+            
+            outTri1.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].ToVec3(),
+                drawingInstance.OutsidePoints[1].ToVec3(), out t).ToVec4();
+            outTri1.TexturePoint3 = t * (drawingInstance.OutsideTex[1] - drawingInstance.InsideTex[0]) + drawingInstance.InsideTex[0];
+            
             drawingInstance.Clipping[0] = outTri1;
             drawingInstance.Clipping.Length = 1;
             return;
@@ -231,23 +234,23 @@ public struct Triangle : IEnumerable<Vector4>
             
             outTri1.Triangle.p1 = drawingInstance.InsidePoints[0];
             outTri1.Triangle.p2 = drawingInstance.InsidePoints[1];
-            outTri1.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].ToVec3(), drawingInstance.OutsidePoints[0].ToVec3()).ToVec4();
+            outTri1.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].ToVec3(), drawingInstance.OutsidePoints[0].ToVec3(), out var t).ToVec4();
             
             outTri1.TextureId = inTri.TextureId;
             outTri1.TexturePoint1 = drawingInstance.InsideTex[0];
             outTri1.TexturePoint2 = drawingInstance.InsideTex[1];
-            outTri1.TexturePoint3 = (drawingInstance.OutsideTex[0] - drawingInstance.InsideTex[0]) + drawingInstance.InsideTex[0];
+            outTri1.TexturePoint3 = t * (drawingInstance.OutsideTex[0] - drawingInstance.InsideTex[0]) + drawingInstance.InsideTex[0];
             
             drawingInstance.Clipping[0] = outTri1;
             
             outTri2.Triangle.p1 = drawingInstance.InsidePoints[1];
             outTri2.Triangle.p2 = outTri1.Triangle.p3;
-            outTri2.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[1].ToVec3(), drawingInstance.OutsidePoints[0].ToVec3()).ToVec4();
+            outTri2.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[1].ToVec3(), drawingInstance.OutsidePoints[0].ToVec3(), out t).ToVec4();
             
             outTri2.TextureId = inTri.TextureId;
             outTri2.TexturePoint1 = drawingInstance.InsideTex[1];
             outTri2.TexturePoint2 = outTri1.TexturePoint3;
-            outTri2.TexturePoint3 = (drawingInstance.OutsideTex[0] - drawingInstance.InsideTex[1]) + drawingInstance.InsideTex[1];
+            outTri2.TexturePoint3 = t * (drawingInstance.OutsideTex[0] - drawingInstance.InsideTex[1]) + drawingInstance.InsideTex[1];
             
             drawingInstance.Clipping[1] = outTri2;
             drawingInstance.Clipping.Length = 2;

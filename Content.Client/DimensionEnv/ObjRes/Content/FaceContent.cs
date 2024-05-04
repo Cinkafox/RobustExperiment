@@ -4,24 +4,14 @@ namespace Content.Client.DimensionEnv.ObjRes.Content;
 
 public sealed class FaceContent : BaseContent
 {
-    public int[] Vertex;
-    public int[] TexPos;
-    public int[] Normal;
-    
-    public bool HasVertex;
-    public bool HasTexturePos;
-    public bool HasNormal;
-
-    public int MaterialId;
+    public Face Face;
 
     public FaceContent(string[] args, int argStart)
     {
         var len = args.Length - argStart;
         if (len < 3)
             throw new Exception("FUCKING BITCH! "+args.Length + " " + argStart);
-        Vertex = new int[len];
-        TexPos = new int[len];
-        Normal = new int[len];
+        Face = new Face(len);
         
         for (int i = argStart; i < args.Length; i++)
         {
@@ -29,25 +19,21 @@ public sealed class FaceContent : BaseContent
             switch (splited.Length)
             {
                 case 1:
-                    Vertex[i - 1] = Parse(splited[0]);
-                    HasVertex = true;
+                    Face.Vertices[i - 1] = new FaceVertex(Parse(splited[0]));
                     break;
                 case 2:
-                    TexPos[i - 1] = Parse(splited[1]);
-                    Vertex[i - 1] = Parse(splited[0]);
-                    HasTexturePos = true;
-                    HasVertex = true;
+                    Face.Vertices[i - 1] = new FaceVertex(Parse(splited[0]), Parse(splited[1]));
+                    Face.HasTexturePos = true;
                     break;
                 case 3:
-                    Normal[i - 1] = Parse(splited[2]);
-                    TexPos[i - 1] = Parse(splited[1]);
-                    Vertex[i - 1] = Parse(splited[0]);
-                    HasNormal = true;
-                    HasTexturePos = true;
-                    HasVertex = true;
+                    Face.Vertices[i - 1] = new FaceVertex(Parse(splited[0]), Parse(splited[1]),Parse(splited[2]));
+                    Face.HasNormal = true;
+                    Face.HasTexturePos = true;
                     break;
+                default: throw new Exception();
             }
         }
+        
     }
 
     public int Parse(string arg)
@@ -55,5 +41,41 @@ public sealed class FaceContent : BaseContent
         var value = int.Parse(arg);
         if (value <= 0) throw new Exception("FUCKCKCKFF");
         return value;
+    }
+}
+
+public sealed class Face
+{
+    public FaceVertex[] Vertices;
+    
+    public int MaterialId;
+    
+    public bool HasTexturePos;
+    public bool HasNormal;
+
+    public Face(FaceVertex[] vertices)
+    {
+        Vertices = vertices;
+        HasTexturePos = vertices[0].TexPosId != -1;
+        HasNormal = vertices[0].NormalId != -1;
+    }
+
+    public Face(int length)
+    {
+        Vertices = new FaceVertex[length];
+    }
+}
+
+public struct FaceVertex
+{
+    public int VertexId;
+    public int TexPosId;
+    public int NormalId;
+
+    public FaceVertex(int vertexId, int texPosId = -1, int normalId = -1)
+    {
+        VertexId = vertexId;
+        TexPosId = texPosId;
+        NormalId = normalId;
     }
 }

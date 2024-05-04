@@ -11,9 +11,7 @@ namespace Content.Client;
 public sealed class AlexandraAnimationSystem: EntitySystem
 {
     [Dependency] private readonly AnimationPlayerSystem _animationPlayerSystem = default!;
-
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float zAng = 180;
+    
     public Animation Animation1 => new Animation()
     {
         Length = TimeSpan.FromSeconds(2),
@@ -26,11 +24,11 @@ public sealed class AlexandraAnimationSystem: EntitySystem
                 Property = "LocalAngleAnim",
                 KeyFrames =
                 {
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(zAng)), 0f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(zAng)), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(160),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(zAng)), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(zAng)), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(zAng)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0f),
+                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(180)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(160),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(180)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0.5f),
                 }
             }
         }
