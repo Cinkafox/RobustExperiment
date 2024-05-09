@@ -1,0 +1,16 @@
+﻿- type: styleSheet
+  id: default
+  styles:
+    ContainerButton.button:
+        - key: stylebox
+          value:
+            valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+            value:
+              backgroundColor: "#aaaaaa"
+              borderColor: "#ffffff"
+              borderThickness: 210,210,210,210
+              
+            
+- font:
+    - font: ""
+      size: 12

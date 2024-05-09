@@ -12,6 +12,7 @@ public static class IoCExt
         var reg = IoCManager.Resolve<IReflectionManager>().FindTypesWithAttribute<IoCRegisterAttribute>();
         foreach (var iocReg in reg)
         {
+            Logger.Debug("AUTO " + iocReg.FullName);
             var attr = (IoCRegisterAttribute) Attribute.GetCustomAttribute(iocReg, typeof(IoCRegisterAttribute))!;
 
             var interf = iocReg;

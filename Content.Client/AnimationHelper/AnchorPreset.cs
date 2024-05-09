@@ -11,16 +11,17 @@ public sealed class AnchorPreset : Control
         set
         {
             _layoutPreset = value;
-            if (Parent is not null)
+            LayoutContainer.SetAnchorPreset(this,_layoutPreset);
+            foreach (var child in Children)
             {
-                LayoutContainer.SetAnchorPreset(Parent,_layoutPreset);
+                LayoutContainer.SetAnchorPreset(child,_layoutPreset);
             }
         }
     }
-    
-    protected override void Parented(Control newParent)
+
+    protected override void ChildAdded(Control newChild)
     {
-        LayoutContainer.SetAnchorPreset(newParent,_layoutPreset);
-        base.Parented(newParent);
+        base.ChildAdded(newChild);
+        LayoutContainer.SetAnchorPreset(newChild,_layoutPreset);
     }
 }

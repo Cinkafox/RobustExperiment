@@ -2,22 +2,23 @@
      xmlns="https://spacestation14.io"
      xmlns:ui="clr-namespace:Content.Client.MainMenu.UI"
      xmlns:helper="clr-namespace:Content.Client.AnimationHelper">
-    <TextureRect Access="Public" VerticalExpand="True" HorizontalExpand="True" Name="Background"
-                 Stretch="KeepAspectCovered" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TexturePath="/Textures/Logo/logo.png">
-        <helper:AnchorPreset/>
-    </TextureRect>
+    <helper:AnchorPreset LayoutPreset="Wide">
+        <TextureRect Access="Public" VerticalExpand="True" HorizontalExpand="True" Name="Background"
+                     Stretch="KeepAspectCovered" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TexturePath="/Textures/Logo/logo.png"/>
+    </helper:AnchorPreset>
     
-    <BoxContainer Name="MainContainer">
-        <helper:AnchorPreset/>
-        <BoxContainer Orientation="Horizontal" Margin="15 200 15 15">
-            <BoxContainer Orientation="Vertical">
-                <RichTextLabel Name="MenuLabel" Margin="0 15 0 30" />
-                <BoxContainer Orientation="Vertical" SetWidth="200" HorizontalAlignment="Left" Name="ButtonContainer">
-                    <Button Text="{Loc 'menu-play'}"        Margin="0 15 0 0" Name="PlayButton"/>
-                    <Button Text="{Loc 'menu-config'}"      Margin="0 15 0 0" Name="Config"/>
-                    <Button Text="{Loc 'menu-exit'}"        Margin="0 15 0 0" Name="Exit"/>
-                </BoxContainer>
-            </BoxContainer>
-        </BoxContainer>
-    </BoxContainer>
+   <helper:AnchorPreset LayoutPreset="Wide">
+       <BoxContainer Name="MainContainer">
+           <BoxContainer Orientation="Horizontal" Margin="15 200 15 15">
+               <BoxContainer Orientation="Vertical">
+                   <helper:ExposedRichTextLabel Name="MenuLabel" Margin="0 15 0 30" Text="{Loc 'menu-label'}"/>
+                   <BoxContainer Orientation="Vertical" SetWidth="200" HorizontalAlignment="Left" Name="ButtonContainer">
+                       <Button Text="{Loc 'menu-play'}"        Margin="0 15 0 0" Name="PlayButton" StyleClasses="Fuck"/>
+                       <Button Text="{Loc 'menu-config'}"      Margin="0 15 0 0" Name="Config"/>
+                       <Button Text="{Loc 'menu-exit'}"        Margin="0 15 0 0" Name="Exit"/>
+                   </BoxContainer>
+               </BoxContainer>
+           </BoxContainer>
+       </BoxContainer>
+   </helper:AnchorPreset>
 </ui:MainMenu>
