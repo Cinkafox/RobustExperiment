@@ -28,17 +28,9 @@ public sealed class StyleSheetManager : IPostInitializeBehavior
 
     public void ApplySheet(StyleSheetPrototype stylePrototype)
     {
-        var styleRule = new List<StyleRule>()
-        {
-            Element<ContainerButton>().Class(ContainerButton.StyleClassButton).Prop(ContainerButton.StylePropertyStyleBox, new StyleBoxFlat()
-            {
-                BackgroundColor = Color.FromHex("#224466"),
-                BorderColor = Color.Silver,
-                BorderThickness = new Thickness(40)
-            })
-        };
+        var styleRule = new List<StyleRule>();
         
-        styleRule.AddRange(_userInterfaceManager.Stylesheet!.Rules);
+        //styleRule.AddRange(_userInterfaceManager.Stylesheet!.Rules);
         
         foreach (var (elementPath, value) in stylePrototype.Styles)
         {
@@ -55,6 +47,7 @@ public sealed class StyleSheetManager : IPostInitializeBehavior
                         element.Class(styleProt.Key);
                         break;
                     case StyleAct.Pseudo:
+                        element.Pseudo(styleProt.Key);
                         break;
                     case StyleAct.Identifier:
                         element.Identifier(styleProt.Key);
@@ -72,23 +65,34 @@ public sealed class StyleSheetManager : IPostInitializeBehavior
     
     public MutableSelectorElement GetElement(string type)
     {
-        var splited = type.Split(".");
-        Logger.Debug($"ELEMENT: {splited[0]}");
+        var sp1 = type.Split("#");
+        var tar = sp1[0];
+        
+        var splited = tar.Split(".");
         var element = new MutableSelectorElement();
         
         if (splited[0] != "*")
             element.Type = _reflectionManager.GetType(splited[0]);
+
+        var a = splited[0];
         
         for (var i = 1; i < splited.Length; i++)
         {
-            Logger.Debug($"CLASSIFIED: {splited[i]}");
             element.Class(splited[i]);
+            a += "." + splited[i];
         }
+        for (var i = 1; i < sp1.Length; i++)
+        {
+            element.Pseudo(sp1[i]);
+            a += "#" + sp1[i];
+        }
+        Logger.Debug(a);
+        
         return element;
     }
 
     public void PostInitialize()
     {
-        ApplySheet("default");
+        //ApplySheet("default");
     }
 }

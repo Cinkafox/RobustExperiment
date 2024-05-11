@@ -1,4 +1,5 @@
 ﻿using Content.Client.MainMenu;
+using Content.Client.StyleSheet;
 using Robust.Client.State;
 using Robust.Client.UserInterface;
 using Robust.Shared.ContentPack;
@@ -25,6 +26,7 @@ public sealed class EntryPoint : GameClient
     public override void PostInit()
     {
         _userInterfaceManager.SetDefaultTheme("DefaultTheme");
+        IoCManager.Resolve<StyleSheetManager>().ApplySheet("default");
         _stateManager.RequestStateChange<MenuState>();
     }
 }

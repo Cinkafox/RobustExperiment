@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Serialization;
@@ -14,80 +15,40 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.Font;
 
-public sealed class FontSpecifier
+
+[Serializable, DataDefinition, Virtual]
+public partial class FontSpecifier
 {
-    public Robust.Client.Graphics.Font Font;
-
-    public FontSpecifier(Robust.Client.Graphics.Font font)
+    [DataField] public int Size;
+    [DataField] public ResPath Path;
+    
+    protected Robust.Client.Graphics.Font? _font;
+    public new Robust.Client.Graphics.Font Font
     {
-        Font = font;
-    }
+        get
+        {
+            if (_font != null) return _font;
+            var fontResource = IoCManager.Resolve<IResourceCache>().GetResource<FontResource>(Path);
+            _font = new VectorFont(fontResource, Size);
 
+            return _font;
+        }
+    }
     public static implicit operator Robust.Client.Graphics.Font(FontSpecifier fontSpecifier) => fontSpecifier.Font;
 }
 
-[TypeSerializer]
-public sealed class FontSpecifierSerializer : ITypeSerializer<FontSpecifier, MappingDataNode>,
-    ITypeSerializer<FontSpecifier, SequenceDataNode>
+public sealed class StackedFontSpecifier : FontSpecifier
 {
-    public ValidationNode Validate(ISerializationManager serializationManager, MappingDataNode node,
-        IDependencyCollection dependencies, ISerializationContext? context = null)
+    [DataField] public List<FontSpecifier> Specifiers = new();
+    
+    public new Robust.Client.Graphics.Font Font
     {
-        var path = serializationManager.Read<ResPath>(node["font"]);
-        var size = serializationManager.Read<int>(node["size"]);
-
-        if (!dependencies.Resolve<IResourceCache>().TryGetResource<FontResource>(path, out _))
-            return new ErrorNode(node["font"], "Font not found!");
-        if (size <= 0) return new ErrorNode(node["size"], "Size must bigger 0");
-        return new ValidatedMappingNode(new()
+        get
         {
-            {new ValidatedValueNode(new ValueDataNode("font")), new ValidatedValueNode(node["font"])},
-            {new ValidatedValueNode(new ValueDataNode("size")), new ValidatedValueNode(node["size"])}
-        });
-    }
-
-    public FontSpecifier Read(ISerializationManager serializationManager, MappingDataNode node, IDependencyCollection dependencies,
-        SerializationHookContext hookCtx, ISerializationContext? context = null, ISerializationManager.InstantiationDelegate<FontSpecifier>? instanceProvider = null)
-    {
-        var path = serializationManager.Read<ResPath>(node["font"]);
-        var size = serializationManager.Read<int>(node["size"]);
-        if (!dependencies.Resolve<IResourceCache>().TryGetResource<FontResource>(path, out var fontResource))
-            throw new FileNotFoundException($"Font {path} not exist");
-
-        return new FontSpecifier(new VectorFont(fontResource, size));
-    }
-
-    public DataNode Write(ISerializationManager serializationManager, FontSpecifier value, IDependencyCollection dependencies,
-        bool alwaysWrite = false, ISerializationContext? context = null)
-    {
-        throw new NotImplementedException();
-    }
-
-    public ValidationNode Validate(ISerializationManager serializationManager, SequenceDataNode node,
-        IDependencyCollection dependencies, ISerializationContext? context = null)
-    {
-        var list = new List<ValidationNode>();
-        foreach (var dataNode in node)
-        {
-            if (dataNode is not MappingDataNode mappingDataNode)
-                return new ErrorNode(dataNode, "Node is not mappingNode");
-            list.Add(Validate(serializationManager, mappingDataNode, dependencies, context));
+            if (_font != null) return _font;
+            
+            _font = new StackedFont(Specifiers.Select(s => s.Font).ToArray());
+            return _font;
         }
-
-        return new ValidatedSequenceNode(list);
-    }
-
-    public FontSpecifier Read(ISerializationManager serializationManager, SequenceDataNode node,
-        IDependencyCollection dependencies, SerializationHookContext hookCtx, ISerializationContext? context = null, ISerializationManager.InstantiationDelegate<FontSpecifier>? instanceProvider = null)
-    {
-        var fontList = new List<Robust.Client.Graphics.Font>();
-        foreach (var dataNode in node)
-        {
-            var specifier = serializationManager.Read<FontSpecifier?>(dataNode);
-            if (specifier is null) throw new NullNotAllowedException();
-            fontList.Add(specifier.Font);
-        }
-
-        return new FontSpecifier(new StackedFont(fontList.ToArray()));
     }
 }

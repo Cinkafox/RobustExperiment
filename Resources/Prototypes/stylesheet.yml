@@ -1,16 +1,123 @@
-﻿- type: styleSheet
+﻿- type: dynamicValue
+  id: notoSansFont12
+  valueType: Content.Client.Font.FontSpecifier
+  value:
+    font: "/Fonts/Minecraft/minecraft.ttf"
+    size: 12
+  
+- type: dynamicValue
+  id: notoSansMono12
+  valueType: Content.Client.Font.FontSpecifier
+  value:
+    font: "/Fonts/Minecraft/minecraft.ttf"
+    size: 12
+    
+    
+- type: dynamicValue
+  id: scrollBarNormal
+  valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+  value:
+    backgroundColor: "#80808059"
+    contentMarginLeftOverride: 10
+    contentMarginTopOverride: 10
+    
+- type: dynamicValue
+  id: scrollBarHovered
+  valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+  value:
+    backgroundColor: "#8C8C8C59"
+    contentMarginLeftOverride: 10
+    contentMarginTopOverride: 10
+    
+- type: dynamicValue
+  id: scrollBarGrabbed
+  valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+  value:
+    backgroundColor: "#8C8C8C59"
+    contentMarginLeftOverride: 10
+    contentMarginTopOverride: 10
+    
+- type: styleSheet
   id: default
   styles:
-    ContainerButton.button:
-        - key: stylebox
+    "*.monospace":
+      - key: font
+        value: #notoSansMono12
+          valueType: Content.Client.Font.FontSpecifier
           value:
-            valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
-            value:
-              backgroundColor: "#aaaaaa"
-              borderColor: "#ffffff"
-              borderThickness: 210,210,210,210
-              
-            
-- font:
-    - font: ""
-      size: 12
+            font: "/Fonts/Minecraft/minecraft.ttf"
+            size: 12
+    "*":
+      - key: font
+        value: #notoSansFont12
+          valueType: Content.Client.Font.FontSpecifier
+          value:
+            font: "/Fonts/Minecraft/minecraft.ttf"
+            size: 12
+      - key: font-color
+        value: "#333333"
+    WindowRoot:
+      - key: background
+        value: "#222222"
+    VScrollBar:
+      - key: grabber
+        value: #scrollBarNormal
+          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+          value:
+            backgroundColor: "#80808059"
+            contentMarginLeftOverride: 10
+            contentMarginTopOverride: 10
+    VScrollBar#hover:
+      - key: grabber
+        value: #scrollBarHovered
+          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+          value:
+            backgroundColor: "#8C8C8C59"
+            contentMarginLeftOverride: 10
+            contentMarginTopOverride: 10
+    VScrollBar#grabbed:
+      - key: grabber
+        value: #scrollBarGrabbed
+          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+          value:
+            backgroundColor: "#8C8C8C59"
+            contentMarginLeftOverride: 10
+            contentMarginTopOverride: 10
+    HScrollBar:
+      - key: grabber
+        value: #scrollBarNormal
+          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+          value:
+            backgroundColor: "#80808059"
+            contentMarginLeftOverride: 10
+            contentMarginTopOverride: 10
+    HScrollBar#hover:
+      - key: grabber
+        value: #scrollBarHovered
+          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+          value:
+            backgroundColor: "#8C8C8C59"
+            contentMarginLeftOverride: 10
+            contentMarginTopOverride: 10
+    HScrollBar#grabbed:
+      - key: grabber
+        value: #scrollBarGrabbed
+          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+          value:
+            backgroundColor: "#8C8C8C59"
+            contentMarginLeftOverride: 10
+            contentMarginTopOverride: 10
+    "*.windowPanel":
+      - key: panel
+        value:
+          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+          value:
+            backgroundColor: "#aaaaaa"
+            borderColor: "#ffffff"
+      - key: header
+        value:
+          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+          value:
+            backgroundColor: "#aaaaaa"
+            borderColor: "#ffffff"
+            padding: 10,10,10,10
