@@ -60,11 +60,7 @@ public sealed class DynamicValueSerializer : ITypeSerializer<DynamicValue, Mappi
             var color = serializationManager.Read<Color>(node);
             return new DynamicValue("Color", color);
         }
-        
-        if (!dependencies.Resolve<IPrototypeManager>()
-                .TryIndex<DynamicValuePrototype>(value, out var prototype))
-            throw new UnknownPrototypeException($"proto {value} not found!", typeof(DynamicValuePrototype));
-            
-        return prototype;
+
+        return new LazyDynamicValue(serializationManager.Read<ProtoId<DynamicValuePrototype>>(node));
     }
 }

@@ -8,24 +8,9 @@ public sealed class StyleSheetPrototype : IPrototype
 {
     [IdDataField]
     public string ID { get; private set; } = default!;
+
+    [DataField] public ProtoId<StyleSheetPrototype>? Parent;
     
-    [DataField] public Dictionary<string, List<StyleProt>> Styles = new();
+    [DataField] public Dictionary<string, Dictionary<string,DynamicValue>> Styles = new();
+    [DataField] public Dictionary<string, string> TypeDefinition = new();
 }
-
-[DataDefinition, Serializable]
-public sealed partial class StyleProt
-{
-    [DataField] public StyleAct Act = StyleAct.Prop;
-    [DataField] public DynamicValue Value;
-    [DataField] public string Key = string.Empty;
-}
-
-
-public enum StyleAct
-{
-    Prop,
-    Class,
-    Pseudo,
-    Identifier
-}
-

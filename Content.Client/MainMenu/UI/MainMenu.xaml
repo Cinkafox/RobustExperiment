@@ -11,12 +11,16 @@
        <BoxContainer Name="MainContainer">
            <BoxContainer Orientation="Horizontal" Margin="15 200 15 15">
                <BoxContainer Orientation="Vertical">
-                   <helper:ExposedRichTextLabel Name="MenuLabel" Margin="0 15 0 30" Text="{Loc 'menu-label'}"/>
-                   <BoxContainer Orientation="Vertical" SetWidth="200" HorizontalAlignment="Left" Name="ButtonContainer">
-                       <Button Text="{Loc 'menu-play'}"        Margin="0 15 0 0" Name="PlayButton" StyleClasses="Fuck"/>
-                       <Button Text="{Loc 'menu-config'}"      Margin="0 15 0 0" Name="Config"/>
-                       <Button Text="{Loc 'menu-exit'}"        Margin="0 15 0 0" Name="Exit"/>
-                   </BoxContainer>
+                   <PanelContainer StyleClasses="dreamPanel">
+                       <BoxContainer Orientation="Vertical">
+                           <helper:ExposedRichTextLabel Name="MenuLabel" Margin="0 15 0 30" Text="{Loc 'menu-label'}"/>
+                           <BoxContainer Orientation="Vertical" SetWidth="200" HorizontalAlignment="Left" Name="ButtonContainer">
+                               <Button Text="{Loc 'menu-play'}"        Margin="0 15 0 0" Name="PlayButton" StyleClasses="Fuck"/>
+                               <Button Text="{Loc 'menu-config'}"      Margin="0 15 0 0" Name="Config"/>
+                               <Button Text="{Loc 'menu-exit'}"        Margin="0 15 0 0" Name="Exit"/>
+                           </BoxContainer>
+                       </BoxContainer>
+                   </PanelContainer>
                </BoxContainer>
            </BoxContainer>
        </BoxContainer>

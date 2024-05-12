@@ -5,12 +5,22 @@ public partial class DynamicValue
 {
     public static string ReadByPrototypeCommand = "readByPrototype";
     
-    [DataField] public string ValueType = ReadByPrototypeCommand;
-    public object Value;
+    [ViewVariables] private string _valueType = ReadByPrototypeCommand;
+    private object _value = default!;
+
+    public virtual object GetValueObject()
+    {
+        return _value;
+    }
+
+    public virtual string GetValueType()
+    {
+        return _valueType;
+    }
 
     public DynamicValue(string valueType, object value)
     {
-        ValueType = valueType;
-        Value = value;
+        _valueType = valueType;
+        _value = value;
     }
 }

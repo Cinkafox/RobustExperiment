@@ -1,4 +1,6 @@
-﻿using Content.Shared.IoC;
+﻿using Content.Client.Font;
+using Content.Client.StyleSheet.Dynamic;
+using Content.Shared.IoC;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
@@ -7,6 +9,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Reflection;
 using Robust.Shared.Serialization.Manager;
 using Robust.Shared.Serialization.Markdown;
+using Robust.Shared.Utility;
 using static Robust.Client.UserInterface.StylesheetHelpers;
 
 namespace Content.Client.StyleSheet;
@@ -18,6 +21,7 @@ public sealed class StyleSheetManager : IPostInitializeBehavior
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
     [Dependency] private readonly ISerializationManager _serializationManager = default!;
+    [Dependency] private readonly IResourceCache _resourceCache = default!;
 
     public void ApplySheet(string prototype)
     {
@@ -28,67 +32,102 @@ public sealed class StyleSheetManager : IPostInitializeBehavior
 
     public void ApplySheet(StyleSheetPrototype stylePrototype)
     {
-        var styleRule = new List<StyleRule>();
+        _userInterfaceManager.Stylesheet = new Stylesheet(GetRules(stylePrototype));
+        DebSomeShit(GetRules(stylePrototype));
+    }
+
+    public List<StyleRule> GetRules(StyleSheetPrototype stylePrototype)
+    {
+        List<StyleRule> styleRule;
         
-        //styleRule.AddRange(_userInterfaceManager.Stylesheet!.Rules);
+        if (stylePrototype.Parent is not null && _prototypeManager.TryIndex(stylePrototype.Parent, out var parentProto))
+            styleRule = GetRules(parentProto);
+        else
+            styleRule = new List<StyleRule>();
         
         foreach (var (elementPath, value) in stylePrototype.Styles)
         {
-            var element = GetElement(elementPath);
-            foreach (var styleProt in value)
+            var element = GetElement(elementPath, stylePrototype);
+            foreach (var (key,dynamicValue) in value)
             {
-                switch (styleProt.Act)
-                {
-                    case StyleAct.Prop:
-                        Logger.Debug("PROP " + styleProt.Value.Value.GetType().FullName);
-                        element.Prop(styleProt.Key, styleProt.Value.Value);
-                        break;
-                    case StyleAct.Class:
-                        element.Class(styleProt.Key);
-                        break;
-                    case StyleAct.Pseudo:
-                        element.Pseudo(styleProt.Key);
-                        break;
-                    case StyleAct.Identifier:
-                        element.Identifier(styleProt.Key);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                element.Prop(key, dynamicValue.GetValueObject());
             }
             
             styleRule.Add(element);
         }
-        
-        _userInterfaceManager.Stylesheet = new Stylesheet(styleRule);
+
+        return styleRule;
     }
     
-    public MutableSelectorElement GetElement(string type)
+    public MutableSelectorElement GetElement(string type,StyleSheetPrototype prototype)
     {
-        var sp1 = type.Split("#");
-        var tar = sp1[0];
+        var pseudoSeparator = type.Split("#");
         
-        var splited = tar.Split(".");
+        var classSeparator = pseudoSeparator[0].Split(".");
+        var definedType = classSeparator[0];
         var element = new MutableSelectorElement();
-        
-        if (splited[0] != "*")
-            element.Type = _reflectionManager.GetType(splited[0]);
 
-        var a = splited[0];
+        if (definedType != "*" && !string.IsNullOrEmpty(definedType))
+        {
+            if (prototype.TypeDefinition.TryGetValue(definedType, out var definition))
+            {
+                definedType = definition;
+            }
+            
+            element.Type = _reflectionManager.GetType(definedType);
+        }
+        Logger.Debug(element.Type?.FullName + " ASS?? " + definedType);
         
-        for (var i = 1; i < splited.Length; i++)
+        
+        for (var i = 1; i < classSeparator.Length; i++)
         {
-            element.Class(splited[i]);
-            a += "." + splited[i];
+            element.Class(classSeparator[i]);
         }
-        for (var i = 1; i < sp1.Length; i++)
+        for (var i = 1; i < pseudoSeparator.Length; i++)
         {
-            element.Pseudo(sp1[i]);
-            a += "#" + sp1[i];
+            element.Pseudo(pseudoSeparator[i]);
         }
-        Logger.Debug(a);
         
         return element;
+    }
+
+    public void DebSomeShit(List<StyleRule> rules)
+    {
+        Logger.Debug("DEBUGING STYLE:");
+        foreach (var rule in rules)
+        {
+            Logger.Debug($"  PROPERTIES:");
+            foreach (var prop in rule.Properties)
+            {
+                Logger.Debug($"   - NAME:{prop.Name} TYPE:{prop.Value.GetType().FullName}");
+            }
+            Logger.Debug($"  SPECIFICITY: CS:{rule.Specificity.ClassSelectors} ID:{rule.Specificity.IdSelectors} TYPE:{rule.Specificity.TypeSelectors}");
+            Logger.Debug($"  TYPE OF SHIT:{rule.Selector.GetType()}");
+            if (rule.Selector is SelectorElement selector)
+            {
+                Logger.Debug($"  SELECTOR: {selector.ElementId} {selector.ElementType?.FullName}");
+
+                if(selector.ElementClasses is not null)
+                {
+                    Logger.Debug("  ELEMENT CLASSES:");
+                    foreach (var classes in selector.ElementClasses)
+                    {
+                        Logger.Debug($"    - {classes}");
+                    }
+                }
+                
+                if(selector.PseudoClasses is not null)
+                {
+                    Logger.Debug("  ELEMENT PSEUDO:");
+                    foreach (var classes in selector.PseudoClasses)
+                    {
+                        Logger.Debug($"    - {classes}");
+                    }
+                }
+            }
+            Logger.Debug("_______________________________________________");
+        }
+        
     }
 
     public void PostInitialize()

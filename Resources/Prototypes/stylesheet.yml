@@ -1,123 +1,98 @@
 ﻿- type: dynamicValue
   id: notoSansFont12
-  valueType: Content.Client.Font.FontSpecifier
   value:
-    font: "/Fonts/Minecraft/minecraft.ttf"
-    size: 12
+    valueType: Content.Client.Font.FontSpecifier
+    value:
+      font: "/Fonts/Minecraft/minecraft.ttf"
+      size: 12
   
 - type: dynamicValue
   id: notoSansMono12
-  valueType: Content.Client.Font.FontSpecifier
   value:
-    font: "/Fonts/Minecraft/minecraft.ttf"
-    size: 12
-    
+    valueType: Content.Client.Font.FontSpecifier
+    value:
+      font: "/Fonts/Minecraft/minecraft.ttf"
+      size: 12
     
 - type: dynamicValue
   id: scrollBarNormal
-  valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
   value:
-    backgroundColor: "#80808059"
-    contentMarginLeftOverride: 10
-    contentMarginTopOverride: 10
+    valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+    value:
+      backgroundColor: "#80808059"
+      contentMarginLeftOverride: 10
+      contentMarginTopOverride: 10
     
 - type: dynamicValue
   id: scrollBarHovered
-  valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
   value:
-    backgroundColor: "#8C8C8C59"
-    contentMarginLeftOverride: 10
-    contentMarginTopOverride: 10
+    valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+    value:
+      backgroundColor: "#8C8C8C59"
+      contentMarginLeftOverride: 10
+      contentMarginTopOverride: 10
     
 - type: dynamicValue
   id: scrollBarGrabbed
-  valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
   value:
-    backgroundColor: "#8C8C8C59"
-    contentMarginLeftOverride: 10
-    contentMarginTopOverride: 10
+    valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+    value:
+      backgroundColor: "#8C8C8C59"
+      contentMarginLeftOverride: 10
+      contentMarginTopOverride: 10
     
 - type: styleSheet
   id: default
+  typeDefinition:
+    ContainerButton: "Robust.Client.UserInterface.Controls.ContainerButton"
   styles:
-    "*.monospace":
-      - key: font
-        value: #notoSansMono12
-          valueType: Content.Client.Font.FontSpecifier
-          value:
-            font: "/Fonts/Minecraft/minecraft.ttf"
-            size: 12
-    "*":
-      - key: font
-        value: #notoSansFont12
-          valueType: Content.Client.Font.FontSpecifier
-          value:
-            font: "/Fonts/Minecraft/minecraft.ttf"
-            size: 12
-      - key: font-color
-        value: "#333333"
-    WindowRoot:
-      - key: background
-        value: "#222222"
-    VScrollBar:
-      - key: grabber
-        value: #scrollBarNormal
-          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
-          value:
-            backgroundColor: "#80808059"
-            contentMarginLeftOverride: 10
-            contentMarginTopOverride: 10
-    VScrollBar#hover:
-      - key: grabber
-        value: #scrollBarHovered
-          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
-          value:
-            backgroundColor: "#8C8C8C59"
-            contentMarginLeftOverride: 10
-            contentMarginTopOverride: 10
-    VScrollBar#grabbed:
-      - key: grabber
-        value: #scrollBarGrabbed
-          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
-          value:
-            backgroundColor: "#8C8C8C59"
-            contentMarginLeftOverride: 10
-            contentMarginTopOverride: 10
-    HScrollBar:
-      - key: grabber
-        value: #scrollBarNormal
-          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
-          value:
-            backgroundColor: "#80808059"
-            contentMarginLeftOverride: 10
-            contentMarginTopOverride: 10
-    HScrollBar#hover:
-      - key: grabber
-        value: #scrollBarHovered
-          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
-          value:
-            backgroundColor: "#8C8C8C59"
-            contentMarginLeftOverride: 10
-            contentMarginTopOverride: 10
-    HScrollBar#grabbed:
-      - key: grabber
-        value: #scrollBarGrabbed
-          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
-          value:
-            backgroundColor: "#8C8C8C59"
-            contentMarginLeftOverride: 10
-            contentMarginTopOverride: 10
-    "*.windowPanel":
-      - key: panel
+    ".monospace":
+      font: notoSansMono12
+    "":
+      font: notoSansFont12
+      font-color: "#FFFFFF"
+    ".windowPanel":
+      panel:
+        valueType: Robust.Client.Graphics.StyleBoxFlat
         value:
-          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
-          value:
-            backgroundColor: "#aaaaaa"
-            borderColor: "#ffffff"
-      - key: header
+          backgroundColor: "#aaaaaa"
+          borderColor: "#ffffff"
+      header:
+        valueType: Robust.Client.Graphics.StyleBoxFlat
         value:
-          valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
-          value:
-            backgroundColor: "#aaaaaa"
-            borderColor: "#ffffff"
-            padding: 10,10,10,10
+          backgroundColor: "#aaaaaa"
+          borderColor: "#ffffff"
+          padding: 10,10,10,10
+    ContainerButton.button#normal:
+      stylebox:
+        valueType: Robust.Client.Graphics.StyleBoxFlat
+        value:
+          backgroundColor: "#00000000"
+          borderColor: "#ffffff"
+          borderThickness: 2,2,2,2
+          contentMarginBottomOverride: 8
+          contentMarginLeftOverride: 8
+          contentMarginRightOverride: 8
+          contentMarginTopOverride: 8
+    ContainerButton.button#hover:
+      stylebox:
+        valueType: Robust.Client.Graphics.StyleBoxFlat
+        value:
+          backgroundColor: "#00000000"
+          borderColor: "#ffffff"
+          borderThickness: 2,2,2,2
+          contentMarginBottomOverride: 8
+          contentMarginLeftOverride: 14
+          contentMarginRightOverride: 10
+          contentMarginTopOverride: 8
+    .dreamPanel:
+      panel:
+        valueType: Robust.Client.Graphics.StyleBoxFlat
+        value:
+          backgroundColor: "#222222"
+          borderColor: "#444444"
+          borderThickness: 2,2,2,2
+          contentMarginBottomOverride: 8
+          contentMarginLeftOverride: 8
+          contentMarginRightOverride: 8
+          contentMarginTopOverride: 8
