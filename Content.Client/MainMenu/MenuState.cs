@@ -1,19 +1,10 @@
-﻿using Robust.Client.State;
-using Robust.Client.UserInterface;
+﻿using Content.Client.UI;
 
 namespace Content.Client.MainMenu;
-
-public sealed class MenuState : State
+public sealed class MenuState : UIState<UI.MainMenu>
 {
-    [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
-    
-    protected override void Startup()
+    protected override void UIStartup()
     {
-        _userInterfaceManager.LoadScreen<UI.MainMenu>();
-    }
-
-    protected override void Shutdown()
-    {
-        _userInterfaceManager.UnloadScreen();
+        Logger.Debug("Hello from menu");
     }
 }

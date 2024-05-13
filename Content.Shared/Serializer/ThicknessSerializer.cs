@@ -7,7 +7,7 @@ using Robust.Shared.Serialization.Markdown.Value;
 using Robust.Shared.Serialization.TypeSerializers.Interfaces;
 using Robust.Shared.Utility;
 
-namespace Content.Client.Serializer;
+namespace Content.Shared.Serializer;
 
 [TypeSerializer]
 public sealed class ThicknessSerializer : ITypeSerializer<Thickness, ValueDataNode>, ITypeCopyCreator<Thickness>

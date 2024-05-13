@@ -1,4 +1,4 @@
-﻿namespace Content.Client.StyleSheet.Dynamic;
+﻿namespace Content.Shared.Dynamic;
 
 [DataDefinition, Serializable, Virtual]
 public partial class DynamicValue

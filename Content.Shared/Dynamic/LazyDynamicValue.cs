@@ -1,9 +1,6 @@
 ﻿using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization.Manager;
-using Robust.Shared.Serialization.Markdown;
-using Robust.Shared.Serialization.Markdown.Value;
 
-namespace Content.Client.StyleSheet.Dynamic;
+namespace Content.Shared.Dynamic;
 
 [DataDefinition, Serializable]
 public sealed partial class LazyDynamicValue : DynamicValue

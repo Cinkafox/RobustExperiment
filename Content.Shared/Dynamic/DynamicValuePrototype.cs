@@ -1,6 +1,6 @@
 ﻿using Robust.Shared.Prototypes;
 
-namespace Content.Client.StyleSheet.Dynamic;
+namespace Content.Shared.Dynamic;
 
 [Prototype("dynamicValue")]
 public sealed class DynamicValuePrototype: IPrototype

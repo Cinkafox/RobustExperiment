@@ -11,22 +11,17 @@ public sealed class EntryPoint : GameClient
 {
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
     [Dependency] private readonly IStateManager _stateManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private readonly StyleSheetManager _styleSheetManager = default!;
     
     public override void PreInit()
     {
         IoCManager.InjectDependencies(this);
     }
-
-    public override void Init()
-    {
-        
-    }
-
+    
     public override void PostInit()
     {
         _userInterfaceManager.SetDefaultTheme("DefaultTheme");
-        IoCManager.Resolve<StyleSheetManager>().ApplySheet("default");
+        _styleSheetManager.ApplySheet("default");
         _stateManager.RequestStateChange<MenuState>();
     }
 }

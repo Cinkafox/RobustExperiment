@@ -1,5 +1,4 @@
 ﻿using Robust.Shared.Prototypes;
-using Robust.Shared.Reflection;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.Manager;
 using Robust.Shared.Serialization.Markdown;
@@ -8,7 +7,7 @@ using Robust.Shared.Serialization.Markdown.Validation;
 using Robust.Shared.Serialization.Markdown.Value;
 using Robust.Shared.Serialization.TypeSerializers.Interfaces;
 
-namespace Content.Client.StyleSheet.Dynamic;
+namespace Content.Shared.Dynamic;
 
 [TypeSerializer]
 public sealed class DynamicValueSerializer : ITypeSerializer<DynamicValue, MappingDataNode>, ITypeSerializer<DynamicValue, ValueDataNode>
@@ -27,8 +26,6 @@ public sealed class DynamicValueSerializer : ITypeSerializer<DynamicValue, Mappi
 
         if (valueType.Value == DynamicValue.ReadByPrototypeCommand)
             return serializationManager.Read<DynamicValue?>(value) ?? throw new InvalidOperationException();
-        
-        dependencies.Resolve<ILogManager>().GetSawmill("DynShit").Debug($"FFUCKING SHIT MEOWS ON ME {valueType.Value} {typeof(Color).FullName}");
         
         var type = serializationManager.Read<Type?>(valueType);
         if (type is null)
