@@ -1,7 +1,7 @@
 ﻿using Robust.Client.State;
 using Robust.Client.UserInterface;
 
-namespace Content.Client.UI;
+namespace Content.Client.UserInterface;
 
 public abstract class UIState<T> : State where T : UIScreen, new()
 {

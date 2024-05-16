@@ -1,19 +1,19 @@
 ﻿<ui:MainMenu 
      xmlns="https://spacestation14.io"
      xmlns:ui="clr-namespace:Content.Client.MainMenu.UI"
-     xmlns:helper="clr-namespace:Content.Client.AnimationHelper">
-    <helper:AnchorPreset LayoutPreset="Wide">
+     xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls">
+    <controls:AnchorControl LayoutPreset="Wide">
         <TextureRect Access="Public" VerticalExpand="True" HorizontalExpand="True" Name="Background"
                      Stretch="KeepAspectCovered" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TexturePath="/Textures/Logo/logo.png"/>
-    </helper:AnchorPreset>
+    </controls:AnchorControl>
     
-   <helper:AnchorPreset LayoutPreset="Wide">
+   <controls:AnchorControl LayoutPreset="Wide">
        <BoxContainer Name="MainContainer">
            <BoxContainer Orientation="Horizontal" Margin="15 200 15 15">
                <BoxContainer Orientation="Vertical">
                    <PanelContainer StyleClasses="dreamPanel">
                        <BoxContainer Orientation="Vertical">
-                           <helper:ExposedRichTextLabel Name="MenuLabel" Margin="0 15 0 30" Text="{Loc 'menu-label'}"/>
+                           <controls:ExposedRichTextLabel Name="MenuLabel" Margin="0 15 0 30" Text="{Loc 'menu-label'}"/>
                            <BoxContainer Orientation="Vertical" SetWidth="200" HorizontalAlignment="Left" Name="ButtonContainer">
                                <Button Text="{Loc 'menu-play'}"        Margin="0 15 0 0" Name="PlayButton" StyleClasses="Fuck"/>
                                <Button Text="{Loc 'menu-config'}"      Margin="0 15 0 0" Name="Config"/>
@@ -24,5 +24,5 @@
                </BoxContainer>
            </BoxContainer>
        </BoxContainer>
-   </helper:AnchorPreset>
+   </controls:AnchorControl>
 </ui:MainMenu>

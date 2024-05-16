@@ -12,34 +12,34 @@ public sealed class StyleSheetManager
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
 
-    public void ApplySheet(string prototype)
+    public void ApplyStyleSheet(string prototype)
     {
         if(!_prototypeManager.TryIndex<StyleSheetPrototype>(prototype,out var proto))
             return;
         
-        ApplySheet(proto);
+        ApplyStyleSheet(proto);
     }
 
-    public void ApplySheet(StyleSheetPrototype stylePrototype)
+    public void ApplyStyleSheet(StyleSheetPrototype stylePrototype)
     {
-        _userInterfaceManager.Stylesheet = new Stylesheet(GetRules(stylePrototype));
+        _userInterfaceManager.Stylesheet = new Stylesheet(GetStyleRules(stylePrototype));
     }
 
-    public IEnumerable<StyleRule> GetRules(ProtoId<StyleSheetPrototype> protoId)
+    public IEnumerable<StyleRule> GetStyleRules(ProtoId<StyleSheetPrototype> protoId)
     {
         if (!_prototypeManager.TryIndex(protoId, out var prototype))
             throw new Exception($"{protoId} not exist!");
         
-        return GetRules(prototype);
+        return GetStyleRules(prototype);
     }
 
-    public List<StyleRule> GetRules(StyleSheetPrototype stylePrototype)
+    public List<StyleRule> GetStyleRules(StyleSheetPrototype stylePrototype)
     {
         var styleRule = new List<StyleRule>();
 
         foreach (var parent in stylePrototype.Parents)
         {
-            styleRule.AddRange(GetRules(parent));
+            styleRule.AddRange(GetStyleRules(parent));
         }
         
         foreach (var (elementPath, value) in stylePrototype.Styles)

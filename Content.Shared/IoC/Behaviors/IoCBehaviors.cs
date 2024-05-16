@@ -2,27 +2,27 @@
 
 public sealed class IoCBehaviors : IIoCBehaviors
 {
-    public List<(Type interfaceType, Type implementation)> behaviors = new();
-    public Dictionary<Type, IoCBehavior> objbeh = new();
+    public readonly List<(Type interfaceType, Type implementation)> Behaviors = new();
+    public readonly Dictionary<Type, IoCBehavior> ResolvedBehaviors = new();
 
     public void AddBehavior((Type interfaceType, Type implementation) b)
     {
-        behaviors.Add(b);
+        Behaviors.Add(b);
     }
 
     public void Resolve()
     {
-        foreach (var (interfaceType, implementation)  in behaviors)
+        foreach (var (interfaceType, implementation) in Behaviors)
         {
             var obj = IoCManager.ResolveType(interfaceType);
             foreach (var behavior in implementation.GetInterfaces())
             {
-                if (!objbeh.TryGetValue(behavior, out var ioCBehavior))
+                if (!ResolvedBehaviors.TryGetValue(behavior, out var ioCBehavior))
                 {
                     ioCBehavior = new IoCBehavior(behavior);
-                    objbeh.Add(behavior, ioCBehavior);
+                    ResolvedBehaviors.Add(behavior, ioCBehavior);
                 }
-
+                
                 ioCBehavior.Add(obj);
             }
         }
@@ -30,9 +30,8 @@ public sealed class IoCBehaviors : IIoCBehaviors
 
     public void Initialize<T>()
     {
-        if (objbeh.TryGetValue(typeof(T), out var value))
+        if (ResolvedBehaviors.TryGetValue(typeof(T), out var value))
         {
-            IoCManager.InjectDependencies(value);
             value.Initialize();
         }
     }

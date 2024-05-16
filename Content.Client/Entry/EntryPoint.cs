@@ -21,7 +21,7 @@ public sealed class EntryPoint : GameClient
     public override void PostInit()
     {
         _userInterfaceManager.SetDefaultTheme("DefaultTheme");
-        _styleSheetManager.ApplySheet("default");
+        _styleSheetManager.ApplyStyleSheet("default");
         _stateManager.RequestStateChange<MenuState>();
     }
 }

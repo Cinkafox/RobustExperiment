@@ -1,16 +1,13 @@
 ﻿using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Utility;
 
-namespace Content.Client.AnimationHelper;
+namespace Content.Client.UserInterface.Controls;
 
 public sealed class ExposedRichTextLabel : RichTextLabel
 {
     public string? Text
     {
-        get
-        {
-            return GetMessage();
-        }
+        get => GetMessage();
         set
         {
             var m = new FormattedMessage();

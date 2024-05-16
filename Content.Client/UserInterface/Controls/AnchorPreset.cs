@@ -1,11 +1,10 @@
 ﻿using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 
-namespace Content.Client.AnimationHelper;
+namespace Content.Client.UserInterface.Controls;
 
-public sealed class AnchorPreset : Control
+public sealed class AnchorControl : Control
 {
-
     private LayoutContainer.LayoutPreset _layoutPreset;
     public LayoutContainer.LayoutPreset LayoutPreset { get => _layoutPreset;
         set

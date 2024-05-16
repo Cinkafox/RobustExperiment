@@ -1,11 +1,9 @@
-﻿using JetBrains.Annotations;
-using Robust.Client.Graphics;
+﻿using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Utility;
 
 namespace Content.Client.Resources;
 
-[PublicAPI]
 public static class ResourceCacheExtensions
 {
     public static Texture GetTexture(this IResourceCache cache, ResPath path)

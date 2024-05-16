@@ -1,4 +1,4 @@
-﻿using Content.Client.UI;
+﻿using Content.Client.UserInterface;
 
 namespace Content.Client.MainMenu;
 public sealed class MenuState : UIState<UI.MainMenu>

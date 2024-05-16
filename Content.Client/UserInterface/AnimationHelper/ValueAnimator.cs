@@ -3,7 +3,7 @@ using Robust.Client.Animations;
 using Robust.Client.UserInterface;
 using Robust.Shared.Animations;
 
-namespace Content.Client.AnimationHelper;
+namespace Content.Client.UserInterface.AnimationHelper;
 
 public sealed class ValueAnimator<T> : Control 
 {
