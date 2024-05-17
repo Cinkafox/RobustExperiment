@@ -1,10 +1,10 @@
 ﻿<ui:MainMenu 
      xmlns="https://spacestation14.io"
      xmlns:ui="clr-namespace:Content.Client.MainMenu.UI"
-     xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls">
+     xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+     xmlns:viewport="clr-namespace:Content.Client.Viewport">
     <controls:AnchorControl LayoutPreset="Wide">
-        <TextureRect Access="Public" VerticalExpand="True" HorizontalExpand="True" Name="Background"
-                     Stretch="KeepAspectCovered" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TexturePath="/Textures/Logo/logo.png"/>
+        <viewport:GameViewport/>
     </controls:AnchorControl>
     
    <controls:AnchorControl LayoutPreset="Wide">
