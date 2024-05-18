@@ -62,17 +62,8 @@ public sealed class GameViewport : Control
         
     };
 
-    private int ticked = 0;
-
     protected override void Draw(DrawingHandleScreen handle)
     {
-        ticked = (ticked + 1) % 32;
-        if (ticked == 0)
-        {
-            
-        }
-        
-        
         var drawHandle = new DrawingHandle3d(handle,Width,Height);
 
         if(CurrentTransform != null)
@@ -109,6 +100,8 @@ public sealed class GameViewport : Control
 
 public sealed class DrawingHandle3d
 {
+    public bool Debug = false;
+    
     public DrawingHandleBase HandleBase;
 
     public float Width;
@@ -158,7 +151,6 @@ public sealed class DrawingHandle3d
         var cameraToVertex = triangle.p1.Position ;
 
         var dotProduct = Vector3.Dot(normal, cameraToVertex);
-        //Logger.Debug(dotProduct + " " + normal + " " + cameraToVertex);
         if(dotProduct >= 0) return;
             
         ProjectedMesh.Add(triangle);
@@ -168,10 +160,10 @@ public sealed class DrawingHandle3d
     {
         foreach (var triangle in ProjectedMesh)
         {
-            //HandleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop,ToScreen(triangle).Select(a => a.Position).ToArray(),Color.White);
-            
-            //continue;
-            HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,triangle.Texture, ToScreen(triangle));
+            if(Debug)
+                HandleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop,ToScreen(triangle).Select(a => a.Position).ToArray(),Color.White);
+            else
+                HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,triangle.Texture, ToScreen(triangle));
         }
     }
 
