@@ -1,11 +1,12 @@
-﻿using System.Linq;
-using System.Numerics;
+﻿using Content.Client.DimensionEnv.ObjRes;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
+using Robust.Shared.Input;
+using Robust.Shared.Input.Binding;
+using Robust.Shared.Player;
 using Vector3 = Robust.Shared.Maths.Vector3;
-using Vector4 = Robust.Shared.Maths.Vector4;
 
 namespace Content.Client.Viewport;
 
@@ -18,219 +19,78 @@ public sealed class GameViewport : Control
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
 
     private Texture _texture;
+    private Mesh _mesh;
+    private SaObject _sa;
 
     public GameViewport()
     {
         IoCManager.InjectDependencies(this);
         RectClipContent = true;
+        
         _texture = _resourceCache.GetResource<TextureResource>("/Textures/fat-gorilla.png").Texture;
+        _mesh = _resourceCache.GetResource<ObjResource>("/Models/teapot/teapot.obj").Mesh;
+        _sa = new SaObject(_mesh, _texture);
+        _inputManager.SetInputCommand(EngineKeyFunctions.MoveUp, new CameraMoverInputHandler(() =>
+        {
+            CameraProperties.Angle += new Angle3d(0, 0.1, 0);
+            Logger.Debug(CameraProperties.CameraDirection + "<<");
+        }));
+        
+        _inputManager.SetInputCommand(EngineKeyFunctions.MoveDown, new CameraMoverInputHandler(() =>
+        {
+            CameraProperties.Angle += new Angle3d(0, -0.1, 0);
+            Logger.Debug(CameraProperties.CameraDirection + "<<");
+        }));
+        
+        _inputManager.SetInputCommand(EngineKeyFunctions.MoveLeft, new CameraMoverInputHandler(() =>
+        {
+            CameraProperties.Angle += new Angle3d(-0.1, 0, 0);
+            Logger.Debug(CameraProperties.CameraDirection + "<<");
+        }));
+        
+        _inputManager.SetInputCommand(EngineKeyFunctions.MoveRight, new CameraMoverInputHandler(() =>
+        {
+            CameraProperties.Angle += new Angle3d(0.1, 0, 0);
+            Logger.Debug(CameraProperties.CameraDirection + "<<");
+        }));
+        
+        _inputManager.SetInputCommand(EngineKeyFunctions.Use, new CameraMoverInputHandler(() =>
+        {
+            //CameraProperties.Position += CameraProperties.CameraDirection * -3;
+        }));
     }
 
-    public Matrix4? CurrentTransform = Matrix4.CreateRotationX(0.003f) * Matrix4.CreateRotationY(0.001f) * Matrix4.CreateRotationZ(0.002f);
-
-    public DrawVertexUV3D[] Vertexes = new DrawVertexUV3D[]
-    {
-        new DrawVertexUV3D(new Vector3(0,0,0), new Vector2(0,0)),
-        new DrawVertexUV3D(new Vector3(0,1,0), new Vector2(1,0)),
-        new DrawVertexUV3D(new Vector3(1,0,0), new Vector2(0,1)),
-        new DrawVertexUV3D(new Vector3(1,1,0), new Vector2(1,1)),
-        
-        new DrawVertexUV3D(new Vector3(1,0,0), new Vector2(0,0)),
-        new DrawVertexUV3D(new Vector3(1,1,0), new Vector2(1,0)),
-        new DrawVertexUV3D(new Vector3(1,0,1), new Vector2(0,1)),
-        new DrawVertexUV3D(new Vector3(1,1,1), new Vector2(1,1)),
-        
-        new DrawVertexUV3D(new Vector3(1,0,1), new Vector2(0,0)),
-        new DrawVertexUV3D(new Vector3(1,1,1), new Vector2(1,0)),
-        new DrawVertexUV3D(new Vector3(0,0,1), new Vector2(0,1)),
-        new DrawVertexUV3D(new Vector3(0,1,1), new Vector2(1,1)),
-        
-        new DrawVertexUV3D(new Vector3(0,0,1), new Vector2(0,0)),
-        new DrawVertexUV3D(new Vector3(0,1,1), new Vector2(1,0)),
-        new DrawVertexUV3D(new Vector3(0,0,0), new Vector2(0,1)),
-        new DrawVertexUV3D(new Vector3(0,1,0), new Vector2(1,1)),
-        
-        new DrawVertexUV3D(new Vector3(0,1,0), new Vector2(0,0)),
-        new DrawVertexUV3D(new Vector3(0,1,1), new Vector2(1,0)),
-        new DrawVertexUV3D(new Vector3(1,1,0), new Vector2(0,1)),
-        new DrawVertexUV3D(new Vector3(1,1,1), new Vector2(1,1)),
-        
-        new DrawVertexUV3D(new Vector3(1,0,1), new Vector2(0,0)),
-        new DrawVertexUV3D(new Vector3(0,0,1), new Vector2(1,0)),
-        new DrawVertexUV3D(new Vector3(1,0,0), new Vector2(0,1)),
-        new DrawVertexUV3D(new Vector3(0,0,0), new Vector2(1,1)),
-        
-    };
+    public DrawingInstance DrawingInstance = new DrawingInstance();
+    public Matrix4 CurrentTransform = Matrix4.CreateRotationX(0.003f) * Matrix4.CreateRotationY(0.001f) * Matrix4.CreateRotationZ(0.002f);
+    public CameraProperties CameraProperties = new CameraProperties(new Vector3(0, 0, 8), new Angle3d(), 4);
 
     protected override void Draw(DrawingHandleScreen handle)
     {
-        var drawHandle = new DrawingHandle3d(handle,Width,Height);
+        var drawHandle = new DrawingHandle3d(handle,Width,Height, CameraProperties,DrawingInstance);
 
-        if(CurrentTransform != null)
-        {
-            for (int i = Vertexes.Length - 1; i >= 0; i--)
-            {
-                Vertexes[i].Position = Vector3.Transform(Vertexes[i].Position, CurrentTransform.Value);
-            }
-            //CurrentTransform = null;
-        }
+        _sa.Mesh.ApplyTransform(CurrentTransform);
+        _sa.Draw(drawHandle);
         
-        
-        drawHandle.DrawPolygon(new Triangle(Vertexes[0], Vertexes[3], Vertexes[1], _texture));
-        drawHandle.DrawPolygon(new Triangle(Vertexes[0], Vertexes[2], Vertexes[3], _texture));
-        
-        drawHandle.DrawPolygon(new Triangle(Vertexes[4], Vertexes[7], Vertexes[5], _texture));
-        drawHandle.DrawPolygon(new Triangle(Vertexes[4], Vertexes[6], Vertexes[7], _texture));
-         
-        drawHandle.DrawPolygon(new Triangle(Vertexes[8], Vertexes[11], Vertexes[9], _texture));
-        drawHandle.DrawPolygon(new Triangle(Vertexes[8], Vertexes[10], Vertexes[11], _texture));
-         
-        drawHandle.DrawPolygon(new Triangle(Vertexes[12], Vertexes[15], Vertexes[13], _texture));
-        drawHandle.DrawPolygon(new Triangle(Vertexes[12], Vertexes[14], Vertexes[15], _texture));
-         
-        drawHandle.DrawPolygon(new Triangle(Vertexes[16], Vertexes[19], Vertexes[17], _texture));
-        drawHandle.DrawPolygon(new Triangle(Vertexes[16], Vertexes[18], Vertexes[19], _texture));
-        
-        drawHandle.DrawPolygon(new Triangle(Vertexes[20], Vertexes[23], Vertexes[21], _texture));
-        drawHandle.DrawPolygon(new Triangle(Vertexes[20], Vertexes[22], Vertexes[23], _texture));
-        
-        drawHandle.Draw();
+        drawHandle.Flush();
     }
 }
 
-public sealed class DrawingHandle3d
+public sealed class CameraMoverInputHandler : InputCmdHandler
 {
-    public bool Debug = false;
-    
-    public DrawingHandleBase HandleBase;
+    private readonly Action _action;
+    public override bool FireOutsidePrediction { get; } = true;
 
-    public float Width;
-    public float Height;
-    
-    public List<Triangle> ProjectedMesh = new();
-
-    public Vector3 CameraPos = new Vector3(0, 0, 3);
-    
-    public Matrix4 ViewMatrix;
-    public Matrix4 ProjectionMatrix;
-
-    public void Project(ref Triangle triangle)
+    public override void Enabled(ICommonSession? session)
     {
-        triangle.Transform(ViewMatrix);
-        triangle.Transform(ProjectionMatrix);
+        _action();
     }
 
-    public DrawVertexUV2D[] ToScreen(Triangle triangle)
+    public CameraMoverInputHandler(Action act)
     {
-        var dotArray = new DrawVertexUV2D[3];
-        dotArray[0] = ToScreen(triangle.p1);
-        dotArray[1] = ToScreen(triangle.p2);
-        dotArray[2] = ToScreen(triangle.p3);
-
-        return dotArray;
+        _action = act;
     }
-
-    public DrawVertexUV2D ToScreen(DrawVertexUV3D vertex)
+    public override bool HandleCmdMessage(IEntityManager entManager, ICommonSession? session, IFullInputCmdMessage message)
     {
-        var vertex2D = new Vector2(vertex.Position.X / vertex.Position.Z, vertex.Position.Y / vertex.Position.Z);
-        
-        var screenX = (vertex2D.X + 1.0f) * 0.5f * Width;
-        var screenY = (1.0f - vertex2D.Y) * 0.5f * Height;
-        return new DrawVertexUV2D(new Vector2(screenX,screenY), vertex.UV);
-    }
-
-    public void DrawPolygon(Triangle triangle)
-    {
-        Project(ref triangle);
-
-        var normal = triangle.Normal();
-        
-        normal.Normalize();
-        
-
-        var cameraToVertex = triangle.p1.Position ;
-
-        var dotProduct = Vector3.Dot(normal, cameraToVertex);
-        if(dotProduct >= 0) return;
-            
-        ProjectedMesh.Add(triangle);
-    }
-
-    public void Draw()
-    {
-        foreach (var triangle in ProjectedMesh)
-        {
-            if(Debug)
-                HandleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop,ToScreen(triangle).Select(a => a.Position).ToArray(),Color.White);
-            else
-                HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,triangle.Texture, ToScreen(triangle));
-        }
-    }
-
-    public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height)
-    {
-        HandleBase = handleBase;
-        Width = width;
-        Height = height;
-
-        ViewMatrix = Matrix4.LookAt(CameraPos, new Vector3(0.5f,0.5f,0.5f),Vector3.UnitY);
-        ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(
-            MathF.PI / 4.0f, // Field of view
-            Width/Height, // Aspect ratio
-            0.1f, // Near plane
-            100.0f           // Far plane)
-        );
-    }
-}
-
-public struct Triangle
-{
-    public DrawVertexUV3D p1;
-    public DrawVertexUV3D p2;
-    public DrawVertexUV3D p3;
-    public Texture Texture;
-
-    public Triangle(DrawVertexUV3D p1, DrawVertexUV3D p2, DrawVertexUV3D p3, Texture texture)
-    {
-        this.p1 = p1;
-        this.p2 = p2;
-        this.p3 = p3;
-        Texture = texture;
-    }
-
-    public void Transform(Matrix4 matrix4)
-    {
-        p1.Transform(matrix4);
-        p2.Transform(matrix4);
-        p3.Transform(matrix4);
-    }
-
-    public Vector3 Normal()
-    {
-        var u = new Vector3(p2.Position.X - p1.Position.X, p2.Position.Y - p1.Position.Y, p2.Position.Z - p1.Position.Z);
-        var v = new Vector3(p3.Position.X - p1.Position.X, p3.Position.Y - p1.Position.Y, p3.Position.Z - p1.Position.Z);
-
-        float nx = u.Y * v.Z - u.Z * v.Y;
-        float ny = u.Z * v.X - u.X * v.Z;
-        float nz = u.X * v.Y - u.Y * v.X;
-
-        return new Vector3(nx, ny, nz);
-    }
-}
-
-public struct DrawVertexUV3D
-{
-    public Vector3 Position;
-    public Vector2 UV;
-
-    public DrawVertexUV3D(Vector3 position, Vector2 uv)
-    {
-        Position = position;
-        UV = uv;
-    }
-
-    public void Transform(Matrix4 matrix4)
-    {
-        Position = Vector3.Transform(Position, matrix4);
+        return true;
     }
 }
