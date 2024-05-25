@@ -22,75 +22,84 @@ public sealed class GameViewport : Control
     private Mesh _mesh;
     private SaObject _sa;
 
+    private Angle3d CamDicTo;
+    private int CamPosTo;
+
     public GameViewport()
     {
         IoCManager.InjectDependencies(this);
         RectClipContent = true;
         
-        _texture = _resourceCache.GetResource<TextureResource>("/Textures/fat-gorilla.png").Texture;
-        _mesh = _resourceCache.GetResource<ObjResource>("/Models/teapot/teapot.obj").Mesh;
-        _sa = new SaObject(_mesh, _texture);
-        _inputManager.SetInputCommand(EngineKeyFunctions.MoveUp, new CameraMoverInputHandler(() =>
+        _texture = _resourceCache.GetResource<TextureResource>("/Models/tnew/79797c43.png").Texture;
+        _mesh = _resourceCache.GetResource<ObjResource>("/Models/tnew/tardis_2010.obj").Mesh;
+        _sa = new SaObject(_mesh, DrawingInstance.AddTexture(_texture));
+        
+        _inputManager.SetInputCommand(EngineKeyFunctions.MoveLeft, InputCmdHandler.FromDelegate(_ =>
         {
-            CameraProperties.Angle += new Angle3d(0, 0.1, 0);
-            Logger.Debug(CameraProperties.CameraDirection + "<<");
+            CamDicTo += new Angle3d(0, 0.05, 0);
+        }, _ =>
+        {
+            CamDicTo -= new Angle3d(0, 0.05, 0);
         }));
         
-        _inputManager.SetInputCommand(EngineKeyFunctions.MoveDown, new CameraMoverInputHandler(() =>
+        _inputManager.SetInputCommand(EngineKeyFunctions.MoveRight, InputCmdHandler.FromDelegate(_ =>
         {
-            CameraProperties.Angle += new Angle3d(0, -0.1, 0);
-            Logger.Debug(CameraProperties.CameraDirection + "<<");
+            CamDicTo += new Angle3d(0, -0.05, 0);
+        }, _ =>
+        {
+            CamDicTo -= new Angle3d(0, -0.05, 0);
         }));
         
-        _inputManager.SetInputCommand(EngineKeyFunctions.MoveLeft, new CameraMoverInputHandler(() =>
+        _inputManager.SetInputCommand(EngineKeyFunctions.MoveUp, InputCmdHandler.FromDelegate(_ =>
         {
-            CameraProperties.Angle += new Angle3d(-0.1, 0, 0);
-            Logger.Debug(CameraProperties.CameraDirection + "<<");
+            CamPosTo += 1;
+        }, _ =>
+        {
+            CamPosTo -= 1;
         }));
         
-        _inputManager.SetInputCommand(EngineKeyFunctions.MoveRight, new CameraMoverInputHandler(() =>
+        _inputManager.SetInputCommand(EngineKeyFunctions.MoveDown, InputCmdHandler.FromDelegate(_ =>
         {
-            CameraProperties.Angle += new Angle3d(0.1, 0, 0);
-            Logger.Debug(CameraProperties.CameraDirection + "<<");
+            CamPosTo += -1;
+        }, _ =>
+        {
+            CamPosTo -= -1;
         }));
         
-        _inputManager.SetInputCommand(EngineKeyFunctions.Use, new CameraMoverInputHandler(() =>
+        _inputManager.SetInputCommand(EngineKeyFunctions.Walk, InputCmdHandler.FromDelegate(_ =>
         {
-            //CameraProperties.Position += CameraProperties.CameraDirection * -3;
+            CameraProperties.Position += new Vector3(0, 3, 0);
+        }, _ =>
+        {
+            
         }));
     }
-
-    public DrawingInstance DrawingInstance = new DrawingInstance();
-    public Matrix4 CurrentTransform = Matrix4.CreateRotationX(0.003f) * Matrix4.CreateRotationY(0.001f) * Matrix4.CreateRotationZ(0.002f);
+    
+    public readonly DrawingInstance DrawingInstance = new DrawingInstance();
+    
+    public Matrix4 CurrentTransform = Matrix4.CreateRotationX(0.001f) * Matrix4.CreateRotationY(0.001f) * Matrix4.CreateRotationZ(0.002f);
     public CameraProperties CameraProperties = new CameraProperties(new Vector3(0, 0, 8), new Angle3d(), 4);
 
+    private int drawCount;
+
+    private void Update()
+    {
+        Logger.Debug($"TRIANGLES:{DrawingInstance.TriangleBuffer.Length} OF {DrawingInstance.TriangleBuffer.Limit}");
+    }
+    
     protected override void Draw(DrawingHandleScreen handle)
     {
+        drawCount = (drawCount + 1) % 16;
+        
+        CameraProperties.Angle += CamDicTo;
+        CameraProperties.Position += CameraProperties.CameraDirection * CamPosTo * 0.5f;
+        
         var drawHandle = new DrawingHandle3d(handle,Width,Height, CameraProperties,DrawingInstance);
 
         _sa.Mesh.ApplyTransform(CurrentTransform);
         _sa.Draw(drawHandle);
         
+        if(drawCount == 0) Update();
         drawHandle.Flush();
-    }
-}
-
-public sealed class CameraMoverInputHandler : InputCmdHandler
-{
-    private readonly Action _action;
-    public override bool FireOutsidePrediction { get; } = true;
-
-    public override void Enabled(ICommonSession? session)
-    {
-        _action();
-    }
-
-    public CameraMoverInputHandler(Action act)
-    {
-        _action = act;
-    }
-    public override bool HandleCmdMessage(IEntityManager entManager, ICommonSession? session, IFullInputCmdMessage message)
-    {
-        return true;
     }
 }

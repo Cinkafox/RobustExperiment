@@ -23,6 +23,11 @@ public readonly struct Angle3d : IApproxEquatable<Angle3d>, IEquatable<Angle3d>
     {
         return new Angle3d(one.Pitch + two.Pitch, one.Yaw + two.Yaw, one.Roll + two.Roll);
     }
+    
+    public static Angle3d operator -(Angle3d one, Angle3d two)
+    {
+        return new Angle3d(one.Pitch - two.Pitch, one.Yaw - two.Yaw, one.Roll - two.Roll);
+    }
 
     public bool EqualsApprox(Angle3d other)
     {
