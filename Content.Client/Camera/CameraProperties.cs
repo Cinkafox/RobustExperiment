@@ -1,4 +1,6 @@
-﻿namespace Content.Client.Viewport;
+﻿using Content.Client.Utils;
+
+namespace Content.Client.Viewport;
 
 public struct CameraProperties
 {

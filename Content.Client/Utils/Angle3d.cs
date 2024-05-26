@@ -1,6 +1,4 @@
-﻿using Robust.Shared.Utility;
-
-namespace Content.Client.Viewport;
+﻿namespace Content.Client.Utils;
 
 public readonly struct Angle3d : IApproxEquatable<Angle3d>, IEquatable<Angle3d>
 {
