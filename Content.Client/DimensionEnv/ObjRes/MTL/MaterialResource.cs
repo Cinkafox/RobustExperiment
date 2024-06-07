@@ -99,10 +99,10 @@ public sealed class MaterialParser
                 );
                 break;
             case "map_Kd":
-                curr.MapKd = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path / new ResPath(splited[argContent]));
+                curr.MapKd = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / splited[argContent]);
                 break;
             case "map_Ka":
-                curr.MapKa = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path / new ResPath(splited[argContent]));
+                curr.MapKa = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / splited[argContent]);
                 break;
           
         }
@@ -119,8 +119,10 @@ public sealed class MaterialParser
 public sealed class MtlLoadContent : BaseContent
 {
 
+    public Dictionary<string, Material> Materials;
+    
     public MtlLoadContent(string[] args, int count, ResPath path)
     {
-        
+        Materials = IoCManager.Resolve<IResourceCache>().GetResource<MaterialResource>(path / args[count]).Materials;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Content.Client.DimensionEnv.ObjRes.MTL;
 using Content.Client.Utils;
 using Robust.Client.Graphics;
 using Vector4 = Robust.Shared.Maths.Vector4;
@@ -18,16 +19,12 @@ public sealed class DrawingInstance
     public readonly SimpleBuffer<TexturedTriangle> Clipping = new(2);
     
     public readonly SimpleBuffer<Texture> TextureBuffer = new(16);
-
-    public readonly SimpleBuffer<DrawVertexUV2D> VecBuff = new(1024*3);
     
-    public readonly Vector2[] VectorBuffer = new Vector2[3];
     public readonly DrawVertexUV2D[] DrawVertexBuffer = new DrawVertexUV2D[3];
-
-    public readonly SimpleBuffer<Triangle> ClippingBuff = new(32);
 
     public void AppendTriangle(TexturedTriangle texturedTriangle)
     {
+        //TriangleBuffer.Set((int)texturedTriangle.Triangle.p1.Z, texturedTriangle);
         TriangleBuffer.Add(texturedTriangle);
     }
 
@@ -35,6 +32,17 @@ public sealed class DrawingInstance
     {
         TextureBuffer.Add(texture);
         return TextureBuffer.Length - 1;
+    }
+
+    public int AllocTexture(List<Material> materials)
+    {
+        var currLength = TextureBuffer.Length;
+        foreach (var material in materials)
+        {
+            TextureBuffer.Add(material.MapKd!);
+        }
+
+        return currLength;
     }
     
     public void Sort()

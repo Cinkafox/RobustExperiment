@@ -36,6 +36,11 @@ public struct Triangle
         return new Vector3(nx, ny, nz);
     }
 
+    public void Clip(Triangle other)
+    {
+        
+    }
+
     public static void ClipAgainstClip(Vector3 planeP, Vector3 planeN,TexturedTriangle inTri,DrawingInstance drawingInstance)
     {
         planeN.Normalize();

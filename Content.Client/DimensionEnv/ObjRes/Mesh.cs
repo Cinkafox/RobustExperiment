@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Numerics;
 using Content.Client.DimensionEnv.ObjRes.Content;
+using Content.Client.DimensionEnv.ObjRes.MTL;
 using Robust.Shared.Utility;
 using Vector3 = Robust.Shared.Maths.Vector3;
 
@@ -12,6 +13,7 @@ public sealed class Mesh
     public List<Vector3> Normals = new();
     public List<FaceContent> Faces = new();
     public List<Vector2> TextureCoords = new();
+    public List<Material> Materials = new();
     public Matrix4? Transform;
 
     public void ApplyTransform(Matrix4 matrix4)
@@ -26,27 +28,34 @@ public sealed class Mesh
     {
         var mesh = new Mesh();
         var parser = new MeshParser(textReader,path);
+        
+        var currMaterialId = -1;
+        Dictionary<string, Material> materials = default!;
 
         foreach (var content in parser.Contents)
         {
-            if (content is VertexContent vertexContent)
+            switch (content)
             {
-                mesh.Vertexes.Add(vertexContent.Vertex);
-            }
-
-            if (content is FaceContent faceContent)
-            {
-                mesh.Faces.Add(faceContent);
-            }
-
-            if (content is TexturePosContent texturePosContent)
-            {
-                mesh.TextureCoords.Add(texturePosContent.TexturePos);
-            }
-
-            if (content is NormalContent normalContent)
-            {
-                mesh.Normals.Add(normalContent.Normal);
+                case VertexContent vertexContent:
+                    mesh.Vertexes.Add(vertexContent.Vertex);
+                    break;
+                case FaceContent faceContent:
+                    faceContent.MaterialId = currMaterialId;
+                    mesh.Faces.Add(faceContent);
+                    break;
+                case TexturePosContent texturePosContent:
+                    mesh.TextureCoords.Add(texturePosContent.TexturePos);
+                    break;
+                case NormalContent normalContent:
+                    mesh.Normals.Add(normalContent.Normal);
+                    break;
+                case MaterialContent materialContent:
+                    mesh.Materials.Add(materials[materialContent.Material]);
+                    currMaterialId++;
+                    break;
+                case MtlLoadContent mtlLoadContent:
+                    materials = mtlLoadContent.Materials;
+                    break;
             }
         }
         

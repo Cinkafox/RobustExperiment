@@ -55,6 +55,9 @@ public sealed class MeshParser
             case "mtllib":
                 Contents.Add(new MtlLoadContent(splited,argContent, Path));
                 break;
+            case "usemtl":
+                Contents.Add(new MaterialContent(splited, argContent));
+                break;
         }
     }
 }

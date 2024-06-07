@@ -1,4 +1,6 @@
-﻿namespace Content.Client.DimensionEnv.ObjRes.Content;
+﻿using Content.Client.DimensionEnv.ObjRes.MTL;
+
+namespace Content.Client.DimensionEnv.ObjRes.Content;
 
 public sealed class FaceContent : BaseContent
 {
@@ -9,6 +11,8 @@ public sealed class FaceContent : BaseContent
     public bool HasVertex;
     public bool HasTexturePos;
     public bool HasNormal;
+
+    public int MaterialId;
 
     public FaceContent(string[] args, int argStart)
     {

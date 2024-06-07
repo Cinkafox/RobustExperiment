@@ -24,13 +24,6 @@ public sealed class DrawingHandle3d : IDisposable
     public Matrix4 ViewMatrix;
     public Matrix4 ProjectionMatrix;
     
-    public void FlushScreenVec(Triangle triangle)
-    {
-        _drawingInstance.VectorBuffer[0] = ToScreenVec(triangle.p1.Xyz);
-        _drawingInstance.VectorBuffer[1] = ToScreenVec(triangle.p2.Xyz);
-        _drawingInstance.VectorBuffer[2] = ToScreenVec(triangle.p3.Xyz);
-    }
-    
     public Vector2 ToScreenVec(Vector3 vertex)
     {
         var vertex2D = new Vector2(vertex.X / vertex.Z, vertex.Y / vertex.Z);
@@ -52,7 +45,7 @@ public sealed class DrawingHandle3d : IDisposable
         return new DrawVertexUV2D(ToScreenVec(vertex),uvPos);
     }
     
-    public void DrawPolygon(Triangle triangle, Vector2 p1, Vector2 p2, Vector2 p3, int TextureId)
+    public void DrawPolygon(Triangle triangle, Vector2 p1, Vector2 p2, Vector2 p3, int textureId)
     {
         CheckDisposed();
         triangle.Transform(ViewMatrix);
@@ -66,7 +59,7 @@ public sealed class DrawingHandle3d : IDisposable
         
         if(dotProduct >= 0) return;
 
-        var trtex = new TexturedTriangle(triangle, p1, p2, p3, TextureId);
+        var trtex = new TexturedTriangle(triangle, p1, p2, p3, textureId);
 
         Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.1f), new Vector3(0.0f, 0.0f, 1.0f), trtex,
             _drawingInstance);
@@ -171,52 +164,27 @@ public sealed class DrawingHandle3d : IDisposable
         //     }
         // }
 
-        // using (_prof.Group("Handle.Sort"))
-        // {
-        //     _drawingInstance.Sort();
-        // }
+        using (_prof.Group("Handle.Sort")) {
+             //_drawingInstance.Sort();
+        }
 
         using (_prof.Group("Handle.Draw"))
         {
-            var lastTriangleId = _drawingInstance.TriangleBuffer[0].TextureId;
-            
             for (int j = 0; j < _drawingInstance.TriangleBuffer.Length; j++)
             {
                 var triangle = _drawingInstance.TriangleBuffer[j];
                 var texture = _drawingInstance.TextureBuffer[triangle.TextureId];
 
-                if (lastTriangleId == triangle.TextureId && _drawingInstance.VecBuff.Length + 3 <= _drawingInstance.VecBuff.Limit)
-                {
-                    FlushScreen(triangle);
-                    _drawingInstance.VecBuff.Add(_drawingInstance.DrawVertexBuffer[0]);
-                    _drawingInstance.VecBuff.Add(_drawingInstance.DrawVertexBuffer[1]);
-                    _drawingInstance.VecBuff.Add(_drawingInstance.DrawVertexBuffer[2]);
-                }
-                else
-                {
-                    _handleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, _drawingInstance.VecBuff.Buffer);
-                    _drawingInstance.VecBuff.Clear();
-                }
-
-                lastTriangleId = triangle.TextureId;
+                FlushScreen(triangle);
+                _handleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, _drawingInstance.DrawVertexBuffer);
+                
             }
-
-            if (_drawingInstance.VecBuff.Length > 0)
-            {
-                _handleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,_drawingInstance.TextureBuffer[lastTriangleId], _drawingInstance.VecBuff.Buffer);
-                _drawingInstance.VecBuff.Clear();
-            }
-            
         }
         
         _drawingInstance.Flush();
         Dispose();
     }
-
-    public void DrawShit(TexturedTriangle texturedTriangle)
-    {
-        
-    }
+    
 
     public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height, CameraProperties cameraProperties,DrawingInstance drawingInstance,ProfManager profManager)
     {

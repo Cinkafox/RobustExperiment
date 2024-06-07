@@ -8,12 +8,12 @@ namespace Content.Client.DimensionEnv.ObjRes;
 public sealed class SaObject
 {
     public Mesh Mesh;
-    public int TextureId;
+    public int TextureBufferCoord { get; private set; }
 
-    public SaObject(Mesh mesh, int textureId)
+    public SaObject(Mesh mesh, int textureBufferCoord)
     {
         Mesh = mesh;
-        TextureId = textureId;
+        TextureBufferCoord = textureBufferCoord;
     }
 
     public void Draw(DrawingHandle3d handle)
@@ -29,6 +29,7 @@ public sealed class SaObject
         foreach (var face in Mesh.Faces)
         {
             var appended = face.Vertex.Length >= 4;
+            var matId = TextureBufferCoord + face.MaterialId;
 
             var v1 = Mesh.Vertexes[face.Vertex[0] - 1].ToVec4();
             var v2 = Mesh.Vertexes[face.Vertex[1] - 1].ToVec4();
@@ -42,7 +43,7 @@ public sealed class SaObject
                 var t2 = Mesh.TextureCoords[face.TexPos[1] - 1];
                 var t3 = Mesh.TextureCoords[face.TexPos[2] - 1];
 
-                handle.DrawPolygon(triangle, t1, t2, t3, TextureId);
+                handle.DrawPolygon(triangle, t1, t2, t3, matId);
             }
 
             if (appended)
@@ -59,7 +60,7 @@ public sealed class SaObject
                     var t2 = Mesh.TextureCoords[face.TexPos[2] - 1];
                     var t3 = Mesh.TextureCoords[face.TexPos[3] - 1];
 
-                    handle.DrawPolygon(triangle1, t1, t2, t3, TextureId);
+                    handle.DrawPolygon(triangle1, t1, t2, t3, matId);
                 }
             }
         }
