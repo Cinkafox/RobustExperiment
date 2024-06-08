@@ -2,7 +2,6 @@
     xmlns="https://spacestation14.io"
     xmlns:game="clr-namespace:Content.Client.Game"
     xmlns:controls="clr-namespace:Content.Client.Viewport.Controls">
-    <Label Text="Shit is happen"/>
     <LayoutContainer Name="ViewportContainer" HorizontalExpand="True" VerticalExpand="True">
         <controls:MainViewport Name="MainViewport"/>
     </LayoutContainer>

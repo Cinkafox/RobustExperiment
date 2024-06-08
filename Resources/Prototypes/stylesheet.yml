@@ -111,7 +111,5 @@
       texture:
         isLazy: true
         valueType: Robust.Client.Graphics.Texture
-        value: 
-          path: "/Textures/Interface/cross.png"
-          size: 32,32
+        value: "/Textures/Interface/cross.png"
       modulate-self: "#ffaaaa"

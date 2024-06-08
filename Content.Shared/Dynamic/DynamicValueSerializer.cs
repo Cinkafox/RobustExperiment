@@ -42,7 +42,7 @@ public sealed class DynamicValueSerializer : ITypeSerializer<DynamicValue, Mappi
         
         if(doLazy) 
             return new DynamicValue(valueType.Value, 
-                new LazyDynamicValue(type,serializationManager,value,context));
+                new LazyDynamicValue(() => serializationManager.Read(type, value, context)!));
         
         return new DynamicValue(valueType.Value, serializationManager.Read(type, value, context)!);
     }
@@ -72,6 +72,12 @@ public sealed class DynamicValueSerializer : ITypeSerializer<DynamicValue, Mappi
         }
 
         return new DynamicValue(nameof(ProtoId<DynamicValuePrototype>), 
-            new LazyDynamicValue<ProtoId<DynamicValuePrototype>>(node,serializationManager,context));
+            new LazyDynamicValue(
+                () =>
+                {
+                    var id = serializationManager.Read<ProtoId<DynamicValuePrototype>>(node);
+                    return dependencies.Resolve<IPrototypeManager>().Index(id).Value.GetValueObject();
+                }
+                ));
     }
 }
