@@ -23,8 +23,7 @@ public sealed class TextureSerializer : ITypeSerializer<Robust.Client.Graphics.T
         SerializationHookContext hookCtx, ISerializationContext? context = null, ISerializationManager.InstantiationDelegate<Robust.Client.Graphics.Texture>? instanceProvider = null)
     {
         var path = serializationManager.Read<ResPath>(node);
-        var tr = new TextureResource();
-        tr.Load(dependencies,path);
+        var tr = dependencies.Resolve<IResourceCache>().GetResource<TextureResource>(path);
         return tr.Texture;
     }
 

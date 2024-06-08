@@ -15,21 +15,34 @@ public sealed class DynamicValueSerializer : ITypeSerializer<DynamicValue, Mappi
     public ValidationNode Validate(ISerializationManager serializationManager, MappingDataNode node,
         IDependencyCollection dependencies, ISerializationContext? context = null)
     {
+        if (!node.TryGet("valueType", out ValueDataNode? valueType))
+            return new FieldNotFoundErrorNode(new ValueDataNode("valueType"), typeof(string));
+        if(!node.TryGet("value", out var value))
+            return new FieldNotFoundErrorNode(new ValueDataNode("value"), typeof(string));
         return new ValidatedMappingNode([]);
     }
 
     public DynamicValue Read(ISerializationManager serializationManager, MappingDataNode node, IDependencyCollection dependencies,
         SerializationHookContext hookCtx, ISerializationContext? context = null, ISerializationManager.InstantiationDelegate<DynamicValue>? instanceProvider = null)
     {
-        if (!node.TryGet("valueType", out ValueDataNode? valueType) || !node.TryGet("value", out var value))
-            throw new InvalidMappingException("Mappings not found");
-
+        var valueType = (ValueDataNode)node["valueType"];
+        var value = node["value"];
+        
+        var doLazy = false;
+        if (node.TryGet("isLazy", out var lazyNode))
+            doLazy = serializationManager.Read<bool>(lazyNode);
+        
+        
         if (valueType.Value == DynamicValue.ReadByPrototypeCommand)
             return serializationManager.Read<DynamicValue?>(value) ?? throw new InvalidOperationException();
         
         var type = serializationManager.Read<Type?>(valueType);
         if (type is null)
             throw new InvalidMappingException("NO TYPE " + valueType.Value);
+        
+        if(doLazy) 
+            return new DynamicValue(valueType.Value, 
+                new LazyDynamicValue(type,serializationManager,value,context));
         
         return new DynamicValue(valueType.Value, serializationManager.Read(type, value, context)!);
     }
@@ -58,7 +71,7 @@ public sealed class DynamicValueSerializer : ITypeSerializer<DynamicValue, Mappi
             return new DynamicValue("Color", color);
         }
 
-        return new DynamicValue(nameof(LazyDynamicValue), new LazyDynamicValue());
-        //return new LazyDynamicValue(serializationManager.Read<ProtoId<DynamicValuePrototype>>(node));
+        return new DynamicValue(nameof(ProtoId<DynamicValuePrototype>), 
+            new LazyDynamicValue<ProtoId<DynamicValuePrototype>>(node,serializationManager,context));
     }
 }

@@ -10,6 +10,9 @@ public partial class DynamicValue
 
     public virtual object GetValueObject()
     {
+        if (_value is LazyDynamicValue lazyDynamicValue)
+            _value = lazyDynamicValue.Object;
+               
         return _value;
     }
 

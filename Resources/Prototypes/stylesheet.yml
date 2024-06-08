@@ -109,6 +109,7 @@
           contentMarginTopOverride: 8
     .windowCloseButton:
       texture:
+        isLazy: true
         valueType: Robust.Client.Graphics.Texture
         value: 
           path: "/Textures/Interface/cross.png"
