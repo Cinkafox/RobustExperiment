@@ -6,12 +6,12 @@ namespace Content.Client.Resources;
 
 public static class ResourceCacheExtensions
 {
-    public static Texture GetTexture(this IResourceCache cache, ResPath path)
+    public static Robust.Client.Graphics.Texture GetTexture(this IResourceCache cache, ResPath path)
     {
         return cache.GetResource<TextureResource>(path);
     }
 
-    public static Texture GetTexture(this IResourceCache cache, string path)
+    public static Robust.Client.Graphics.Texture GetTexture(this IResourceCache cache, string path)
     {
         return GetTexture(cache, new ResPath(path));
     }

@@ -58,6 +58,7 @@ public sealed class DynamicValueSerializer : ITypeSerializer<DynamicValue, Mappi
             return new DynamicValue("Color", color);
         }
 
-        return new LazyDynamicValue(serializationManager.Read<ProtoId<DynamicValuePrototype>>(node));
+        return new DynamicValue(nameof(LazyDynamicValue), new LazyDynamicValue());
+        //return new LazyDynamicValue(serializationManager.Read<ProtoId<DynamicValuePrototype>>(node));
     }
 }

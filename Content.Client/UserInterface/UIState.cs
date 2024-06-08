@@ -5,11 +5,11 @@ namespace Content.Client.UserInterface;
 
 public abstract class UIState<T> : State where T : UIScreen, new()
 {
-    [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
+    [Dependency] protected readonly IUserInterfaceManager UserInterfaceManager = default!;
     
     protected override void Startup()
     {
-        _userInterfaceManager.LoadScreen<T>();
+        UserInterfaceManager.LoadScreen<T>();
         UIStartup();
     }
 
@@ -19,7 +19,7 @@ public abstract class UIState<T> : State where T : UIScreen, new()
 
     protected override void Shutdown()
     {
-        _userInterfaceManager.UnloadScreen();
+        UserInterfaceManager.UnloadScreen();
         UIShutdown();
     }
     

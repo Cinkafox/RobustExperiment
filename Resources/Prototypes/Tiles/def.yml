@@ -1,0 +1,3 @@
+﻿- type: tile
+  id: def
+  sprite: /Textures/Tiles/def.png

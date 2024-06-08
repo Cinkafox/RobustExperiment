@@ -60,7 +60,7 @@
       header:
         valueType: Robust.Client.Graphics.StyleBoxFlat
         value:
-          backgroundColor: "#aaaaaa"
+          backgroundColor: "#dddddd"
           borderColor: "#ffffff"
           padding: 10,10,10,10
     ContainerButton.button#normal:
@@ -85,6 +85,17 @@
           contentMarginLeftOverride: 14
           contentMarginRightOverride: 10
           contentMarginTopOverride: 8
+    ContainerButton.button#pressed:
+      stylebox:
+        valueType: Robust.Client.Graphics.StyleBoxFlat
+        value:
+          backgroundColor: "#ffffff22"
+          borderColor: "#ffffff"
+          borderThickness: 2,2,2,2
+          contentMarginBottomOverride: 8
+          contentMarginLeftOverride: 14
+          contentMarginRightOverride: 10
+          contentMarginTopOverride: 8
     .dreamPanel:
       panel:
         valueType: Robust.Client.Graphics.StyleBoxFlat
@@ -96,3 +107,10 @@
           contentMarginLeftOverride: 8
           contentMarginRightOverride: 8
           contentMarginTopOverride: 8
+    .windowCloseButton:
+      texture:
+        valueType: Robust.Client.Graphics.Texture
+        value: 
+          path: "/Textures/Interface/cross.png"
+          size: 32,32
+      modulate-self: "#ffaaaa"
