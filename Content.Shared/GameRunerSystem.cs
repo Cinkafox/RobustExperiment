@@ -11,23 +11,33 @@ public abstract class SharedGameRunnerSystem : EntitySystem
     [Dependency] protected readonly SharedMapSystem _mapSystem = default!;
     [Dependency] protected readonly ISharedPlayerManager _playerManager = default!;
     [Dependency] protected readonly SharedPhysicsSystem _physicsSystem = default!;
+    [Dependency] protected readonly SharedTransformSystem _transformSystem = default!;
 
     public EntityUid MapUid;
+    public Entity<MapGridComponent> GridUid;
     public MapId MapId;
     public void InitializeMap()
     {
         MapUid = _mapSystem.CreateMap(out MapId);
-        var mapEntity = _mapManager.CreateGridEntity(MapUid,GridCreateOptions.Default);
-        _mapSystem.SetTile(mapEntity, new Vector2i(0,0),new Robust.Shared.Map.Tile(1));
-        _mapSystem.SetTile(mapEntity, new Vector2i(-1,-1),new Robust.Shared.Map.Tile(1));
-        _mapSystem.SetTile(mapEntity, new Vector2i(0,-1),new Robust.Shared.Map.Tile(1));
-        _mapSystem.SetTile(mapEntity, new Vector2i(-1,0),new Robust.Shared.Map.Tile(1));
+        GridUid = _mapManager.CreateGridEntity(MapUid,GridCreateOptions.Default);
+        _mapSystem.SetTile(GridUid, new Vector2i(0,0),new Robust.Shared.Map.Tile(1));
+        _mapSystem.SetTile(GridUid, new Vector2i(-1,-1),new Robust.Shared.Map.Tile(1));
+        _mapSystem.SetTile(GridUid, new Vector2i(0,-1),new Robust.Shared.Map.Tile(1));
+        _mapSystem.SetTile(GridUid, new Vector2i(-1,0),new Robust.Shared.Map.Tile(1));
         _mapSystem.SetAmbientLight(MapId, Color.White);
     }
 
     public void AddSession(ICommonSession session)
     {
-        var cam = Spawn("cat", new MapCoordinates(10, 0, MapId));
+        var cam = Spawn("cat", new MapCoordinates(0, 0, MapId));
+        _transformSystem.AttachToGridOrMap(GridUid);
         _playerManager.SetAttachedEntity(session, cam);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        var tr = Transform(_playerManager.LocalEntity!.Value);
+        
     }
 }

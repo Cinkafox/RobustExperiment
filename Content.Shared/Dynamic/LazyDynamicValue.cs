@@ -1,10 +1,4 @@
-﻿using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization.Manager;
-using Robust.Shared.Serialization.Markdown;
-using Robust.Shared.Serialization.Markdown.Mapping;
-using Robust.Shared.Serialization.Markdown.Value;
-
-namespace Content.Shared.Dynamic;
+﻿namespace Content.Shared.Dynamic;
 
 public sealed class LazyDynamicValue
 {
@@ -25,5 +19,4 @@ public sealed class LazyDynamicValue
     {
         _createObject = createObject;
     }
-    
 }

@@ -29,7 +29,7 @@ public partial class SharedMoverController
         else
             inputMoverComponent.PushedButtons &= ~buttons;
         
-        Logger.Debug(inputMoverComponent.PushedButtons + "??" + ToPrettyString(entity));
+        Logger.Debug(inputMoverComponent.PushedButtons.ToDir() + "??" + ToPrettyString(entity));
     }
 }
 
@@ -64,4 +64,23 @@ public enum MoveButtons : byte
     Right = 8,
     Walk = 16,
     AnyDirection = Up | Down | Left | Right,
+}
+
+public static class ShitExt
+{
+    public static Direction ToDir(this MoveButtons moveButtons)
+    {
+        return moveButtons switch
+        {
+            MoveButtons.Up => Direction.North,
+            MoveButtons.Down => Direction.South,
+            MoveButtons.Left => Direction.West,
+            MoveButtons.Right => Direction.East,
+            MoveButtons.Up | MoveButtons.Left => Direction.NorthWest,
+            MoveButtons.Up | MoveButtons.Right => Direction.NorthEast,
+            MoveButtons.Down | MoveButtons.Left => Direction.SouthWest,
+            MoveButtons.Down | MoveButtons.Right => Direction.SouthEast,
+            _ => Direction.Invalid
+        };
+    }
 }

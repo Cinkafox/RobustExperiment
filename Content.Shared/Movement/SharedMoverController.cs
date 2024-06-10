@@ -4,12 +4,14 @@ using Robust.Shared.Input.Binding;
 using Robust.Shared.Physics.Controllers;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Shared.Movement;
 
 public sealed partial class SharedMoverController : VirtualController
 {
     [Dependency] protected readonly SharedPhysicsSystem PhysicsSystem = default!;
+    [Dependency] protected readonly IGameTiming _gameTiming = default!;
     
     protected EntityQuery<InputMoverComponent> MoverQuery;
     public override void Initialize()
@@ -23,21 +25,15 @@ public sealed partial class SharedMoverController : VirtualController
         var query = EntityQueryEnumerator<InputMoverComponent>();
         while (query.MoveNext(out var uid, out var inputMoverComponent))
         {
-            switch (inputMoverComponent.PushedButtons)
+            var dir = inputMoverComponent.PushedButtons.ToDir();
+            if (dir is Direction.Invalid)
             {
-                case MoveButtons.Up:
-                    PhysicsSystem.ApplyForce(uid,new Vector2(0,1));
-                    break;
-                case MoveButtons.Down:
-                    PhysicsSystem.ApplyForce(uid,new Vector2(0,-1));
-                    break;
-                case MoveButtons.Left:
-                    PhysicsSystem.ApplyForce(uid,new Vector2(1,0));
-                    break;
-                case MoveButtons.Right:
-                    PhysicsSystem.ApplyForce(uid,new Vector2(-1,0));
-                    break;
+                PhysicsSystem.SetLinearVelocity(uid, Vector2.Zero);
+                continue;
             }
+
+            var angle = dir.ToAngle() + Angle.FromDegrees(270);
+            PhysicsSystem.SetLinearVelocity(uid, angle.ToVec()*100);
         }
     }
 }

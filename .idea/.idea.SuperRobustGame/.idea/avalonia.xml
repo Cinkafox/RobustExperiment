@@ -3,6 +3,7 @@
   <component name="AvaloniaProject">
     <option name="projectPerEditor">
       <map>
+        <entry key="Content.Client/Game/GameScreen.xaml" value="Content.Client/Content.Client.csproj" />
         <entry key="Content.Client/MainMenu/UI/MainMenu.xaml" value="Content.Client/Content.Client.csproj" />
       </map>
     </option>
