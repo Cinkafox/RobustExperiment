@@ -24,20 +24,16 @@ public abstract class SharedGameRunnerSystem : EntitySystem
         _mapSystem.SetTile(GridUid, new Vector2i(-1,-1),new Robust.Shared.Map.Tile(1));
         _mapSystem.SetTile(GridUid, new Vector2i(0,-1),new Robust.Shared.Map.Tile(1));
         _mapSystem.SetTile(GridUid, new Vector2i(-1,0),new Robust.Shared.Map.Tile(1));
+        Spawn("whore", new MapCoordinates(1, 1, MapId));
+        Spawn("whore", new MapCoordinates(0, 1, MapId));
+        Spawn("monu2", new MapCoordinates(1, 0, MapId));
         _mapSystem.SetAmbientLight(MapId, Color.White);
     }
 
     public void AddSession(ICommonSession session)
     {
-        var cam = Spawn("cat", new MapCoordinates(0, 0, MapId));
+        var cam = Spawn("whore", new MapCoordinates(0, 0, MapId));
         _transformSystem.AttachToGridOrMap(GridUid);
         _playerManager.SetAttachedEntity(session, cam);
-    }
-
-    public override void Update(float frameTime)
-    {
-        base.Update(frameTime);
-        var tr = Transform(_playerManager.LocalEntity!.Value);
-        
     }
 }

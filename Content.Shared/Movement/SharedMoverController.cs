@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Content.Shared.StackSpriting;
 using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Physics.Controllers;
@@ -12,6 +13,7 @@ public sealed partial class SharedMoverController : VirtualController
 {
     [Dependency] protected readonly SharedPhysicsSystem PhysicsSystem = default!;
     [Dependency] protected readonly IGameTiming _gameTiming = default!;
+    [Dependency] protected readonly SharedTransformSystem _transformSystem = default!;
     
     protected EntityQuery<InputMoverComponent> MoverQuery;
     public override void Initialize()
@@ -33,7 +35,13 @@ public sealed partial class SharedMoverController : VirtualController
             }
 
             var angle = dir.ToAngle() + Angle.FromDegrees(270);
-            PhysicsSystem.SetLinearVelocity(uid, angle.ToVec()*100);
+            PhysicsSystem.SetLinearVelocity(uid, angle.ToVec()*20);
+        }
+        
+        var query1 = EntityQueryEnumerator<StackSpriteComponent,TransformComponent>();
+        while (query1.MoveNext(out var uid, out var stackSpriteComponent, out var transformComponent))
+        {
+           // _transformSystem.SetWorldRotation(uid,_transformSystem.GetWorldRotation(uid)+Angle.FromDegrees(5));
         }
     }
 }

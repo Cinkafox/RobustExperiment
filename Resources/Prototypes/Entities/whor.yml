@@ -1,0 +1,23 @@
+- type: entity
+  id: whore
+  parent: entBase
+  name: whore
+  description: a fucking whore
+  components:
+    - type: StackSprite
+      sprite: 
+        sprite: "Entities/whor.rsi"
+        state: whor
+    - type: Eye
+      zoom: 0.5,0.5
+      
+- type: entity
+  id: monu2
+  parent: entBase
+  name: whore
+  description: a fucking whore
+  components:
+    - type: StackSprite
+      sprite:
+        sprite: "Entities/monu2.rsi"
+        state: monu2
