@@ -1,9 +1,11 @@
-﻿using System.Numerics;
+﻿using System.Collections;
+using System.Numerics;
 using Content.Shared.StackSpriting;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
-using Robust.Client.Utility;
+using Robust.Client.ResourceManagement;
 using Robust.Shared.Configuration;
+using Robust.Shared.ContentPack;
 using Robust.Shared.Enums;
 using Robust.Shared.Graphics;
 using Robust.Shared.Graphics.RSI;
@@ -16,10 +18,13 @@ public sealed class StackSpritingOverlay : Overlay
     [Dependency] private readonly IEntityManager _entityManager = default!;
     [Dependency] private readonly IEyeManager _eyeManager = default!;
     [Dependency] private readonly IConfigurationManager _configurationManager = default!;
+    [Dependency] private readonly IResourceCache _resourceCache = default!;
+    
     private readonly TransformSystem _transformSystem;
     private readonly SpriteSystem _spriteSystem;
     
     private int _stackByOneLayer = 1;
+    private StackSpriteAccumulator _accumulator = new();
 
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
@@ -36,102 +41,97 @@ public sealed class StackSpritingOverlay : Overlay
         _stackByOneLayer = stackByOneLayer;
     }
 
-    protected override bool BeforeDraw(in OverlayDrawArgs args)
-    {
-        return base.BeforeDraw(in args);
-    }
-
     protected override void Draw(in OverlayDrawArgs args)
     {
-        var handle = args.WorldHandle; 
-        var bounds = args.WorldAABB.Enlarged(5f);
         var eye = _eyeManager.CurrentEye;
-
-        var eyePos = new Vector3(eye.Position.Position.X, 20, eye.Position.Y);
+        using var stackHandle = new DrawingHandleStackSprite(_accumulator, args.DrawingHandle, eye, args.WorldAABB.Enlarged(5f));
+        var query = _entityManager.EntityQueryEnumerator<RendererStackSpriteComponent, TransformComponent>();
         
-        var query = _entityManager.EntityQueryEnumerator<StackSpriteComponent,TransformComponent>();
         while (query.MoveNext(out var uid, out var stackSpriteComponent, out var transformComponent))
         {
             var drawPos = _transformSystem.GetWorldPosition(uid) - new Vector2(0.5f);;
-            //if(!bounds.Contains(drawPos))
-             //   continue;
-            
-            
-            var rsi = _spriteSystem.RsiStateLike(stackSpriteComponent.Sprite);
-            for (var i = 0; i < rsi.AnimationFrameCount; i++)
+            var texture = stackSpriteComponent.Texture;
+            var count = stackSpriteComponent.Height;
+                
+            for (var i = 0; i < count; i++)
             {
-                var coolIndex = rsi.AnimationFrameCount - 1 - i;
-                var tex = rsi.GetFrame(RsiDirection.South,coolIndex);
-
+                var xIndex = i % texture.Width;
+                var yIndex = i / texture.Height;
+                    
+                var tex = new AtlasTexture(texture,
+                    UIBox2.FromDimensions(new Vector2(0,i*stackSpriteComponent.Size.X), stackSpriteComponent.Size));
+                
                 for (var z = 0; z < _stackByOneLayer; z++)
                 {
-                    var zLevelLayer = z / _stackByOneLayer;
+                    var zLevelLayer = z / (float)_stackByOneLayer;
                     var texPos = new Vector3(drawPos.X, i + zLevelLayer, drawPos.Y);
                     
-                    DrawLayer(handle,tex,texPos,transformComponent.WorldRotation,0,0);
+                    stackHandle.DrawSpriteLayer(tex, texPos, transformComponent.WorldRotation, 0, 0);
                 }
-                
             }
         }
     }
-
-    private void DrawLayer(DrawingHandleWorld handle,Robust.Client.Graphics.Texture tex, Vector3 drawPos,Angle yaw, Angle pitch, Angle roll)
-    {
-        
-        
-        
-        
-        //handle.DrawTexture(tex,flattern,yaw);
-    }
-    
 }
+
+public record struct DrawQueue(int Height, int Index);
 
 public sealed class StackSpriteAccumulator
 {
-    public readonly SimpleBuffer<Vector3> Vertexes = new(1024*4);
-    public readonly SimpleBuffer<Robust.Client.Graphics.Texture> TexturePool = new(128);
-    //public readonly SimpleBuffer<SimpleBuffer<int>> Relations = new(128);
+    public readonly SimpleBuffer<Vector3> Vertexes = new(1024*256);
+    public readonly SimpleBuffer<Robust.Client.Graphics.Texture> TexturePool = new(1024*256);
+    
+    public readonly DrawVertexUV2D[] UvVertexes = new DrawVertexUV2D[6];
+    public readonly Vector2[] DebugVertexes = new Vector2[4];
 
+    public readonly SimpleBuffer<DrawQueue> DrawQueue = new SimpleBuffer<DrawQueue>(1024 * 256);
+
+    public int LastLength = 0;
 }
 
-public sealed class DrawingHandleStackSprite
+public sealed class DrawingHandleStackSprite : IDisposable
 {
-    private DrawingHandleWorld _baseHandle;
+    private DrawingHandleBase _baseHandle;
     private StackSpriteAccumulator _accumulator;
     private IEye _currentEye;
     private Box2 _bounds;
 
-    public DrawingHandleStackSprite(StackSpriteAccumulator accumulator, DrawingHandleWorld baseHandle, IEye currentEye, Box2 bounds)
+    public DrawingHandleStackSprite(StackSpriteAccumulator accumulator, DrawingHandleBase baseHandle, IEye currentEye, Box2 bounds)
     {
         _accumulator = accumulator;
         _baseHandle = baseHandle;
         _currentEye = currentEye;
         _bounds = bounds;
-
-        var eyePos = _currentEye.Position.Position;
-
-        ViewMatrix = Matrix4x4.CreateLookTo(new Vector3(eyePos.X,20,eyePos.Y), new Vector3(0,-1,0),Vector3.UnitY);
-
-        ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
-            MathF.PI / 4, // Field of view
-            _bounds.Width/_bounds.Height, // Aspect ratio
-            0.1f, // Near plane
-            100.0f           // Far plane
-        );
     }
+    public bool IsFlushed { get; private set; }
 
-    public Matrix4x4 ProjectionMatrix { get; set; }
-
-    public Matrix4x4 ViewMatrix { get; set; }
-
-    public void DrawSpriteLayer(Robust.Client.Graphics.Texture texture, Vector3 drawPos, Angle yaw, Angle pitch, Angle roll)
+    public void DrawSpriteLayer(Robust.Client.Graphics.Texture texture,Vector3 drawPos, Angle yaw, Angle pitch, Angle roll)
     {
-        var texId = _accumulator.TexturePool.Add(texture);
-        var p1 = drawPos;
-        var p3 = drawPos + new Vector3(_currentEye.Scale.X,0,_currentEye.Scale.Y);
+        _accumulator.TexturePool.Add(texture);
+        var currScale = texture.Size / (float)EyeManager.PixelsPerMeter;
+        
+        var p1 = drawPos; //LeftTop
+        var p3 = drawPos + new Vector3(currScale.X,0,currScale.Y); //RightBottom
 
-        var p2 = new Vector3(p1.X, drawPos.Y, p3.Z);
-        var p4 = new Vector3(p3.X, drawPos.Y, p1.Z);
+        var p2 = new Vector3(p1.X, drawPos.Y, p3.Z);//LeftBottom
+        var p4 = new Vector3(p3.X, drawPos.Y, p1.Z);//RightTop
+
+        var center = p3 - p1;
+        var rotTrans = Matrix4x4.CreateFromYawPitchRoll((float)yaw, (float)pitch, (float)roll);
+
+        p1 -= center;
+        p2 -= center;
+        p3 -= center;
+        p4 -= center;
+
+        p1 = Vector3.Transform(p1, rotTrans);
+        p2 = Vector3.Transform(p2, rotTrans);
+        p3 = Vector3.Transform(p3, rotTrans);
+        p4 = Vector3.Transform(p4, rotTrans);
+        
+        p1 += center;
+        p2 += center;
+        p3 += center;
+        p4 += center;
 
         p1 = Transform(p1);
         p2 = Transform(p2);
@@ -142,11 +142,15 @@ public sealed class DrawingHandleStackSprite
         _accumulator.Vertexes.Add(p2);
         _accumulator.Vertexes.Add(p3);
         _accumulator.Vertexes.Add(p4);
+        
+        _accumulator.DrawQueue.Add(new DrawQueue((int)drawPos.Y,_accumulator.TexturePool.Length - 1));
     }
 
     private Vector3 Transform(Vector3 vector3)
     {
-        return vector3;
+        var rot = (new Vector2(vector3.X,vector3.Z) - _currentEye.Position.Position) * 0.005f + _currentEye.Rotation.ToVec() * _currentEye.Zoom * 0.01f;
+        rot *= vector3.Y*0.5f;
+        return new Vector3(vector3.X + rot.X , vector3.Y, vector3.Z + rot.Y);
     }
 
     private Vector2 Flatter(Vector3 vector3)
@@ -156,8 +160,11 @@ public sealed class DrawingHandleStackSprite
 
     public void Flush()
     {
+        if (IsFlushed) throw new Exception();
+        
         for (var i = 0; i < _accumulator.TexturePool.Length; i++)
         {
+            var texture = _accumulator.TexturePool[i];
             var vertexId = i * 4;
 
             var p1 = Flatter(_accumulator.Vertexes[vertexId]);
@@ -165,16 +172,76 @@ public sealed class DrawingHandleStackSprite
             var p3 = Flatter(_accumulator.Vertexes[vertexId + 2]);
             var p4 = Flatter(_accumulator.Vertexes[vertexId + 3]);
             
-            _baseHandle.DrawTextureRect();
+            if(!_bounds.Contains(p1) && 
+               !_bounds.Contains(p2) && 
+               !_bounds.Contains(p3) && 
+               !_bounds.Contains(p4))
+               continue;
 
+            texture = ExtractTexture(texture, null, out var sr);
+
+            var hw = new Vector2(texture.Width,texture.Height);
+            var t1 = sr.TopLeft / hw;
+            var t2 = sr.BottomLeft / hw;
+            var t3 = sr.BottomRight / hw;
+            var t4 = sr.TopRight / hw;
+
+            _accumulator.UvVertexes[0] = new DrawVertexUV2D(p1, t1);
+            _accumulator.UvVertexes[1] = new DrawVertexUV2D(p2, t2);
+            _accumulator.UvVertexes[2] = new DrawVertexUV2D(p3, t3);
+            
+            _accumulator.UvVertexes[3] = new DrawVertexUV2D(p1, t1);
+            _accumulator.UvVertexes[4] = new DrawVertexUV2D(p3, t3);
+            _accumulator.UvVertexes[5] = new DrawVertexUV2D(p4, t4);
+
+            _accumulator.DebugVertexes[0] = p1;
+            _accumulator.DebugVertexes[1] = p2;
+            _accumulator.DebugVertexes[2] = p3;
+            _accumulator.DebugVertexes[3] = p4;
+            
+            _baseHandle.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture,_accumulator.UvVertexes); 
+            //_baseHandle.DrawPrimitives(DrawPrimitiveTopology.LineLoop,_accumulator.DebugVertexes,Color.Wheat);
+
+            _accumulator.LastLength = _accumulator.TexturePool.Length;
         }
-        
+    }
+
+    public void Dispose()
+    {
+        Flush();
         _accumulator.TexturePool.Clear();
         _accumulator.Vertexes.Clear();
+        IsFlushed = true;
+    }
+    
+    public static Robust.Client.Graphics.Texture ExtractTexture(Robust.Client.Graphics.Texture texture, in UIBox2? subRegion, out UIBox2 sr)
+    {
+        if (texture is AtlasTexture atlas)
+        {
+            texture = atlas.SourceTexture;
+            if (subRegion.HasValue)
+            {
+                var offset = atlas.SubRegion.TopLeft;
+                sr = new UIBox2(
+                    subRegion.Value.TopLeft + offset,
+                    subRegion.Value.BottomRight + offset);
+            }
+            else
+            {
+                sr = atlas.SubRegion;
+            }
+        }
+        else
+        {
+            sr = subRegion ?? new UIBox2(0, 0, texture.Width, texture.Height);
+        }
+
+        var clydeTexture = texture;
+        return clydeTexture;
     }
 }
 
-public sealed class SimpleBuffer<T>
+public sealed class SimpleBuffer<T> : IEnumerable<T>
 {
     private readonly T[] _buffer;
     
@@ -193,10 +260,13 @@ public sealed class SimpleBuffer<T>
         Limit = limit;
     }
 
-    public int Add(T obj)
+    public void Add(T obj)
     {
+        if (Shift + Length >= Limit)
+            throw new Exception($"{Shift + Length} reached the limit {Limit}");
+        
         _buffer[Shift + Length] = obj;
-        return (Length++) - 1;
+        Length++;
     }
 
     public T Pop()
@@ -211,11 +281,15 @@ public sealed class SimpleBuffer<T>
 
     public T Get(int pos)
     {
+        if (Shift + pos >= Limit)
+            throw new Exception($"{Shift + pos} reached the limit {Limit}");
         return _buffer[Shift+pos];
     }
 
     public void Set(int pos, T obj)
     {
+        if (Shift + pos >= Limit)
+            throw new Exception($"{Shift + pos} reached the limit {Limit}");
         _buffer[Shift+pos] = obj;
     }
 
@@ -223,5 +297,23 @@ public sealed class SimpleBuffer<T>
     {
         Length = 0;
         Shift = 0;
+    }
+
+    public T[] ToArray()
+    {
+        return _buffer;
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        foreach (var data in _buffer)
+        {
+            yield return data;
+        } 
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return _buffer.GetEnumerator();
     }
 }

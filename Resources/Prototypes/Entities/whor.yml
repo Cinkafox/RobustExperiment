@@ -5,9 +5,8 @@
   description: a fucking whore
   components:
     - type: StackSprite
-      sprite: 
-        sprite: "Entities/whor.rsi"
-        state: whor
+      path: "/Textures/Voxels/whor.png"
+      size: 32,32
     - type: Eye
       zoom: 0.5,0.5
       
@@ -18,6 +17,15 @@
   description: a fucking whore
   components:
     - type: StackSprite
-      sprite:
-        sprite: "Entities/monu2.rsi"
-        state: monu2
+      path: "/Textures/Voxels/monu2.png"
+      size: 72,72
+
+- type: entity
+  id: wall
+  parent: entBase
+  name: whore
+  description: a fucking whore
+  components:
+    - type: StackSprite
+      path: "/Textures/Voxels/wall.png"
+      size: 32,32

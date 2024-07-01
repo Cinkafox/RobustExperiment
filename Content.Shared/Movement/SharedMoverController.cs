@@ -36,13 +36,7 @@ public sealed partial class SharedMoverController : VirtualController
 
             var angle = dir.ToAngle() + Angle.FromDegrees(270);
             //PhysicsSystem.SetLinearVelocity(uid, angle.ToVec()*20);
-            _transformSystem.SetWorldPosition(uid,_transformSystem.GetWorldPosition(uid) + angle.ToVec()*0.5f);
-        }
-        
-        var query1 = EntityQueryEnumerator<StackSpriteComponent,TransformComponent>();
-        while (query1.MoveNext(out var uid, out var stackSpriteComponent, out var transformComponent))
-        {
-           // _transformSystem.SetWorldRotation(uid,_transformSystem.GetWorldRotation(uid)+Angle.FromDegrees(5));
+            _transformSystem.SetWorldPosition(uid,_transformSystem.GetWorldPosition(uid) + angle.ToVec()*frameTime*4);
         }
     }
 }

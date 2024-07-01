@@ -186,6 +186,22 @@ binds: # These are all the current engine keybinds.
     type: State
     key: Tab
     mod1: Shift
-  - function: SkipDialog
+  - function: CameraRotateLeft
     type: State
-    key: Space
+    key: NumpadNum7
+  - function: CameraRotateRight
+    type: State
+    key: NumpadNum9
+  - function: CameraReset
+    type: State
+    key: NumpadNum8
+  - function: ZoomOut
+    type: State
+    key: NumpadNum4
+  - function: ZoomIn
+    type: State
+    key: NumpadNum6
+  - function: ResetZoom
+    type: State
+    key: NumpadNum5
+    

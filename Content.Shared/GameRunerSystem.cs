@@ -10,8 +10,16 @@ public abstract class SharedGameRunnerSystem : EntitySystem
     [Dependency] protected readonly IMapManager _mapManager = default!;
     [Dependency] protected readonly SharedMapSystem _mapSystem = default!;
     [Dependency] protected readonly ISharedPlayerManager _playerManager = default!;
-    [Dependency] protected readonly SharedPhysicsSystem _physicsSystem = default!;
     [Dependency] protected readonly SharedTransformSystem _transformSystem = default!;
+
+    public static int[] SimpleMap = new[]
+    {
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1,
+        1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    };
 
     public EntityUid MapUid;
     public Entity<MapGridComponent> GridUid;
@@ -20,13 +28,18 @@ public abstract class SharedGameRunnerSystem : EntitySystem
     {
         MapUid = _mapSystem.CreateMap(out MapId);
         GridUid = _mapManager.CreateGridEntity(MapUid,GridCreateOptions.Default);
-        _mapSystem.SetTile(GridUid, new Vector2i(0,0),new Robust.Shared.Map.Tile(1));
-        _mapSystem.SetTile(GridUid, new Vector2i(-1,-1),new Robust.Shared.Map.Tile(1));
-        _mapSystem.SetTile(GridUid, new Vector2i(0,-1),new Robust.Shared.Map.Tile(1));
-        _mapSystem.SetTile(GridUid, new Vector2i(-1,0),new Robust.Shared.Map.Tile(1));
-        Spawn("whore", new MapCoordinates(1, 1, MapId));
-        Spawn("whore", new MapCoordinates(0, 1, MapId));
-        Spawn("monu2", new MapCoordinates(1, 0, MapId));
+
+        for (var i = 0; i < SimpleMap.Length; i++)
+        {
+            var x = i % 12;
+            var y = i / 12;
+            
+            _mapSystem.SetTile(GridUid, new Vector2i(x,y),new Robust.Shared.Map.Tile(1));
+            
+            if(SimpleMap[i] == 1)
+                Spawn("wall", new MapCoordinates(x + 0.5f,y +  0.5f, MapId));
+        }
+        
         _mapSystem.SetAmbientLight(MapId, Color.White);
     }
 

@@ -1,10 +1,10 @@
-﻿using System.Numerics;
-using Robust.Shared.Utility;
+﻿using Robust.Shared.Utility;
 
 namespace Content.Shared.StackSpriting;
 
 [RegisterComponent]
 public sealed partial class StackSpriteComponent : Component
 {
-    [DataField(required:true)] public SpriteSpecifier Sprite;
+    [DataField] public ResPath Path;
+    [DataField] public Vector2i Size;
 }
