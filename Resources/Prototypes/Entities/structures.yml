@@ -1,0 +1,17 @@
+﻿- type: entity
+  id: monu2
+  parent: BaseStructure
+  name: Monument
+  components:
+    - type: StackSprite
+      path: "/Textures/Voxels/monu2.png"
+      size: 72,72
+
+- type: entity
+  id: wall
+  parent: BaseWall
+  name: Wall
+  components:
+    - type: StackSprite
+      path: "/Textures/Voxels/wall.png"
+      size: 32,32

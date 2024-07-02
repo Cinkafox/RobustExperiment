@@ -15,7 +15,6 @@ public sealed class EntryPoint : GameClient
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
     [Dependency] private readonly IStateManager _stateManager = default!;
     [Dependency] private readonly StyleSheetManager _styleSheetManager = default!;
-    [Dependency] private readonly ILightManager _lightManager = default!;
     [Dependency] private readonly IInputManager _inputManager = default!;
     
     public override void PreInit()
@@ -25,7 +24,6 @@ public sealed class EntryPoint : GameClient
     
     public override void PostInit()
     {
-       // _lightManager.Enabled = false;
        ContentContexts.SetupContexts(_inputManager.Contexts);
        _userInterfaceManager.SetDefaultTheme("DefaultTheme");
        _styleSheetManager.ApplyStyleSheet("default");

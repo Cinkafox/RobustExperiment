@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Numerics;
+using Content.Shared;
 using Content.Shared.StackSpriting;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -26,12 +27,12 @@ public sealed class StackSpritingOverlay : Overlay
     private int _stackByOneLayer = 1;
     private StackSpriteAccumulator _accumulator = new();
 
-    public override OverlaySpace Space => OverlaySpace.WorldSpace;
+    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     public StackSpritingOverlay()
     {
         IoCManager.InjectDependencies(this);
-        _configurationManager.OnValueChanged(ContentCVar.CCVars.StackByOneLayer,OnStackLayerChanged,true);
+        _configurationManager.OnValueChanged(CCVars.StackByOneLayer,OnStackLayerChanged,true);
         _transformSystem = _entityManager.System<TransformSystem>();
         _spriteSystem = _entityManager.System<SpriteSystem>();
     }
@@ -60,13 +61,15 @@ public sealed class StackSpritingOverlay : Overlay
                     
                 var tex = new AtlasTexture(texture,
                     UIBox2.FromDimensions(new Vector2(0,i*stackSpriteComponent.Size.X), stackSpriteComponent.Size));
+
+                var textureId = stackHandle.AddTexture(tex);
                 
                 for (var z = 0; z < _stackByOneLayer; z++)
                 {
                     var zLevelLayer = z / (float)_stackByOneLayer;
                     var texPos = new Vector3(drawPos.X, i + zLevelLayer, drawPos.Y);
                     
-                    stackHandle.DrawSpriteLayer(tex, texPos, transformComponent.WorldRotation, 0, 0);
+                    stackHandle.DrawSpriteLayer(textureId, texPos, transformComponent.WorldRotation, 0, 0);
                 }
             }
         }
@@ -82,7 +85,7 @@ public sealed class StackSpriteAccumulator
     public readonly DrawVertexUV2D[] UvVertexes = new DrawVertexUV2D[6];
     public readonly Vector2[] DebugVertexes = new Vector2[4];
 
-    public SortedDictionary<int, List<int>> DrawQueue = new();
+    public SortedDictionary<int, List<(int,int)>> DrawQueue = new();
     public int MaxHeight = 0;
 }
 
@@ -102,10 +105,15 @@ public sealed class DrawingHandleStackSprite : IDisposable
     }
     public bool IsFlushed { get; private set; }
 
-    public void DrawSpriteLayer(Robust.Client.Graphics.Texture texture,Vector3 drawPos, Angle yaw, Angle pitch, Angle roll)
+    public int AddTexture(Robust.Client.Graphics.Texture texture)
     {
         _accumulator.TexturePool.Add(texture);
-        var currScale = texture.Size / (float)EyeManager.PixelsPerMeter;
+        return _accumulator.TexturePool.Length - 1;
+    }
+
+    public void DrawSpriteLayer(int textureId,Vector3 drawPos, Angle yaw, Angle pitch, Angle roll)
+    {
+        var currScale = _accumulator.TexturePool[textureId].Size / (float)EyeManager.PixelsPerMeter;
         
         var p1 = drawPos; //LeftTop
         var p3 = drawPos + new Vector3(currScale.X,0,currScale.Y); //RightBottom
@@ -135,6 +143,14 @@ public sealed class DrawingHandleStackSprite : IDisposable
         p2 = Transform(p2);
         p3 = Transform(p3);
         p4 = Transform(p4);
+        
+        if(!_bounds.Contains(new Vector2(p1.X,p1.Z)) && 
+           !_bounds.Contains(new Vector2(p2.X,p2.Z)) && 
+           !_bounds.Contains(new Vector2(p3.X,p3.Z)) && 
+           !_bounds.Contains(new Vector2(p4.X,p4.Z))) 
+            return;
+
+        var vertexId = _accumulator.Vertexes.Length;
 
         _accumulator.Vertexes.Add(p1);
         _accumulator.Vertexes.Add(p2);
@@ -145,11 +161,11 @@ public sealed class DrawingHandleStackSprite : IDisposable
         
         if(!_accumulator.DrawQueue.TryGetValue(height,out var list))
         {
-            list = new List<int>();
+            list = new List<(int,int)>();
             _accumulator.DrawQueue.Add(height,list);
         }
         
-        list.Add(_accumulator.TexturePool.Length - 1);
+        list.Add((textureId,vertexId));
         _accumulator.MaxHeight = int.Max(_accumulator.MaxHeight, height);
     }
 
@@ -171,10 +187,10 @@ public sealed class DrawingHandleStackSprite : IDisposable
 
         foreach (var (_, keyList) in _accumulator.DrawQueue)
         {
-            foreach (var index in keyList)
+            foreach (var (textureIndex,vertexIndex) in keyList)
             {
-                var texture = _accumulator.TexturePool[index]; 
-                var vertexId = index * 4;
+                var texture = _accumulator.TexturePool[textureIndex]; 
+                var vertexId = vertexIndex;
 
                 var p1 = Flatter(_accumulator.Vertexes[vertexId]);
                 var p2 = Flatter(_accumulator.Vertexes[vertexId + 1]);

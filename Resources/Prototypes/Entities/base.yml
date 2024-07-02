@@ -11,6 +11,60 @@
             !type:PhysShapeCircle
             radius: 0.35
           density: 50
+          mask:
+            - MobMask
+          layer:
+            - MobLayer
     - type: Input
       context: "human"
     - type: InputMover
+      
+- type: entity
+  id: BaseStructure
+  abstract: true
+  placement:
+    mode: SnapgridCenter
+  components:
+    - type: Transform
+      anchored: true
+    - type: Physics
+      bodyType: Static
+    - type: Fixtures
+      fixtures:
+        fix1:
+          shape:
+            !type:PhysShapeAabb
+            bounds: "-0.45,-0.45,0.45,0.45"
+          density: 60
+          mask:
+            - MachineMask
+          layer:
+            - MidImpassable
+            - LowImpassable
+
+- type: entity
+  abstract: true
+  parent: BaseStructure
+  id: BaseWall
+  name: basewall
+  description: Keeps the air in and the greytide out.
+  placement:
+    mode: SnapgridCenter
+    snap:
+      - Wall
+  components:
+    - type: PlacementReplacement
+      key: walls
+    - type: Physics
+      bodyType: Static
+    - type: Fixtures
+      fixtures:
+        fix1:
+          shape:
+            !type:PhysShapeAabb
+            bounds: "-0.5,-0.5,0.5,0.5"
+          mask:
+            - FullTileMask
+          layer:
+            - WallLayer
+          density: 1000

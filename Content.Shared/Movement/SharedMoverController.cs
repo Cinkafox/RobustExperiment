@@ -30,13 +30,13 @@ public sealed partial class SharedMoverController : VirtualController
             var dir = inputMoverComponent.PushedButtons.ToDir();
             if (dir is Direction.Invalid)
             {
-                //PhysicsSystem.SetLinearVelocity(uid, Vector2.Zero);
+                PhysicsSystem.SetLinearVelocity(uid, Vector2.Zero);
                 continue;
             }
 
             var angle = dir.ToAngle() + Angle.FromDegrees(270);
-            //PhysicsSystem.SetLinearVelocity(uid, angle.ToVec()*20);
-            _transformSystem.SetWorldPosition(uid,_transformSystem.GetWorldPosition(uid) + angle.ToVec()*frameTime*4);
+            PhysicsSystem.SetLinearVelocity(uid, angle.ToVec()*20);
+            //_transformSystem.SetWorldPosition(uid,_transformSystem.GetWorldPosition(uid) + angle.ToVec()*frameTime*4);
         }
     }
 }
