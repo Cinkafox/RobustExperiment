@@ -1,9 +1,8 @@
-﻿using Robust.Client.State;
-using Robust.Client.UserInterface;
+﻿using Robust.Client.UserInterface;
 
 namespace Content.Client.UserInterface;
 
-public abstract class UIState<T> : State where T : UIScreen, new()
+public abstract class UIState<T> : Robust.Client.State.State where T : UIScreen, new()
 {
     [Dependency] protected readonly IUserInterfaceManager UserInterfaceManager = default!;
 

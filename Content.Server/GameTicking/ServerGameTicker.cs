@@ -8,16 +8,10 @@ namespace Content.Server.GameTicking;
 
 public sealed class ServerGameTicker : SharedGameTicker
 {
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
     public override void Initialize()
     {
-        _playerManager.PlayerStatusChanged += PlayerManagerOnPlayerStatusChanged;
+        PlayerManager.PlayerStatusChanged += PlayerManagerOnPlayerStatusChanged;
         Timer.Spawn(0, InitializeMap);
-    }
-
-    public override void ChangeSessionState<T>(ICommonSession session)
-    {
-        RaiseNetworkEvent(new SessionStateChangeRequiredEvent(typeof(T)),session);
     }
 
     private void PlayerManagerOnPlayerStatusChanged(object? sender, SessionStatusEventArgs args)
@@ -27,8 +21,8 @@ public sealed class ServerGameTicker : SharedGameTicker
         switch (args.NewStatus)
         {
             case SessionStatus.Connected:
-                Timer.Spawn(0, () => _playerManager.JoinGame(session));
-                Logger.Info($"{session.Name} was connected");
+                Timer.Spawn(0, () => PlayerManager.JoinGame(session));
+                Logger.Info($"{session.Name} has connected");
                 break;
             case SessionStatus.InGame:
                 AddSession(session);

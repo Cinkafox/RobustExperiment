@@ -1,4 +1,5 @@
-﻿using Content.Shared.States;
+﻿using Content.Shared.State;
+using Content.Shared.States;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
@@ -8,12 +9,12 @@ namespace Content.Shared.GameTicking;
 
 public abstract class SharedGameTicker : EntitySystem
 {
-    [Dependency] protected readonly IMapManager _mapManager = default!;
-    [Dependency] protected readonly SharedMapSystem _mapSystem = default!;
-    [Dependency] protected readonly ISharedPlayerManager _playerManager = default!;
-    [Dependency] protected readonly SharedTransformSystem _transformSystem = default!;
-    [Dependency] protected readonly SharedPointLightSystem _lightSystem = default!;
-    [Dependency] protected readonly IReflectionManager _reflectionManager = default!;
+    [Dependency] protected readonly IMapManager MapManager = default!;
+    [Dependency] protected readonly SharedMapSystem MapSystem = default!;
+    [Dependency] protected readonly ISharedPlayerManager PlayerManager = default!;
+    [Dependency] protected readonly SharedTransformSystem TransformSystem = default!;
+    [Dependency] protected readonly SharedPointLightSystem LightSystem = default!;
+    [Dependency] protected readonly IContentStateManager ContentStateManager = default!;
     
     public EntityUid MapUid;
     public Entity<MapGridComponent> GridUid;
@@ -22,8 +23,8 @@ public abstract class SharedGameTicker : EntitySystem
     public Vector2i? playerPos = null;
     public void InitializeMap()
     {
-        MapUid = _mapSystem.CreateMap(out MapId);
-        GridUid = _mapManager.CreateGridEntity(MapUid,GridCreateOptions.Default);
+        MapUid = MapSystem.CreateMap(out MapId);
+        GridUid = MapManager.CreateGridEntity(MapUid,GridCreateOptions.Default);
         
         var width = 55;
         var height = 55;
@@ -39,7 +40,7 @@ public abstract class SharedGameTicker : EntitySystem
                 var sx = x - width / 2;
                 var sy= y - height / 2;
                 
-                _mapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
+                MapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
                 
                 if(state == 1)
                     Spawn("wall", new MapCoordinates(sx + 0.5f,sy +  0.5f, MapId));
@@ -53,7 +54,7 @@ public abstract class SharedGameTicker : EntitySystem
             var sx = -1 - width / 2;
             var sy= y - height / 2;
                 
-            _mapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
+            MapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
             Spawn("wall", new MapCoordinates(sx + 0.5f,sy +  0.5f, MapId));
         }
         
@@ -63,7 +64,7 @@ public abstract class SharedGameTicker : EntitySystem
             var sx = width - width / 2;
             var sy= y - height / 2;
                 
-            _mapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
+            MapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
             Spawn("wall", new MapCoordinates(sx + 0.5f,sy +  0.5f, MapId));
         }
         
@@ -72,7 +73,7 @@ public abstract class SharedGameTicker : EntitySystem
             var sx = x - width / 2;
             var sy= -1 - height / 2;
                 
-            _mapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
+            MapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
             Spawn("wall", new MapCoordinates(sx + 0.5f,sy +  0.5f, MapId));
         }
         
@@ -81,11 +82,11 @@ public abstract class SharedGameTicker : EntitySystem
             var sx = x - width / 2;
             var sy= height - height / 2;
                 
-            _mapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
+            MapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
             Spawn("wall", new MapCoordinates(sx + 0.5f,sy +  0.5f, MapId));
         }
         
-        _mapSystem.SetAmbientLight(MapId, Color.FromHex("#030201"));
+        MapSystem.SetAmbientLight(MapId, Color.FromHex("#030201"));
     }
 
     public void AddSession(ICommonSession session)
@@ -97,14 +98,12 @@ public abstract class SharedGameTicker : EntitySystem
         }
         
         var cam = Spawn("whore", new MapCoordinates(playerPos.Value.X + 0.5f, playerPos.Value.Y + 0.5f, MapId));
-        _transformSystem.AttachToGridOrMap(GridUid);
-        _playerManager.SetAttachedEntity(session, cam);
-        _lightSystem.EnsureLight(cam);
-        _lightSystem.SetColor(cam,Color.Beige);
-        _lightSystem.SetRadius(cam,2f);
+        TransformSystem.AttachToGridOrMap(GridUid);
+        PlayerManager.SetAttachedEntity(session, cam);
+        LightSystem.EnsureLight(cam);
+        LightSystem.SetColor(cam,Color.Beige);
+        LightSystem.SetRadius(cam,2f);
         
-        ChangeSessionState<IGameState>(session);
+        ContentStateManager.ChangeSessionState<IGameState>(session);
     }
-
-    public virtual void ChangeSessionState<T>(ICommonSession session) { }
 }

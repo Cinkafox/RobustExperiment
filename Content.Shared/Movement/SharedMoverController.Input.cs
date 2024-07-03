@@ -28,8 +28,6 @@ public partial class SharedMoverController
             inputMoverComponent.PushedButtons |= buttons;
         else
             inputMoverComponent.PushedButtons &= ~buttons;
-        
-        Logger.Debug(inputMoverComponent.PushedButtons.ToDir() + "??" + ToPrettyString(entity));
     }
 }
 
