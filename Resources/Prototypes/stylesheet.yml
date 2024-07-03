@@ -96,6 +96,17 @@
           contentMarginLeftOverride: 14
           contentMarginRightOverride: 10
           contentMarginTopOverride: 8
+    ContainerButton.button#disabled:
+      stylebox:
+        valueType: Robust.Client.Graphics.StyleBoxFlat
+        value:
+          backgroundColor: "#aaaaaa"
+          borderColor: "#aaaaaa"
+          borderThickness: 2,2,2,2
+          contentMarginBottomOverride: 8
+          contentMarginLeftOverride: 14
+          contentMarginRightOverride: 10
+          contentMarginTopOverride: 8
     .dreamPanel:
       panel:
         valueType: Robust.Client.Graphics.StyleBoxFlat

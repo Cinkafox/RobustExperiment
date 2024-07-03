@@ -66,12 +66,57 @@ public sealed class LauncherConnecting : Robust.Client.State.State
                 Redial();
             }
             ConnectFailReason = args.Reason;
-            Message("Fuck! " + ConnectFailReason);
+            Message("Some shit happen.. " );
+            Message(ConnectFailReason);
         }
 
         private void OnConnectStateChanged(ClientConnectionState state)
         {
-            Message(state.ToString());
+            if (state is ClientConnectionState.NotConnecting)
+            {
+                var btn1 = new Button()
+                {
+                    Text = "EXIT",
+                    Margin = new Thickness(0,0,15,0),
+                    HorizontalAlignment = Control.HAlignment.Left
+                };
+                
+                btn1.OnPressed += ExitPressed;
+                
+                var btn2 = new Button()
+                {
+                    Text = "RECONNECT",
+                    HorizontalAlignment = Control.HAlignment.Right
+                };
+                
+                btn2.OnPressed += (args) => ReconnectPressed(args,btn1,btn2);
+
+                var box = new BoxContainer()
+                {
+                    HorizontalAlignment = Control.HAlignment.Stretch
+                };
+                
+                box.AddChild(btn1);
+                box.AddChild(btn2);
+                
+                MessageContainer.AddChild(box);
+            }
+            else
+            {
+                Message(state.ToString());
+            }
+        }
+
+        private void ReconnectPressed(BaseButton.ButtonEventArgs obj,Button exit, Button reconnect)
+        {
+            exit.Disabled = true;
+            reconnect.Disabled = true;
+            RetryConnect();
+        }
+
+        private void ExitPressed(BaseButton.ButtonEventArgs obj)
+        {
+            Exit();
         }
 
         public void RetryConnect()
