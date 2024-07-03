@@ -53,6 +53,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content.Shared", "Content.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Server", "RobustToolbox\Robust.Server\Robust.Server.csproj", "{254E3008-5191-41B4-B853-10815B7C6481}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content.Packaging", "Content.Packaging\Content.Packaging.csproj", "{88258272-29DF-4F1D-B49A-9B577F1C7847}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content.Server", "Content.Server\Content.Server.csproj", "{63C3F0A4-AA25-44E3-A8AC-9F48BE4386BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -155,6 +159,14 @@ Global
 		{254E3008-5191-41B4-B853-10815B7C6481}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{254E3008-5191-41B4-B853-10815B7C6481}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{254E3008-5191-41B4-B853-10815B7C6481}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88258272-29DF-4F1D-B49A-9B577F1C7847}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88258272-29DF-4F1D-B49A-9B577F1C7847}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88258272-29DF-4F1D-B49A-9B577F1C7847}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88258272-29DF-4F1D-B49A-9B577F1C7847}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63C3F0A4-AA25-44E3-A8AC-9F48BE4386BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63C3F0A4-AA25-44E3-A8AC-9F48BE4386BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63C3F0A4-AA25-44E3-A8AC-9F48BE4386BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63C3F0A4-AA25-44E3-A8AC-9F48BE4386BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DCA7E086-1C4B-4BE1-8C2E-149524938607} = {77978585-1301-4238-BD49-5A01F7709853}

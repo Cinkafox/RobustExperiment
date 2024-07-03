@@ -16,6 +16,7 @@
                            <controls:ExposedRichTextLabel Name="MenuLabel" Margin="0 15 0 30" Text="{Loc 'menu-label'}"/>
                            <BoxContainer Orientation="Vertical" SetWidth="200" HorizontalAlignment="Left" Name="ButtonContainer">
                                <Button Text="{Loc 'menu-play'}"        Margin="0 15 0 0" Name="PlayButton" StyleClasses="Fuck"/>
+                               <Button Text="{Loc 'menu-connect'}"     Margin="0 15 0 0" Name="ConnectButton" StyleClasses="Fuck"/>
                                <Button Text="{Loc 'menu-config'}"      Margin="0 15 0 0" Name="Config"/>
                                <Button Text="{Loc 'menu-exit'}"        Margin="0 15 0 0" Name="Exit"/>
                            </BoxContainer>

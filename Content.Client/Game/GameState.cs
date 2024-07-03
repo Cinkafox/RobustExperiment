@@ -1,5 +1,7 @@
-﻿using Content.Client.UserInterface;
+﻿using Content.Client.GameTicking;
+using Content.Client.UserInterface;
 using Content.Client.Viewport.Controls;
+using Content.Shared.States;
 using Robust.Client;
 using Robust.Client.GameObjects;
 using Robust.Client.GameStates;
@@ -14,7 +16,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client.Game;
 
-public sealed class GameState : UIState<GameScreen>
+public sealed class GameState : UIState<GameScreen>, IGameState
 {
     [Dependency] private readonly IEyeManager _eyeManager = default!;
     [Dependency] private readonly IInputManager _inputManager = default!;
@@ -30,8 +32,6 @@ public sealed class GameState : UIState<GameScreen>
 
     protected override void UIStartup()
     {
-        _baseClient.StartSinglePlayer();
-        _entityManager.System<ClientGameRunnerSystem>().StartSinglePlayer();
         _inputManager.KeyBindStateChanged += InputManagerOnKeyBindStateChanged;
     }
 

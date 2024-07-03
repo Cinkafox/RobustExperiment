@@ -6,6 +6,8 @@ namespace Content.Client.UserInterface;
 public abstract class UIState<T> : State where T : UIScreen, new()
 {
     [Dependency] protected readonly IUserInterfaceManager UserInterfaceManager = default!;
+
+    protected T UIScreen => (T)UserInterfaceManager.ActiveScreen!;
     
     protected override void Startup()
     {

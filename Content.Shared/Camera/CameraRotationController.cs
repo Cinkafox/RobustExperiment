@@ -27,10 +27,12 @@ public sealed class CameraRotationController : VirtualController
                 case CameraRotation.None:
                     break;
                 case CameraRotation.Left:
-                    _sharedEyeSystem.SetRotation(uid,eyeComponent.Rotation + 0.25,eyeComponent);
+                    _sharedEyeSystem.SetRotation(uid,eyeComponent.Rotation + 0.25*frameTime,eyeComponent);
+                    Dirty(uid,eyeComponent);
                     break;
                 case CameraRotation.Right:
-                    _sharedEyeSystem.SetRotation(uid,eyeComponent.Rotation - 0.25,eyeComponent);
+                    _sharedEyeSystem.SetRotation(uid,eyeComponent.Rotation - 0.25*frameTime,eyeComponent);
+                    Dirty(uid,eyeComponent);
                     break;
             }
         }

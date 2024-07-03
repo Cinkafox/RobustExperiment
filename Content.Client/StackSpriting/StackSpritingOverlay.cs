@@ -2,6 +2,7 @@
 using System.Numerics;
 using Content.Shared;
 using Content.Shared.StackSpriting;
+using Robust.Client.Console.Commands;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -10,6 +11,7 @@ using Robust.Shared.ContentPack;
 using Robust.Shared.Enums;
 using Robust.Shared.Graphics;
 using Robust.Shared.Graphics.RSI;
+using Robust.Shared.Profiling;
 using Vector3 = System.Numerics.Vector3;
 
 namespace Content.Client.StackSpriting;
@@ -20,6 +22,7 @@ public sealed class StackSpritingOverlay : Overlay
     [Dependency] private readonly IEyeManager _eyeManager = default!;
     [Dependency] private readonly IConfigurationManager _configurationManager = default!;
     [Dependency] private readonly IResourceCache _resourceCache = default!;
+    [Dependency] private readonly ProfManager _profManager = default!;
     
     private readonly TransformSystem _transformSystem;
     private readonly SpriteSystem _spriteSystem;
@@ -45,14 +48,20 @@ public sealed class StackSpritingOverlay : Overlay
     protected override void Draw(in OverlayDrawArgs args)
     {
         var eye = _eyeManager.CurrentEye;
-        using var stackHandle = new DrawingHandleStackSprite(_accumulator, args.DrawingHandle, eye, args.WorldAABB.Enlarged(5f));
+        var bounds = args.WorldAABB.Enlarged(5f);
+        using var stackHandle = new DrawingHandleStackSprite(_accumulator, args.DrawingHandle, eye, args.WorldAABB);
         var query = _entityManager.EntityQueryEnumerator<RendererStackSpriteComponent, TransformComponent>();
+
+        using var draw = _profManager.Group("SpriteStackDraw");
         
         while (query.MoveNext(out var uid, out var stackSpriteComponent, out var transformComponent))
         {
             var drawPos = _transformSystem.GetWorldPosition(uid) - new Vector2(0.5f);;
             var texture = stackSpriteComponent.Texture;
             var count = stackSpriteComponent.Height;
+            
+            if(!bounds.Contains(drawPos))
+                continue;
                 
             for (var i = 0; i < count; i++)
             {
@@ -95,6 +104,7 @@ public sealed class DrawingHandleStackSprite : IDisposable
     private StackSpriteAccumulator _accumulator;
     private IEye _currentEye;
     private Box2 _bounds;
+    private readonly ProfManager _profManager;
 
     public DrawingHandleStackSprite(StackSpriteAccumulator accumulator, DrawingHandleBase baseHandle, IEye currentEye, Box2 bounds)
     {
@@ -102,6 +112,7 @@ public sealed class DrawingHandleStackSprite : IDisposable
         _baseHandle = baseHandle;
         _currentEye = currentEye;
         _bounds = bounds;
+        _profManager = IoCManager.Resolve<ProfManager>();
     }
     public bool IsFlushed { get; private set; }
 
@@ -149,6 +160,8 @@ public sealed class DrawingHandleStackSprite : IDisposable
            !_bounds.Contains(new Vector2(p3.X,p3.Z)) && 
            !_bounds.Contains(new Vector2(p4.X,p4.Z))) 
             return;
+        
+        using var preparing = _profManager.Group("SpriteStackingPrepareLayer");
 
         var vertexId = _accumulator.Vertexes.Length;
 
@@ -184,6 +197,8 @@ public sealed class DrawingHandleStackSprite : IDisposable
     public void Flush()
     {
         if (IsFlushed) throw new Exception();
+        
+        using var flush = _profManager.Group("SpriteStackinFlush");
 
         foreach (var (_, keyList) in _accumulator.DrawQueue)
         {
