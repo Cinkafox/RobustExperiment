@@ -132,7 +132,8 @@ public sealed class DrawingHandleStackSprite : IDisposable
         var p2 = new Vector3(p1.X, drawPos.Y, p3.Z);//LeftBottom
         var p4 = new Vector3(p3.X, drawPos.Y, p1.Z);//RightTop
 
-        var center = p3 - p1;
+        var center = p1 + new Vector3(currScale.X,0,currScale.Y) / 2f;
+        
         var rotTrans = Matrix4x4.CreateFromYawPitchRoll((float)yaw, (float)pitch, (float)roll);
 
         p1 -= center;

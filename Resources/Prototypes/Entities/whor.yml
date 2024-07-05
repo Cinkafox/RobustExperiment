@@ -5,7 +5,7 @@
   description: a fucking whore
   components:
     - type: StackSprite
-      path: "/Textures/Voxels/whor.png"
+      path: "/Textures/Voxels/goal.png"
       size: 32,32
     - type: Eye
       zoom: 0.5,0.5

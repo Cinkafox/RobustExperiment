@@ -42,8 +42,8 @@ public abstract class SharedGameTicker : EntitySystem
                 
                 MapSystem.SetTile(GridUid, new Vector2i(sx,sy),new Robust.Shared.Map.Tile(1));
                 
-                if(state == 1)
-                    Spawn("wall", new MapCoordinates(sx + 0.5f,sy +  0.5f, MapId));
+                //if(state == 1)
+                //    Spawn("wall", new MapCoordinates(sx + 0.5f,sy +  0.5f, MapId));
                 if (state == 0 && playerPos is null) playerPos = new Vector2i(sx, sy);
             }
         }
