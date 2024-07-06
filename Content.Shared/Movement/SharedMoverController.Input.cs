@@ -21,7 +21,7 @@ public partial class SharedMoverController
     
     public void HandleDirChange(EntityUid entity, MoveButtons buttons, ushort subTick, bool state)
     {
-        if(!MoverQuery.TryComp(entity, out var inputMoverComponent)) 
+        if(!_moverQuery.TryComp(entity, out var inputMoverComponent)) 
             return;
 
         if (state)

@@ -1,12 +1,13 @@
 - type: entity
-  id: whore
+  id: car
   parent: entBase
-  name: whore
-  description: a fucking whore
+  name: car
+  description: a fucking car!
   components:
     - type: StackSprite
       path: "/Textures/Voxels/goal.png"
       size: 32,32
     - type: Eye
       zoom: 0.5,0.5
+    - type: Vehicle
       

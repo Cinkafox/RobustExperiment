@@ -86,7 +86,7 @@ public abstract class SharedGameTicker : EntitySystem
             Spawn("wall", new MapCoordinates(sx + 0.5f,sy +  0.5f, MapId));
         }
         
-        MapSystem.SetAmbientLight(MapId, Color.FromHex("#030201"));
+        MapSystem.SetAmbientLight(MapId, Color.FromHex("#ffffff"));
     }
 
     public void AddSession(ICommonSession session)
@@ -97,12 +97,9 @@ public abstract class SharedGameTicker : EntitySystem
             return;
         }
         
-        var cam = Spawn("whore", new MapCoordinates(playerPos.Value.X + 0.5f, playerPos.Value.Y + 0.5f, MapId));
+        var cam = Spawn("car", new MapCoordinates(playerPos.Value.X + 0.5f, playerPos.Value.Y + 0.5f, MapId));
         TransformSystem.AttachToGridOrMap(GridUid);
         PlayerManager.SetAttachedEntity(session, cam);
-        LightSystem.EnsureLight(cam);
-        LightSystem.SetColor(cam,Color.Beige);
-        LightSystem.SetRadius(cam,2f);
         
         ContentStateManager.ChangeSessionState<IGameState>(session);
     }

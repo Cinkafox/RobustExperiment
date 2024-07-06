@@ -6,4 +6,5 @@ namespace Content.Shared.Movement;
 public sealed partial class InputMoverComponent : Component
 {
     [ViewVariables] public MoveButtons PushedButtons;
+    [ViewVariables] public float CurrentSpeed;
 }
