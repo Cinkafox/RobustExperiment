@@ -1,5 +1,7 @@
-﻿using Content.Shared.Movement;
+﻿using System.Numerics;
+using Content.Shared.Movement;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Events;
 using Robust.Shared.Physics.Systems;
 
 namespace Content.Shared.Vehicle;
@@ -7,6 +9,25 @@ namespace Content.Shared.Vehicle;
 public sealed partial class VehicleSystem : EntitySystem
 {
     [Dependency] private readonly SharedPhysicsSystem _physicsSystem = default!;
+
+    public override void Initialize()
+    {
+        SubscribeLocalEvent<VehicleComponent,StartCollideEvent>(OnCollide);
+    }
+
+    private void OnCollide(Entity<VehicleComponent> ent, ref StartCollideEvent args)
+    {
+        if(!TryComp<TransformComponent>(ent, out var transformComponent)) 
+            return;
+        
+        Logger.Debug(args.WorldPoint + "?" + transformComponent.WorldPosition);
+
+        var nap = Vector2.Normalize(args.WorldPoint - transformComponent.WorldPosition);
+        Logger.Debug(nap + "");
+        
+        _physicsSystem.SetLinearVelocity(ent, _physicsSystem.GetMapLinearVelocity(ent)*-1);
+    }
+
     public override void Update(float frameTime)
     {
         UpdateControl(frameTime);

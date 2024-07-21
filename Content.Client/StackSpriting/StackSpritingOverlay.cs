@@ -78,7 +78,7 @@ public sealed class StackSpritingOverlay : Overlay
                     var zLevelLayer = z / (float)_stackByOneLayer;
                     var texPos = new Vector3(drawPos.X, i + zLevelLayer, drawPos.Y);
                     
-                    stackHandle.DrawSpriteLayer(textureId, texPos, transformComponent.WorldRotation, 0, 0);
+                    stackHandle.DrawSpriteLayer(textureId, texPos,stackSpriteComponent.Center, transformComponent.WorldRotation, 0, 0);
                 }
             }
         }
@@ -122,7 +122,7 @@ public sealed class DrawingHandleStackSprite : IDisposable
         return _accumulator.TexturePool.Length - 1;
     }
 
-    public void DrawSpriteLayer(int textureId,Vector3 drawPos, Angle yaw, Angle pitch, Angle roll)
+    public void DrawSpriteLayer(int textureId,Vector3 drawPos,Vector3? drawCenter, Angle yaw, Angle pitch, Angle roll)
     {
         var currScale = _accumulator.TexturePool[textureId].Size / (float)EyeManager.PixelsPerMeter;
         
@@ -132,7 +132,11 @@ public sealed class DrawingHandleStackSprite : IDisposable
         var p2 = new Vector3(p1.X, drawPos.Y, p3.Z);//LeftBottom
         var p4 = new Vector3(p3.X, drawPos.Y, p1.Z);//RightTop
 
-        var center = p1 + new Vector3(currScale.X,0,currScale.Y) / 2f;
+        drawCenter ??= new Vector3(currScale.X, 0, currScale.Y) / 2f;
+        
+        //Logger.Debug(drawCenter + "");
+        
+        var center = p1 + drawCenter.Value;
         
         var rotTrans = Matrix4x4.CreateFromYawPitchRoll((float)yaw, (float)pitch, (float)roll);
 

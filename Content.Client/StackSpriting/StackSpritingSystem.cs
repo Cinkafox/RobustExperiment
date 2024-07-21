@@ -8,8 +8,6 @@ namespace Content.Client.StackSpriting;
 public sealed class StackSpritingSystem : EntitySystem
 {
     [Dependency] private readonly IOverlayManager _overlayManager = default!;
-    [Dependency] private readonly IEyeManager _eyeManager = default!;
-    [Dependency] private readonly TransformSystem _transformSystem = default!;
     [Dependency] private readonly IResourceCache _resourceCache = default!;
     
     public override void Initialize()
@@ -26,5 +24,6 @@ public sealed class StackSpritingSystem : EntitySystem
         renderer.Size = stackSpriteComponent.Size;
         renderer.Texture = texture;
         renderer.Height = count;
+        renderer.Center = stackSpriteComponent.Center;
     }
 }
