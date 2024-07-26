@@ -1,0 +1,5 @@
+﻿- type: carList
+  id: default
+  carPrototypes:
+    - car0
+    - car1

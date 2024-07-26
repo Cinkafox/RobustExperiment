@@ -3,8 +3,8 @@
 [RegisterComponent]
 public sealed partial class VehicleComponent : Component
 {
-    [DataField] public double MaxPower = 0.55;
-    [DataField] public double MaxReverse = 0.375;
+    [DataField] public double MaxPower = 10;
+    [DataField] public double MaxReverse = 5;
     [DataField] public double PowerFactor = 0.1;
     [DataField] public double ReverseFactor = 0.01;
     [DataField] public double BreakFactor = 1;

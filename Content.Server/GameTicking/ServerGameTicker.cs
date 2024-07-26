@@ -18,6 +18,8 @@ public sealed class ServerGameTicker : SharedGameTicker
     
     public override void Initialize()
     {
+        base.Initialize();
+        
         PlayerManager.PlayerStatusChanged += PlayerManagerOnPlayerStatusChanged;
         _groupController.Implementation = GroupController;
         Timer.Spawn(0, InitializeMap);
