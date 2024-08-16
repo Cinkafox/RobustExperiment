@@ -81,16 +81,13 @@ public sealed class DrawingHandleStackSprite : IDisposable
         _accumulator.Vertexes.Add(p3);
         _accumulator.Vertexes.Add(p4);
 
-        var height = (int)(drawPos.Y * 10);
-        
-        if(!_accumulator.DrawQueue.TryGetValue(height,out var list))
+        var height = drawPos.Y + (drawPos.X * 0.1f + drawPos.Z * 0.01f);
+        while (_accumulator.DrawQueue.ContainsKey(height))
         {
-            list = new List<(int,int)>();
-            _accumulator.DrawQueue.Add(height,list);
+            height += 0.001f;
         }
         
-        list.Add((textureId,vertexId));
-        _accumulator.MaxHeight = int.Max(_accumulator.MaxHeight, height);
+        _accumulator.DrawQueue.Add(height,new DrawQueue(textureId,vertexId));
     }
 
     private Vector3 Transform(Vector3 vector3)
@@ -109,50 +106,47 @@ public sealed class DrawingHandleStackSprite : IDisposable
     {
         if (IsFlushed) throw new Exception();
         
-        using var flush = _profManager.Group("SpriteStackinFlush");
+        using var flush = _profManager.Group("SpriteStackingFlush");
 
-        foreach (var (_, keyList) in _accumulator.DrawQueue)
+        foreach (var (_,drawQueue) in _accumulator.DrawQueue)
         {
-            foreach (var (textureIndex,vertexIndex) in keyList)
-            {
-                var texture = _accumulator.TexturePool[textureIndex]; 
-                var vertexId = vertexIndex;
+            var texture = _accumulator.TexturePool[drawQueue.TextureId]; 
+            var vertexId = drawQueue.VertexId;
 
-                var p1 = Flatter(_accumulator.Vertexes[vertexId]);
-                var p2 = Flatter(_accumulator.Vertexes[vertexId + 1]);
-                var p3 = Flatter(_accumulator.Vertexes[vertexId + 2]);
-                var p4 = Flatter(_accumulator.Vertexes[vertexId + 3]);
+            var p1 = Flatter(_accumulator.Vertexes[vertexId]);
+            var p2 = Flatter(_accumulator.Vertexes[vertexId + 1]);
+            var p3 = Flatter(_accumulator.Vertexes[vertexId + 2]);
+            var p4 = Flatter(_accumulator.Vertexes[vertexId + 3]);
             
-                if(!_bounds.Contains(p1) && 
-                   !_bounds.Contains(p2) && 
-                   !_bounds.Contains(p3) && 
-                   !_bounds.Contains(p4))
-                    continue;
+            if(!_bounds.Contains(p1) && 
+               !_bounds.Contains(p2) && 
+               !_bounds.Contains(p3) && 
+               !_bounds.Contains(p4))
+                continue;
 
-                texture = ExtractTexture(texture, null, out var sr);
+            texture = ExtractTexture(texture, null, out var sr);
 
-                var hw = new Vector2(texture.Width,texture.Height);
-                var t1 = sr.TopLeft / hw;
-                var t2 = sr.BottomLeft / hw;
-                var t3 = sr.BottomRight / hw;
-                var t4 = sr.TopRight / hw;
+            var hw = new Vector2(texture.Width,texture.Height);
+            var t1 = sr.TopLeft / hw;
+            var t2 = sr.BottomLeft / hw;
+            var t3 = sr.BottomRight / hw;
+            var t4 = sr.TopRight / hw;
 
-                _accumulator.UvVertexes[0] = new DrawVertexUV2D(p1, t1);
-                _accumulator.UvVertexes[1] = new DrawVertexUV2D(p2, t2);
-                _accumulator.UvVertexes[2] = new DrawVertexUV2D(p3, t3);
+            _accumulator.UvVertexes[0] = new DrawVertexUV2D(p1, t1);
+            _accumulator.UvVertexes[1] = new DrawVertexUV2D(p2, t2);
+            _accumulator.UvVertexes[2] = new DrawVertexUV2D(p3, t3);
             
-                _accumulator.UvVertexes[3] = new DrawVertexUV2D(p1, t1);
-                _accumulator.UvVertexes[4] = new DrawVertexUV2D(p3, t3);
-                _accumulator.UvVertexes[5] = new DrawVertexUV2D(p4, t4);
+            _accumulator.UvVertexes[3] = new DrawVertexUV2D(p1, t1);
+            _accumulator.UvVertexes[4] = new DrawVertexUV2D(p3, t3);
+            _accumulator.UvVertexes[5] = new DrawVertexUV2D(p4, t4);
 
-                _accumulator.DebugVertexes[0] = p1;
-                _accumulator.DebugVertexes[1] = p2;
-                _accumulator.DebugVertexes[2] = p3;
-                _accumulator.DebugVertexes[3] = p4;
+            _accumulator.DebugVertexes[0] = p1;
+            _accumulator.DebugVertexes[1] = p2;
+            _accumulator.DebugVertexes[2] = p3;
+            _accumulator.DebugVertexes[3] = p4;
             
-                _baseHandle.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture,_accumulator.UvVertexes); 
-                //_baseHandle.DrawPrimitives(DrawPrimitiveTopology.LineLoop,_accumulator.DebugVertexes,Color.Wheat);
-            }
+            _baseHandle.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture,_accumulator.UvVertexes); 
+            //_baseHandle.DrawPrimitives(DrawPrimitiveTopology.LineLoop,_accumulator.DebugVertexes,Color.Wheat);
         }
     }
 
@@ -162,7 +156,6 @@ public sealed class DrawingHandleStackSprite : IDisposable
         _accumulator.TexturePool.Clear();
         _accumulator.Vertexes.Clear();
         _accumulator.DrawQueue.Clear();
-        _accumulator.MaxHeight = 0;
         IsFlushed = true;
     }
     

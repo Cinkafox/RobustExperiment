@@ -1,15 +1,9 @@
 ﻿using System.Numerics;
 using Content.Shared;
-using Content.Shared.StackSpriting;
-using Robust.Client.Console.Commands;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
-using Robust.Client.ResourceManagement;
 using Robust.Shared.Configuration;
-using Robust.Shared.ContentPack;
 using Robust.Shared.Enums;
-using Robust.Shared.Graphics.RSI;
-using Robust.Shared.Map;
 using Robust.Shared.Profiling;
 using Vector3 = System.Numerics.Vector3;
 
@@ -45,30 +39,21 @@ public sealed class StackSpritingOverlay : Overlay
     {
         var eye = _eyeManager.CurrentEye;
         var bounds = args.WorldAABB.Enlarged(5f);
-        using var stackHandle = new DrawingHandleStackSprite(_accumulator, args.DrawingHandle, eye, args.WorldAABB);
         var query = _entityManager.EntityQueryEnumerator<RendererStackSpriteComponent, TransformComponent>();
-
+        
+        using var stackHandle = new DrawingHandleStackSprite(_accumulator, args.DrawingHandle, eye, args.WorldAABB);
         using var draw = _profManager.Group("SpriteStackDraw");
         
         while (query.MoveNext(out var uid, out var stackSpriteComponent, out var transformComponent))
         {
             var drawPos = _transformSystem.GetWorldPosition(uid) - new Vector2(0.5f);;
-            var texture = stackSpriteComponent.Texture;
-            var count = stackSpriteComponent.Height;
-            //Logger.Debug(transformComponent.MapID + " " + eye.Position.MapId);
-            //if(transformComponent.WorldPosition == Vector2.Zero) return;
             
             if(!bounds.Contains(drawPos))
                 continue;
                 
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < stackSpriteComponent.Height; i++)
             {
-                //TODO: Add multidimensional support
-                var xIndex = i % texture.Width;
-                var yIndex = i / texture.Height;
-                    
-                var tex = new AtlasTexture(texture,
-                    UIBox2.FromDimensions(new Vector2(0,i*stackSpriteComponent.Size.X), stackSpriteComponent.Size));
+                var tex = stackSpriteComponent.Layers[i];
 
                 var textureId = stackHandle.AddTexture(tex);
                 
@@ -77,7 +62,7 @@ public sealed class StackSpritingOverlay : Overlay
                     var zLevelLayer = z / (float)_stackByOneLayer;
                     var texPos = new Vector3(drawPos.X, i + zLevelLayer, drawPos.Y);
                     
-                    stackHandle.DrawSpriteLayer(textureId, texPos,stackSpriteComponent.Center, transformComponent.WorldRotation, 0, 0);
+                    stackHandle.DrawSpriteLayer(textureId, texPos,stackSpriteComponent.Center, _transformSystem.GetWorldRotation(uid), 0, 0);
                 }
             }
         }

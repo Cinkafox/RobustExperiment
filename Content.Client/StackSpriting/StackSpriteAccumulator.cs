@@ -12,6 +12,17 @@ public sealed class StackSpriteAccumulator
     public readonly DrawVertexUV2D[] UvVertexes = new DrawVertexUV2D[6];
     public readonly Vector2[] DebugVertexes = new Vector2[4];
 
-    public SortedDictionary<int, List<(int,int)>> DrawQueue = new();
-    public int MaxHeight = 0;
+    public SortedDictionary<float, DrawQueue> DrawQueue = new();
+}
+
+public struct DrawQueue
+{
+    public int TextureId;
+    public int VertexId;
+
+    public DrawQueue(int textureId, int vertexId)
+    {
+        TextureId = textureId;
+        VertexId = vertexId;
+    }
 }
