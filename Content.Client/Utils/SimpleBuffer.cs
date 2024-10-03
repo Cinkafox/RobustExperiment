@@ -1,6 +1,8 @@
-﻿namespace Content.Client.Utils;
+﻿using System.Collections;
 
-public sealed class SimpleBuffer<T>
+namespace Content.Client.Utils;
+
+public sealed class SimpleBuffer<T> : IEnumerable<T>
 {
     public readonly T[] Buffer;
     
@@ -49,5 +51,18 @@ public sealed class SimpleBuffer<T>
     {
         Length = 0;
         Shift = 0;
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        for (int i = 0; i < Length; i++)
+        {
+            yield return Buffer[i];
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

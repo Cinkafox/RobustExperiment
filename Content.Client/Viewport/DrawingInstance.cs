@@ -9,9 +9,10 @@ namespace Content.Client.Viewport;
 public sealed class DrawingInstance
 {
     public static readonly int BuffSize = 2048 * 128;
+    
+    public readonly SortedList<float,TexturedTriangle> TriangleBuffer = new();
 
-    public readonly SimpleBuffer<TexturedTriangle> TriangleBuffer = new(BuffSize);
-
+    public readonly List<TexturedTriangle> ListTriangles = new();
     public readonly SimpleBuffer<Vector4> InsidePoints = new(3);
     public readonly SimpleBuffer<Vector4> OutsidePoints = new(3);
     public readonly SimpleBuffer<Vector2> InsideTex = new(3);
@@ -24,8 +25,12 @@ public sealed class DrawingInstance
 
     public void AppendTriangle(TexturedTriangle texturedTriangle)
     {
-        //TriangleBuffer.Set((int)texturedTriangle.Triangle.p1.Z, texturedTriangle);
-        TriangleBuffer.Add(texturedTriangle);
+        var z = texturedTriangle.Triangle.Z;
+
+        while (!TriangleBuffer.TryAdd(z, texturedTriangle))
+        {
+            z += 0.01f;
+        }
     }
 
     public int AddTexture(Texture texture)
@@ -47,12 +52,7 @@ public sealed class DrawingInstance
     
     public void Sort()
     {
-        Array.Sort(TriangleBuffer.Buffer, (t1,t2) =>
-        {
-            var sa = (t1.Triangle.p1.Z + t1.Triangle.p2.Z + t1.Triangle.p3.Z) / 3;
-            var ba = (t2.Triangle.p1.Z + t2.Triangle.p2.Z + t2.Triangle.p3.Z) / 3;
-            return sa.CompareTo(ba);
-        });
+        
     }
 
     public void Flush()

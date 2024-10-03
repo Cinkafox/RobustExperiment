@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 using Content.Client.Utils;
 using Robust.Client.Graphics;
 using Robust.Shared.Profiling;
@@ -15,6 +16,8 @@ public sealed class DrawingHandle3d : IDisposable
 
     private readonly DrawingHandleBase _handleBase;
     private readonly DrawingInstance _drawingInstance;
+
+    public DrawingHandleBase HandleBase => _handleBase;
 
     public readonly float Width;
     public readonly float Height;
@@ -42,22 +45,23 @@ public sealed class DrawingHandle3d : IDisposable
     
     public DrawVertexUV2D ToScreen(Vector3 vertex, Vector2 uvPos)
     {
-        return new DrawVertexUV2D(ToScreenVec(vertex),uvPos);
+        return new DrawVertexUV2D(vertex.Xy,uvPos);
     }
     
     public void DrawPolygon(Triangle triangle, Vector2 p1, Vector2 p2, Vector2 p3, int textureId)
     {
         CheckDisposed();
+        
         triangle.Transform(ViewMatrix);
         
         var normal = triangle.Normal();
         normal.Normalize();
 
-        var cameraToVertex = triangle.p1.Xyz;// - _cameraProperties.Position;
+        var vCameraRay = Vector3.Subtract(triangle.p1.Xyz, _cameraProperties.Position);
 
-        var dotProduct = Vector3.Dot(normal, cameraToVertex);
+        var dotProduct = Vector3.Dot(normal, vCameraRay);
         
-        if(dotProduct >= 0) return;
+        if(dotProduct >= 1) return;
 
         var trtex = new TexturedTriangle(triangle, p1, p2, p3, textureId);
 
@@ -87,97 +91,85 @@ public sealed class DrawingHandle3d : IDisposable
             trtex.Triangle.p2.Y *= -1;
             trtex.Triangle.p3.Y *= -1;
             
+            // Offset verts into visible normalised space
+            var vOffsetView = new Vector3(1,1,0);
+            trtex.Triangle.p1 = Vector4.Add(trtex.Triangle.p1, new Vector4(vOffsetView, 0));
+            trtex.Triangle.p2 = Vector4.Add(trtex.Triangle.p2, new Vector4(vOffsetView, 0));
+            trtex.Triangle.p3 = Vector4.Add(trtex.Triangle.p3, new Vector4(vOffsetView, 0));
+            trtex.Triangle.p1.X *= 0.5f * Width;
+            trtex.Triangle.p1.Y *= 0.5f * Height;
+            trtex.Triangle.p2.X *= 0.5f * Width;
+            trtex.Triangle.p2.Y *= 0.5f * Height;
+            trtex.Triangle.p3.X *= 0.5f * Width;
+            trtex.Triangle.p3.Y *= 0.5f * Height;
+            
             _drawingInstance.AppendTriangle(trtex);
         }
     }
-
+    
     public void Flush()
     {
-        // for (int i = 0; i < _drawingInstance.TriangleBuffer.Length; i++)
-        // {
-        //     var triToRaster = _drawingInstance.TriangleBuffer[i];
-        //     // Clip triangles against all four screen edges, this could yield
-        //     // a bunch of triangles, so create a queue that we traverse to 
-        //     //  ensure we only test new triangles generated against planes
-        //     //List<Triangle> listTriangles = new List<Triangle>();
-        //     _drawingInstance.ClippingBuff.Clear();
-        //     
-        //
-        //     // Add initial triangle
-        //     //listTriangles.Add(triToRaster);
-        //     _drawingInstance.ClippingBuff[0] = triToRaster;
-        //     int nNewTriangles = 1;
-        //
-        //     for (int p = 0; p < 4; p++)
-        //     {
-        //         while (nNewTriangles > 0)
-        //         {
-        //             // Take triangle from front of queue
-        //             Triangle test = _drawingInstance.ClippingBuff.Pop();
-        //             nNewTriangles--;
-        //
-        //             // Clip it against a plane. We only need to test each 
-        //             // subsequent plane, against subsequent new triangles
-        //             // as all triangles after a plane clip are guaranteed
-        //             // to lie on the inside of the plane. I like how this
-        //             // comment is almost completely and utterly justified
-        //             switch (p)
-        //             {
-        //                 case 0:
-        //                     Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f),test,_drawingInstance);
-        //                     break;
-        //                 case 1:
-        //                     Triangle.ClipAgainstClip(new Vector3(0.0f, Height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f),test,_drawingInstance);
-        //                     break;
-        //                 case 2:
-        //                     Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f),test,_drawingInstance);
-        //                     break;
-        //                 case 3:
-        //                     Triangle.ClipAgainstClip(new Vector3(Width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f),test,_drawingInstance);
-        //                     break;
-        //             }
-        //
-        //             // Clipping may yield a variable number of triangles, so
-        //             // add these new ones to the back of the queue for subsequent
-        //             // clipping against next planes
-        //             for (int w = 0; w < _drawingInstance.Clipping.Length; w++)
-        //                 _drawingInstance.ClippingBuff.Add(_drawingInstance.Clipping[w]);
-        //         }
-        //
-        //         nNewTriangles = _drawingInstance.ClippingBuff.Length;
-        //     }
-        //
-        //     for (int j = 0; j < _drawingInstance.ClippingBuff.Length; j++)
-        //     {
-        //         var triangle = _drawingInstance.ClippingBuff[j];
-        //     
-        //         if(Debug)
-        //         {
-        //             FlushScreenVec(triangle);
-        //             _handleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop, _drawingInstance.VectorBuffer, Color.White);
-        //         }
-        //         else
-        //         {
-        //             FlushScreen(triangle,_drawingInstance.uvBuff[j*3],_drawingInstance.uvBuff[j*3+1],_drawingInstance.uvBuff[j*3+2]);
-        //             _handleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,_drawingInstance.Texture, _drawingInstance.DrawVertexBuffer);
-        //         }
-        //     }
-        // }
-
         using (_prof.Group("Handle.Sort")) {
              //_drawingInstance.Sort();
+        }
+        
+        foreach (var (_, triToRaster) in _drawingInstance.TriangleBuffer)
+        {
+            _drawingInstance.ListTriangles.Clear();
+            
+            _drawingInstance.ListTriangles.Add(triToRaster);
+            int nNewTriangles = 1;
+
+            for (int p = 0; p < 4; p++)
+            {
+                int nTrisToAdd = 0;
+                while (nNewTriangles > 0)
+                {
+                    // Take triangle from front of queue
+                    var test = _drawingInstance.ListTriangles[0];
+                    _drawingInstance.ListTriangles.RemoveAt(0);
+                    nNewTriangles--;
+                    
+                    switch (p)
+                    {
+                        case 0:
+                            Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, _drawingInstance);
+                            nTrisToAdd = _drawingInstance.Clipping.Length;
+                            break;
+                        case 1:
+                            Triangle.ClipAgainstClip(new Vector3(0.0f, Height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, _drawingInstance);
+                            nTrisToAdd = _drawingInstance.Clipping.Length;
+                            break;
+                        case 2:
+                            Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, _drawingInstance);
+                            nTrisToAdd = _drawingInstance.Clipping.Length;
+                            break;
+                        case 3:
+                            Triangle.ClipAgainstClip(new Vector3(Width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, _drawingInstance);
+                            nTrisToAdd = _drawingInstance.Clipping.Length;
+                            break;
+                    }
+
+                    // Clipping may yield a variable number of triangles, so
+                    // add these new ones to the back of the queue for subsequent
+                    // clipping against next planes
+                    for (int w = 0; w < nTrisToAdd; w++)
+                    {
+                        _drawingInstance.ListTriangles.Add(_drawingInstance.Clipping[w]);
+                    }
+                }
+                nNewTriangles = _drawingInstance.ListTriangles.Count;
+            }
         }
 
         using (_prof.Group("Handle.Draw"))
         {
-            for (int j = 0; j < _drawingInstance.TriangleBuffer.Length; j++)
+            foreach (var (_, triangle) in _drawingInstance.TriangleBuffer)
             {
-                var triangle = _drawingInstance.TriangleBuffer[j];
                 var texture = _drawingInstance.TextureBuffer[triangle.TextureId];
-
+            
                 FlushScreen(triangle);
                 _handleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, _drawingInstance.DrawVertexBuffer);
-                
             }
         }
         

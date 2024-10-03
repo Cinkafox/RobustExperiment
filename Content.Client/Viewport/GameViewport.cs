@@ -1,4 +1,5 @@
-﻿using Content.Client.DimensionEnv.ObjRes;
+﻿using System.Numerics;
+using Content.Client.DimensionEnv.ObjRes;
 using Content.Client.Utils;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
@@ -23,21 +24,34 @@ public sealed class GameViewport : Control
     {
         IoCManager.InjectDependencies(this);
         RectClipContent = true;
-        var mesh = _resourceCache.GetResource<ObjResource>("/Models/tnew/tardis_2010.obj").Mesh;
+        var mesh = _resourceCache.GetResource<ObjResource>("/Models/alexandra/untitled_back.obj").Mesh;
+        mesh.ApplyTransform(Matrix4.CreateTranslation(new Vector3(0,-1.2f,0)));
         _sa = new SaObject(mesh, DrawingInstance.AllocTexture(mesh.Materials));
     }
     
     public readonly DrawingInstance DrawingInstance = new();
     
-    public Matrix4 CurrentTransform = Matrix4.CreateRotationX(0.003f) * Matrix4.CreateRotationY(0.001f) * Matrix4.CreateRotationZ(0.002f);
-    public CameraProperties CameraProperties = new(new Vector3(0, 0, -30), new Angle3d(), 4);
+    public Matrix4 CurrentTransform = Matrix4.CreateRotationY(0.002f);
+    public Matrix4 MouseTransform = Matrix4.Identity;
+    public CameraProperties CameraProperties = new(new Vector3(0, 0, -55), new Angle3d(), 2);
+
+    private bool IsMousePressed;
+    
+    Vector2 PastPos = Vector2.Zero;
     
     protected override void Draw(DrawingHandleScreen handle)
     {
         var drawHandle = new DrawingHandle3d(handle,Width,Height, CameraProperties,DrawingInstance,_profManager);
 
-        _sa.Mesh.ApplyTransform(CurrentTransform);
+        var currPos = UserInterfaceManager.MousePositionScaled.Position;
+        var delta = currPos - PastPos;
+        PastPos = currPos;
+
+        MouseTransform = Matrix4.CreateRotationY(delta.X / 200);
+        
+        _sa.Mesh.ApplyTransform(CurrentTransform * MouseTransform);
         _sa.Draw(drawHandle);
         drawHandle.Flush();
     }
+    
 }

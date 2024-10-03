@@ -7,9 +7,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Shared", "RobustToolbox\Robust.Shared\Robust.Shared.csproj", "{A1FFE349-F2BE-4152-97F3-13D4E3C1CE44}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RobustToolbox", "RobustToolbox", "{77978585-1301-4238-BD49-5A01F7709853}"
-	ProjectSection(SolutionItems) = preProject
-		RobustToolbox\Robust.UnitTesting\Robust.UnitTesting.csproj = RobustToolbox\Robust.UnitTesting\Robust.UnitTesting.csproj
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Analyzers", "RobustToolbox\Robust.Analyzers\Robust.Analyzers.csproj", "{71FFFEB8-B0E7-477E-9DCD-2E3A7E3B8C44}"
 EndProject
@@ -20,8 +17,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Client.NameGenerator", "RobustToolbox\Robust.Client.NameGenerator\Robust.Client.NameGenerator.csproj", "{45026F7A-3933-4556-8FB7-A60A9BECA05E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Generators", "RobustToolbox\Robust.Generators\Robust.Generators.csproj", "{8FAA9EE3-5100-471F-B051-57D3A67598CE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Generators.UnitTesting", "RobustToolbox\Robust.Generators.UnitTesting\Robust.Generators.UnitTesting.csproj", "{61C71E07-4DA3-4378-A74F-E0D9A27538C9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Packaging", "RobustToolbox\Robust.Packaging\Robust.Packaging.csproj", "{7349B971-DE65-4C81-87D6-300E4D1025C1}"
 EndProject
@@ -52,6 +47,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content.Shared", "Content.Shared\Content.Shared.csproj", "{72FC0F40-7DDD-41A9-B8B7-8573433B0976}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Server", "RobustToolbox\Robust.Server\Robust.Server.csproj", "{254E3008-5191-41B4-B853-10815B7C6481}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Xaml", "RobustToolbox\Robust.Xaml\Robust.Xaml.csproj", "{6ED20E5A-2EC4-4E14-8303-EE74D078557C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,10 +88,6 @@ Global
 		{8FAA9EE3-5100-471F-B051-57D3A67598CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FAA9EE3-5100-471F-B051-57D3A67598CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FAA9EE3-5100-471F-B051-57D3A67598CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{61C71E07-4DA3-4378-A74F-E0D9A27538C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{61C71E07-4DA3-4378-A74F-E0D9A27538C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{61C71E07-4DA3-4378-A74F-E0D9A27538C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{61C71E07-4DA3-4378-A74F-E0D9A27538C9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7349B971-DE65-4C81-87D6-300E4D1025C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7349B971-DE65-4C81-87D6-300E4D1025C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7349B971-DE65-4C81-87D6-300E4D1025C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -155,6 +148,10 @@ Global
 		{254E3008-5191-41B4-B853-10815B7C6481}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{254E3008-5191-41B4-B853-10815B7C6481}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{254E3008-5191-41B4-B853-10815B7C6481}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6ED20E5A-2EC4-4E14-8303-EE74D078557C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6ED20E5A-2EC4-4E14-8303-EE74D078557C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6ED20E5A-2EC4-4E14-8303-EE74D078557C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6ED20E5A-2EC4-4E14-8303-EE74D078557C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DCA7E086-1C4B-4BE1-8C2E-149524938607} = {77978585-1301-4238-BD49-5A01F7709853}
@@ -164,7 +161,6 @@ Global
 		{3204822C-E133-4DA8-AE2E-56DCD7A92B35} = {77978585-1301-4238-BD49-5A01F7709853}
 		{45026F7A-3933-4556-8FB7-A60A9BECA05E} = {77978585-1301-4238-BD49-5A01F7709853}
 		{8FAA9EE3-5100-471F-B051-57D3A67598CE} = {77978585-1301-4238-BD49-5A01F7709853}
-		{61C71E07-4DA3-4378-A74F-E0D9A27538C9} = {77978585-1301-4238-BD49-5A01F7709853}
 		{7349B971-DE65-4C81-87D6-300E4D1025C1} = {77978585-1301-4238-BD49-5A01F7709853}
 		{E1204FA9-1173-4A93-B9D2-E361C8DE82B1} = {77978585-1301-4238-BD49-5A01F7709853}
 		{E31E3609-B711-4179-A171-5343ABEDF486} = {77978585-1301-4238-BD49-5A01F7709853}
@@ -179,5 +175,6 @@ Global
 		{DC79A23D-1344-4CF8-81AE-75CBD868B0C9} = {77978585-1301-4238-BD49-5A01F7709853}
 		{07D8F21A-5784-43FB-97F2-5F864F042497} = {77978585-1301-4238-BD49-5A01F7709853}
 		{254E3008-5191-41B4-B853-10815B7C6481} = {77978585-1301-4238-BD49-5A01F7709853}
+		{6ED20E5A-2EC4-4E14-8303-EE74D078557C} = {77978585-1301-4238-BD49-5A01F7709853}
 	EndGlobalSection
 EndGlobal
