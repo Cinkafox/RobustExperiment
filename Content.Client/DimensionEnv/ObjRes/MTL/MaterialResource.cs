@@ -99,10 +99,20 @@ public sealed class MaterialParser
                 );
                 break;
             case "map_Kd":
-                curr.MapKd = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / splited[argContent]);
+                var localPath = splited[argContent];
+                for (int i = argContent + 1; i < splited.Length; i++)
+                {
+                    localPath += " " + splited[i];
+                }
+                curr.MapKd = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / localPath);
                 break;
             case "map_Ka":
-                curr.MapKa = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / splited[argContent]);
+                var localPath1 = splited[argContent];
+                for (int i = argContent + 1; i < splited.Length; i++)
+                {
+                    localPath1 += " " + splited[i];
+                }
+                curr.MapKa = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / localPath1);
                 break;
           
         }
@@ -123,6 +133,12 @@ public sealed class MtlLoadContent : BaseContent
     
     public MtlLoadContent(string[] args, int count, ResPath path)
     {
-        Materials = IoCManager.Resolve<IResourceCache>().GetResource<MaterialResource>(path / args[count]).Materials;
+        var localPath = args[count];
+        for (int i = count + 1; i < args.Length; i++)
+        {
+            localPath += " " + args[i];
+        }
+        
+        Materials = IoCManager.Resolve<IResourceCache>().GetResource<MaterialResource>(path / localPath).Materials;
     }
 }

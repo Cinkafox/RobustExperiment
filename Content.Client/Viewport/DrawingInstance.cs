@@ -8,8 +8,6 @@ namespace Content.Client.Viewport;
 
 public sealed class DrawingInstance
 {
-    public static readonly int BuffSize = 2048 * 128;
-    
     public readonly SortedList<float,TexturedTriangle> TriangleBuffer = new();
 
     public readonly List<TexturedTriangle> ListTriangles = new();
