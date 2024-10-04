@@ -8,15 +8,17 @@
     </controls:AnchorControl>
     
    <controls:AnchorControl LayoutPreset="Wide">
-       <BoxContainer Name="MainContainer" Visible="False">
+       <BoxContainer Name="MainContainer" >
            <BoxContainer Orientation="Horizontal" Margin="15 200 15 15">
                <BoxContainer Orientation="Vertical">
                    <PanelContainer StyleClasses="dreamPanel">
                        <BoxContainer Orientation="Vertical">
-                           <controls:ExposedRichTextLabel Name="MenuLabel" Margin="0 15 0 30" Text="{Loc 'menu-label'}"/>
-                           <Label Text="не спрашивайте зачем... я сам в душе не чаю"/>
-                           <Label Text="Артефакты? Ну ясен хуй! сендбокс передает привет!"/>
-                           <Label Text="И сендбокс виолейшн тоже!"/>
+                           <Label Text="W - вперед"/>
+                           <Label Text="S - назад"/> 
+                           <Label Text="A - поворот туды"/>
+                           <Label Text="D - поворот сюды"/>
+                           <Label Text="Лагает? Похуй!"/>
+                           <Label Text="Артефакты? Поебать!"/>
                        </BoxContainer>
                    </PanelContainer>
                </BoxContainer>
