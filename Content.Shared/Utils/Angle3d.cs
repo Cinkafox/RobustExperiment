@@ -1,4 +1,4 @@
-﻿namespace Content.Client.Utils;
+﻿namespace Content.Shared.Utils;
 
 public readonly struct Angle3d : IApproxEquatable<Angle3d>, IEquatable<Angle3d>
 {

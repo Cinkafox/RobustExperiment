@@ -2,12 +2,12 @@
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.XAML;
 
-namespace Content.Client.MainMenu.UI;
+namespace Content.Client.Game.UI;
 
 [GenerateTypedNameReferences]
-public sealed partial class MainMenu : UIScreen
+public sealed partial class ContentGame : UIScreen
 {
-    public MainMenu()
+    public ContentGame()
     {
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);

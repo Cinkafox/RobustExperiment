@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Numerics;
+using Content.Client.Camera;
 using Content.Client.Utils;
 using Robust.Client.Graphics;
 using Robust.Shared.Profiling;
@@ -27,13 +28,13 @@ public sealed class DrawingHandle3d : IDisposable
     public Matrix4 ViewMatrix;
     public Matrix4 ProjectionMatrix;
     
-    public Vector2 ToScreenVec(Vector3 vertex)
+    public Vector4 ToScreenVec(Vector4 vertex)
     {
         var vertex2D = new Vector2(vertex.X / vertex.Z, vertex.Y / vertex.Z);
         
         var screenX = (vertex2D.X + 1.0f) * 0.5f * Width;
         var screenY = (1.0f - vertex2D.Y) * 0.5f * Height;
-        return new Vector2(screenX,screenY);
+        return new Vector4(screenX,screenY, vertex.Z, vertex.W);
     }
 
     private void FlushScreen(TexturedTriangle triangle)
@@ -91,17 +92,20 @@ public sealed class DrawingHandle3d : IDisposable
             trtex.Triangle.p2.Y *= -1;
             trtex.Triangle.p3.Y *= -1;
             
-            // Offset verts into visible normalised space
-            var vOffsetView = new Vector3(1,1,0);
-            trtex.Triangle.p1 = Vector4.Add(trtex.Triangle.p1, new Vector4(vOffsetView, 0));
-            trtex.Triangle.p2 = Vector4.Add(trtex.Triangle.p2, new Vector4(vOffsetView, 0));
-            trtex.Triangle.p3 = Vector4.Add(trtex.Triangle.p3, new Vector4(vOffsetView, 0));
-            trtex.Triangle.p1.X *= 0.5f * Width;
-            trtex.Triangle.p1.Y *= 0.5f * Height;
-            trtex.Triangle.p2.X *= 0.5f * Width;
-            trtex.Triangle.p2.Y *= 0.5f * Height;
-            trtex.Triangle.p3.X *= 0.5f * Width;
-            trtex.Triangle.p3.Y *= 0.5f * Height;
+            // // Offset verts into visible normalised space
+            // var vOffsetView = new Vector3(1,1,0);
+            // trtex.Triangle.p1 = Vector4.Add(trtex.Triangle.p1, new Vector4(vOffsetView, 0));
+            // trtex.Triangle.p2 = Vector4.Add(trtex.Triangle.p2, new Vector4(vOffsetView, 0));
+            // trtex.Triangle.p3 = Vector4.Add(trtex.Triangle.p3, new Vector4(vOffsetView, 0));
+            // trtex.Triangle.p1.X *= 0.5f * Width;
+            // trtex.Triangle.p1.Y *= 0.5f * Height;
+            // trtex.Triangle.p2.X *= 0.5f * Width;
+            // trtex.Triangle.p2.Y *= 0.5f * Height;
+            // trtex.Triangle.p3.X *= 0.5f * Width;
+            // trtex.Triangle.p3.Y *= 0.5f * Height;
+            trtex.Triangle.p1 = ToScreenVec(trtex.Triangle.p1);
+            trtex.Triangle.p2 = ToScreenVec(trtex.Triangle.p2);
+            trtex.Triangle.p3 = ToScreenVec(trtex.Triangle.p3);
             
             _drawingInstance.AppendTriangle(trtex);
         }
@@ -109,10 +113,6 @@ public sealed class DrawingHandle3d : IDisposable
     
     public void Flush()
     {
-        using (_prof.Group("Handle.Sort")) {
-             //_drawingInstance.Sort();
-        }
-        
         foreach (var (_, triToRaster) in _drawingInstance.TriangleBuffer)
         {
             _drawingInstance.ListTriangles.Clear();

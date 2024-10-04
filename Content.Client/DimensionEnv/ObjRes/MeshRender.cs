@@ -8,15 +8,16 @@ using Vector4 = Robust.Shared.Maths.Vector4;
 
 namespace Content.Client.DimensionEnv.ObjRes;
 
-public sealed class SaObject
+public sealed class MeshRender
 {
     public Mesh Mesh;
     public int TextureBufferCoord { get; private set; }
 
-    public SaObject(Mesh mesh, int textureBufferCoord)
+    public MeshRender(Mesh mesh, int textureBufferCoord)
     {
         Mesh = mesh;
         TextureBufferCoord = textureBufferCoord;
+        TranslatedVertexes = new Vector3[mesh.Vertexes.Count];
     }
 
     private Vector4 v1;
@@ -30,21 +31,20 @@ public sealed class SaObject
     private int matId;
     private Triangle triangle;
 
+    private Vector3[] TranslatedVertexes;
+
     public void Draw(DrawingHandle3d handle)
     {
-        if (Mesh.Transform.HasValue)
+        for (int i = 0; i < Mesh.Vertexes.Count; i++)
         {
-            for (int i = 0; i < Mesh.Vertexes.Count; i++)
-            {
-                Mesh.Vertexes[i] = Vector3.Transform(Mesh.Vertexes[i], Mesh.Transform.Value);
-            }
+            TranslatedVertexes[i] = Vector3.Transform(Mesh.Vertexes[i], Mesh.Transform);
         }
         
         foreach (var face in Mesh.Faces)
         {
             foreach (var t in face.Vertex)
             {
-                if (t >= 1 && t <= Mesh.Vertexes.Count) continue;
+                if (t >= 1 && t <= TranslatedVertexes.Length) continue;
                 Logger.Error($"Vertex index {t} is out of range!");
             }
             
@@ -60,15 +60,13 @@ public sealed class SaObject
                 }
             }
         }
-
-        Mesh.Transform = null;
     }
 
     private void DrawPolygon(FaceContent face,DrawingHandle3d handle, int i1, int i2, int i3)
     {
-        v1 = Mesh.Vertexes[face.Vertex[i1] - 1].ToVec4();
-        v2 = Mesh.Vertexes[face.Vertex[i2] - 1].ToVec4();
-        v3 = Mesh.Vertexes[face.Vertex[i3] - 1].ToVec4();
+        v1 = TranslatedVertexes[face.Vertex[i1] - 1].ToVec4();
+        v2 = TranslatedVertexes[face.Vertex[i2] - 1].ToVec4();
+        v3 = TranslatedVertexes[face.Vertex[i3] - 1].ToVec4();
 
         triangle = new Triangle(v1, v2, v3);
         

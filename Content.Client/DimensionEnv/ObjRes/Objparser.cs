@@ -5,12 +5,12 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.DimensionEnv.ObjRes;
 
-public sealed class MeshParser
+public sealed class Objparser
 {
     public List<BaseContent> Contents = new();
     public ResPath Path;
 
-    public MeshParser(TextReader textReader,ResPath path)
+    public Objparser(TextReader textReader,ResPath path)
     {
         Path = path;
         var line = textReader.ReadLine();

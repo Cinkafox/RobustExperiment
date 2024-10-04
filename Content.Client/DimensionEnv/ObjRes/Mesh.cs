@@ -14,20 +14,12 @@ public sealed class Mesh
     public List<FaceContent> Faces = new();
     public List<Vector2> TextureCoords = new();
     public List<Material> Materials = new();
-    public Matrix4? Transform;
-
-    public void ApplyTransform(Matrix4 matrix4)
-    {
-        for (int i = 0; i < Vertexes.Count; i++)
-        {
-            Vertexes[i] = Vector3.Transform(Vertexes[i], matrix4);
-        }
-    }
+    public Matrix4 Transform = Matrix4.Identity;
 
     public static Mesh Parse(TextReader textReader,ResPath path)
     {
         var mesh = new Mesh();
-        var parser = new MeshParser(textReader,path);
+        var parser = new Objparser(textReader,path);
         
         var currMaterialId = -1;
         Dictionary<string, Material> materials = default!;

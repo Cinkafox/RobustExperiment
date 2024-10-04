@@ -1,8 +1,10 @@
-﻿using System.Numerics;
+﻿using Content.Client.Camera;
+using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
-using Content.Client.Utils;
+using Content.Shared.Transform;
+using Content.Shared.Utils;
 using Robust.Client.Graphics;
-using Robust.Client.ResourceManagement;
+using Robust.Client.Input;
 using Robust.Client.UserInterface;
 using Robust.Shared.Profiling;
 using Vector3 = Robust.Shared.Maths.Vector3;
@@ -11,42 +13,65 @@ namespace Content.Client.Viewport;
 
 public sealed class GameViewport : Control
 {
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
     [Dependency] private readonly ProfManager _profManager = default!;
-    
-    private SaObject _sa;
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private readonly CameraManager _cameraManager = default!;
+    [Dependency] private readonly IInputManager _inputManager = default!;
+        
     public GameViewport()
     {
         IoCManager.InjectDependencies(this);
         RectClipContent = true;
-        var mesh = _resourceCache.GetResource<ObjResource>("/Models/alexandra/untitled_back.obj").Mesh;
-        mesh.ApplyTransform(Matrix4.CreateTranslation(new Vector3(0,-1f,0)) * Matrix4.Scale(0.3f));
-        _sa = new SaObject(mesh, DrawingInstance.AllocTexture(mesh.Materials));
     }
     
     public readonly DrawingInstance DrawingInstance = new();
     
-    public Matrix4 CurrentTransform = Matrix4.CreateRotationY(0.002f);
-    public Matrix4 MouseTransform = Matrix4.Identity;
-    public CameraProperties CameraProperties = new(new Vector3(0, 0, -55), new Angle3d(), 4);
-
-    private bool IsMousePressed;
-    
-    Vector2 PastPos = Vector2.Zero;
-    
     protected override void Draw(DrawingHandleScreen handle)
     {
-        var drawHandle = new DrawingHandle3d(handle,Width,Height, CameraProperties,DrawingInstance,_profManager);
-
-        var currPos = UserInterfaceManager.MousePositionScaled.Position;
-        var delta = currPos - PastPos;
-        PastPos = currPos;
-
-        MouseTransform = Matrix4.CreateRotationY(delta.X / 200);// * Matrix4.CreateRotationX(delta.Y / 200);
+        var cameraProp = _cameraManager.CameraProperties;
+        if(!cameraProp.HasValue)
+        {
+            return;
+        };
         
-        _sa.Mesh.ApplyTransform(CurrentTransform * MouseTransform);
-        _sa.Draw(drawHandle);
+        var drawHandle = new DrawingHandle3d(handle, Width, Height, cameraProp.Value, DrawingInstance,_profManager);
+
+        var query = _entityManager.EntityQueryEnumerator<Transform3dComponent, ModelComponent>();
+        while (query.MoveNext(out var transform3dComponent, out var modelComponent))
+        {
+            if (!modelComponent.MeshRenderInitialized)
+            {
+                modelComponent.MeshRender = new MeshRender(modelComponent.CurrentMesh,
+                    DrawingInstance.AllocTexture(modelComponent.CurrentMesh.Materials));
+                modelComponent.MeshRenderInitialized = true;
+            }
+
+            modelComponent.MeshRender.Mesh.Transform = Matrix4Helpers.CreateTransform(transform3dComponent.LocalPosition, transform3dComponent.LocalRotation, Vector3.One);
+            
+            modelComponent.MeshRender.Draw(drawHandle);
+        }
+        
         drawHandle.Flush();
+    }
+    
+    protected override void KeyBindDown(GUIBoundKeyEventArgs args)
+    {
+        base.KeyBindDown(args);
+
+        if (args.Handled)
+            return;
+
+        _inputManager.ViewportKeyEvent(this, args);
+    }
+
+    protected  override void KeyBindUp(GUIBoundKeyEventArgs args)
+    {
+        base.KeyBindUp(args);
+
+        if (args.Handled)
+            return;
+
+        _inputManager.ViewportKeyEvent(this, args);
     }
     
 }

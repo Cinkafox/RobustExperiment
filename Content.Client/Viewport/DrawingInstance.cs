@@ -2,6 +2,10 @@
 using Content.Client.DimensionEnv.ObjRes.MTL;
 using Content.Client.Utils;
 using Robust.Client.Graphics;
+using Robust.Client.Utility;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using Color = Robust.Shared.Maths.Color;
 using Vector4 = Robust.Shared.Maths.Vector4;
 
 namespace Content.Client.Viewport;
@@ -42,15 +46,17 @@ public sealed class DrawingInstance
         var currLength = TextureBuffer.Length;
         foreach (var material in materials)
         {
-            TextureBuffer.Add(material.MapKd!);
+            TextureBuffer.Add(material.MapKd ?? CreateBlankTexture(new Color(material.Kd.X, material.Kd.Y, material.Kd.Z)));
         }
 
         return currLength;
     }
-    
-    public void Sort()
+
+    public Texture CreateBlankTexture(Color color)
     {
-        
+        var clyde = IoCManager.Resolve<IClyde>();
+        var img = new Image<Rgba32>(128, 128, color.ConvertImgSharp());
+        return clyde.LoadTextureFromImage(img);
     }
 
     public void Flush()
