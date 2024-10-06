@@ -1,17 +1,24 @@
 ﻿- type: entity
+  id: camera
+  components:
+    - type: Camera
+      fov: 4
+      
+- type: entity
   id: alexandra
   components:
     - type: Model
       path: "/Models/alexandra/untitled_back.obj"
 
 - type: entity
-  id: camera
-  components:
-    - type: Camera
-      fov: 4
-
-- type: entity
   id: car
   components:
     - type: Model
       path: "/Models/car/lowpoly car.obj"
+      
+- type: entity
+  id: world
+  components:
+    - type: Model
+      path: "/Models/world/forest 2 by creepercoastal.obj"
+      

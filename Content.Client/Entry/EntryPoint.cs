@@ -46,7 +46,7 @@ public sealed class EntryPoint : GameClient
         transform.SetPosition(ent, new Vector3(2,0,0));
         transform.SetRotation(ent, new Angle3d(0, Angle.FromDegrees(180), 0));
         
-        var ent1 = _entityManager.Spawn("car");
+        var ent1 = _entityManager.Spawn("world");
         transform.AttachTo(ent1, mapId);
         transform.SetPosition(ent1, new Vector3(-2,0,0));
         transform.SetRotation(ent1, new Angle3d(0, Angle.FromDegrees(195), 0));

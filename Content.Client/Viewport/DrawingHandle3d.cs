@@ -11,22 +11,19 @@ namespace Content.Client.Viewport;
 
 public sealed class DrawingHandle3d : IDisposable
 {
-    public bool Debug = false;
-    public bool Disposed;
+    public bool Disposed { get; private set; }
     private ProfManager _prof;
 
     private readonly DrawingHandleBase _handleBase;
     private readonly DrawingInstance _drawingInstance;
-
-    public DrawingHandleBase HandleBase => _handleBase;
 
     public readonly float Width;
     public readonly float Height;
 
     private CameraProperties _cameraProperties;
 
-    public Matrix4 ViewMatrix;
-    public Matrix4 ProjectionMatrix;
+    public Matrix4 ViewMatrix { get; private set; }
+    public Matrix4 ProjectionMatrix { get; }
     
     public Vector4 ToScreenVec(Vector4 vertex)
     {
@@ -53,17 +50,13 @@ public sealed class DrawingHandle3d : IDisposable
     {
         CheckDisposed();
         
-        triangle.Transform(ViewMatrix);
-        
         var normal = triangle.Normal();
         normal.Normalize();
-
         var vCameraRay = Vector3.Subtract(triangle.p1.Xyz, _cameraProperties.Position);
+        if(Vector3.Dot(normal, vCameraRay) >= 1) return;
 
-        var dotProduct = Vector3.Dot(normal, vCameraRay);
+        triangle.Transform(ViewMatrix);
         
-        if(dotProduct >= 1) return;
-
         var trtex = new TexturedTriangle(triangle, p1, p2, p3, textureId);
 
         Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.1f), new Vector3(0.0f, 0.0f, 1.0f), trtex,
@@ -92,17 +85,6 @@ public sealed class DrawingHandle3d : IDisposable
             trtex.Triangle.p2.Y *= -1;
             trtex.Triangle.p3.Y *= -1;
             
-            // // Offset verts into visible normalised space
-            // var vOffsetView = new Vector3(1,1,0);
-            // trtex.Triangle.p1 = Vector4.Add(trtex.Triangle.p1, new Vector4(vOffsetView, 0));
-            // trtex.Triangle.p2 = Vector4.Add(trtex.Triangle.p2, new Vector4(vOffsetView, 0));
-            // trtex.Triangle.p3 = Vector4.Add(trtex.Triangle.p3, new Vector4(vOffsetView, 0));
-            // trtex.Triangle.p1.X *= 0.5f * Width;
-            // trtex.Triangle.p1.Y *= 0.5f * Height;
-            // trtex.Triangle.p2.X *= 0.5f * Width;
-            // trtex.Triangle.p2.Y *= 0.5f * Height;
-            // trtex.Triangle.p3.X *= 0.5f * Width;
-            // trtex.Triangle.p3.Y *= 0.5f * Height;
             trtex.Triangle.p1 = ToScreenVec(trtex.Triangle.p1);
             trtex.Triangle.p2 = ToScreenVec(trtex.Triangle.p2);
             trtex.Triangle.p3 = ToScreenVec(trtex.Triangle.p3);
@@ -125,7 +107,6 @@ public sealed class DrawingHandle3d : IDisposable
                 int nTrisToAdd = 0;
                 while (nNewTriangles > 0)
                 {
-                    // Take triangle from front of queue
                     var test = _drawingInstance.ListTriangles[0];
                     _drawingInstance.ListTriangles.RemoveAt(0);
                     nNewTriangles--;
@@ -160,16 +141,16 @@ public sealed class DrawingHandle3d : IDisposable
                 }
                 nNewTriangles = _drawingInstance.ListTriangles.Count;
             }
-        }
-
-        using (_prof.Group("Handle.Draw"))
-        {
-            foreach (var (_, triangle) in _drawingInstance.TriangleBuffer)
-            {
-                var texture = _drawingInstance.TextureBuffer[triangle.TextureId];
             
-                FlushScreen(triangle);
-                _handleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, _drawingInstance.DrawVertexBuffer);
+            using (_prof.Group("Handle.Draw"))
+            {
+                foreach (var triangle in _drawingInstance.ListTriangles)
+                {
+                    var texture = _drawingInstance.TextureBuffer[triangle.TextureId];
+            
+                    FlushScreen(triangle);
+                    _handleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, _drawingInstance.DrawVertexBuffer);
+                }
             }
         }
         
