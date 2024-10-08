@@ -112,6 +112,12 @@ public static class Matrix4Helpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Matrix4 CreateTranslation(Vector3 pos)
+    {
+        return CreateTranslation(pos.X, pos.Y, pos.Z);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix4 CreateTranslation(float x, float y, float z)
     {
         return new Matrix4

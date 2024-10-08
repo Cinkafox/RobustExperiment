@@ -11,13 +11,15 @@ namespace Content.Client.DimensionEnv.ObjRes;
 public sealed class MeshRender
 {
     public Mesh Mesh;
+    public Matrix4 Transform = Matrix4.Identity;
+    public bool IsMeshTranslated { get; private set; }
     public int TextureBufferCoord { get; private set; }
 
     public MeshRender(Mesh mesh, int textureBufferCoord)
     {
         Mesh = mesh;
         TextureBufferCoord = textureBufferCoord;
-        TranslatedVertexes = new Vector3[mesh.Vertexes.Count];
+        _translatedVertexes = new Vector3[mesh.Vertexes.Count];
     }
 
     private Vector4 v1;
@@ -31,15 +33,29 @@ public sealed class MeshRender
     private int matId;
     private Triangle triangle;
 
-    private Vector3[] TranslatedVertexes;
+    private readonly Vector3[] _translatedVertexes;
 
-    public void Draw(DrawingHandle3d handle)
+    public Vector3[] TranslatedVertexes
+    {
+        get
+        {
+            if(!IsMeshTranslated) TranslateMesh();
+            return _translatedVertexes;
+        }
+    }
+
+    public void TranslateMesh()
     {
         for (int i = 0; i < Mesh.Vertexes.Count; i++)
         {
-            TranslatedVertexes[i] = Vector3.Transform(Mesh.Vertexes[i], Mesh.Transform);
+            _translatedVertexes[i] = Mesh.Vertexes[i];
         }
-        
+
+        IsMeshTranslated = true;
+    }
+
+    public void Draw(DrawingHandle3d handle)
+    {
         foreach (var face in Mesh.Faces)
         {
             foreach (var t in face.Vertex)
@@ -60,6 +76,8 @@ public sealed class MeshRender
                 }
             }
         }
+        
+        IsMeshTranslated = false;
     }
 
     private void DrawPolygon(FaceContent face,DrawingHandle3d handle, int i1, int i2, int i3)

@@ -1,11 +1,15 @@
-﻿using Content.Client.Game;
+﻿using Content.Client.Bone;
+using Content.Client.Game;
 using Content.Client.StyleSheet;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Client;
+using Robust.Client.Animations;
+using Robust.Client.GameObjects;
 using Robust.Client.Player;
 using Robust.Client.State;
 using Robust.Client.UserInterface;
+using Robust.Shared.Animations;
 using Robust.Shared.ContentPack;
 using Robust.Shared.Map;
 
@@ -17,7 +21,6 @@ public sealed class EntryPoint : GameClient
     [Dependency] private readonly IStateManager _stateManager = default!;
     [Dependency] private readonly StyleSheetManager _styleSheetManager = default!;
     [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     
     public override void PreInit()
@@ -32,25 +35,22 @@ public sealed class EntryPoint : GameClient
         
         IoCManager.Resolve<IBaseClient>().StartSinglePlayer();
         
-        var mapId = _mapManager.CreateMap();
+        var mapId = _entityManager.System<MapSystem>().CreateMap();
         var transform = _entityManager.System<Transform3dSystem>();
 
         var camera = _entityManager.Spawn("camera");
-        transform.AttachTo(camera, mapId);
-        transform.SetPosition(camera, new Vector3(0, 1, -5));
+        transform.SetParent(camera, mapId);
+        transform.SetWorldPosition(camera, new Vector3(0, 2, 5));
+        transform.SetWorldRotation(camera, new Angle3d(0,Angle.FromDegrees(180),0));
 
         _playerManager.SetAttachedEntity(_playerManager.LocalSession, camera);
         
         var ent = _entityManager.Spawn("alexandra");
-        transform.AttachTo(ent, mapId);
-        transform.SetPosition(ent, new Vector3(2,0,0));
-        transform.SetRotation(ent, new Angle3d(0, Angle.FromDegrees(180), 0));
-        
-        var ent1 = _entityManager.Spawn("world");
-        transform.AttachTo(ent1, mapId);
-        transform.SetPosition(ent1, new Vector3(-2,0,0));
-        transform.SetRotation(ent1, new Angle3d(0, Angle.FromDegrees(195), 0));
+        transform.SetParent(ent, mapId);
+        transform.SetWorldPosition(ent, new Vector3(0,0,0));
         
         _stateManager.RequestStateChange<ContentGameState>();
+        
+        _entityManager.System<AlexandraAnimationSystem>().Play(ent);
     }
 }

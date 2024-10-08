@@ -4,6 +4,7 @@ using Content.Client.Camera;
 using Content.Client.Utils;
 using Robust.Client.Graphics;
 using Robust.Shared.Profiling;
+using Robust.Shared.Threading;
 using Vector3 = Robust.Shared.Maths.Vector3;
 using Vector4 = Robust.Shared.Maths.Vector4;
 
@@ -12,7 +13,9 @@ namespace Content.Client.Viewport;
 public sealed class DrawingHandle3d : IDisposable
 {
     public bool Disposed { get; private set; }
-    private ProfManager _prof;
+    
+    private readonly ProfManager _prof;
+    private readonly IParallelManager _parallel;
 
     private readonly DrawingHandleBase _handleBase;
     private readonly DrawingInstance _drawingInstance;
@@ -22,7 +25,7 @@ public sealed class DrawingHandle3d : IDisposable
 
     private CameraProperties _cameraProperties;
 
-    public Matrix4 ViewMatrix { get; private set; }
+    public Matrix4 ViewMatrix { get; }
     public Matrix4 ProjectionMatrix { get; }
     
     public Vector4 ToScreenVec(Vector4 vertex)
@@ -44,6 +47,19 @@ public sealed class DrawingHandle3d : IDisposable
     public DrawVertexUV2D ToScreen(Vector3 vertex, Vector2 uvPos)
     {
         return new DrawVertexUV2D(vertex.Xy,uvPos);
+    }
+
+    public void DrawCircle(Vector3 position, float radius, Color color, bool filled = true)
+    {
+        position = Vector3.Transform(position, ViewMatrix);
+        position = Vector3.Transform(position, ProjectionMatrix);
+
+        position.X *= -1;
+        position.Y *= -1;
+        
+        position = ToScreenVec(position.ToVec4()).Xyz;
+        
+        _handleBase.DrawCircle(position.Xy, radius, color, filled);
     }
     
     public void DrawPolygon(Triangle triangle, Vector2 p1, Vector2 p2, Vector2 p3, int textureId)
@@ -159,9 +175,11 @@ public sealed class DrawingHandle3d : IDisposable
     }
     
 
-    public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height, CameraProperties cameraProperties,DrawingInstance drawingInstance,ProfManager profManager)
+    public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height, CameraProperties cameraProperties,
+        DrawingInstance drawingInstance, ProfManager profManager, IParallelManager parallel)
     {
         _prof = profManager;
+        _parallel = parallel;
         _cameraProperties = cameraProperties;
         _drawingInstance = drawingInstance;
         _handleBase = handleBase;

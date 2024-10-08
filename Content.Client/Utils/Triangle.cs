@@ -40,6 +40,39 @@ public struct Triangle : IEnumerable<Vector4>
         return new Vector3(nx, ny, nz);
     }
     
+    public static bool IsPointInsideTriangle(Vector3 point, Triangle triangle)
+    {
+        var v0 = triangle.p3.Xyz - triangle.p1.Xyz;
+        var v1 = triangle.p2.Xyz - triangle.p1.Xyz;
+        var v2 = point - triangle.p1.Xyz;
+
+        var dot00 = Vector3.Dot(v0, v0);
+        var dot01 = Vector3.Dot(v0, v1);
+        var dot02 = Vector3.Dot(v0, v2);
+        var dot11 = Vector3.Dot(v1, v1);
+        var dot12 = Vector3.Dot(v1, v2);
+
+        var invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+        var u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+        var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+        
+        return (u >= 0) && (v >= 0) && (u + v <= 1);
+    }
+    
+    public static bool IsPointInsideTriangle(Vector2 p, Triangle triangle)
+    {
+        var p1 = triangle.p1;
+        var p2 = triangle.p2;
+        var p3 = triangle.p3;
+        
+        float areaOrig = Math.Abs((p2.X - p1.X) * (p3.Y - p1.Y) - (p3.X - p1.X) * (p2.Y - p1.Y));
+        float area1 = Math.Abs((p.X - p1.X) * (p2.Y - p1.Y) - (p2.X - p1.X) * (p.Y - p1.Y));
+        float area2 = Math.Abs((p.X - p2.X) * (p3.Y - p2.Y) - (p3.X - p2.X) * (p.Y - p2.Y));
+        float area3 = Math.Abs((p.X - p3.X) * (p1.Y - p3.Y) - (p1.X - p3.X) * (p.Y - p3.Y));
+
+        return (areaOrig == area1 + area2 + area3);
+    }
+    
     public static void ClipAgainstTriangle(TexturedTriangle inTri, TexturedTriangle otherTri, DrawingInstance drawingInstance)
     {
         drawingInstance.OutsidePoints.Clear();
@@ -48,29 +81,8 @@ public struct Triangle : IEnumerable<Vector4>
         drawingInstance.OutsideTex.Clear();
         drawingInstance.Clipping.Clear();
 
-        // Функция для проверки, лежит ли точка внутри треугольника otherTri
-        bool IsPointInsideTriangle(Vector3 point, TexturedTriangle triangle)
-        {
-            Vector3 v0 = triangle.Triangle.p3.Xyz - triangle.Triangle.p1.Xyz;
-            Vector3 v1 = triangle.Triangle.p2.Xyz - triangle.Triangle.p1.Xyz;
-            Vector3 v2 = point - triangle.Triangle.p1.Xyz;
-
-            float dot00 = Vector3.Dot(v0, v0);
-            float dot01 = Vector3.Dot(v0, v1);
-            float dot02 = Vector3.Dot(v0, v2);
-            float dot11 = Vector3.Dot(v1, v1);
-            float dot12 = Vector3.Dot(v1, v2);
-
-            float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-            float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-            float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-            // Точка внутри треугольника, если u, v >= 0 и u + v <= 1
-            return (u >= 0) && (v >= 0) && (u + v <= 1);
-        }
-
         // Проверяем каждую вершину inTri на нахождение внутри otherTri
-        if (IsPointInsideTriangle(inTri.Triangle.p1.Xyz, otherTri))
+        if (IsPointInsideTriangle(inTri.Triangle.p1.Xyz, otherTri.Triangle))
         {
             drawingInstance.InsidePoints.Add(inTri.Triangle.p1);
             drawingInstance.InsideTex.Add(inTri.TexturePoint1);
@@ -81,7 +93,7 @@ public struct Triangle : IEnumerable<Vector4>
             drawingInstance.OutsideTex.Add(inTri.TexturePoint1);
         }
 
-        if (IsPointInsideTriangle(inTri.Triangle.p2.Xyz, otherTri))
+        if (IsPointInsideTriangle(inTri.Triangle.p2.Xyz, otherTri.Triangle))
         {
             drawingInstance.InsidePoints.Add(inTri.Triangle.p2);
             drawingInstance.InsideTex.Add(inTri.TexturePoint2);
@@ -92,7 +104,7 @@ public struct Triangle : IEnumerable<Vector4>
             drawingInstance.OutsideTex.Add(inTri.TexturePoint2);
         }
 
-        if (IsPointInsideTriangle(inTri.Triangle.p3.Xyz, otherTri))
+        if (IsPointInsideTriangle(inTri.Triangle.p3.Xyz, otherTri.Triangle))
         {
             drawingInstance.InsidePoints.Add(inTri.Triangle.p3);
             drawingInstance.InsideTex.Add(inTri.TexturePoint3);
@@ -175,7 +187,6 @@ public struct Triangle : IEnumerable<Vector4>
             var n = Vector3.Normalize(planeP);
             return (planeN.X * p.X + planeN.Y * p.Y + planeN.Z * p.Z - Vector3.Dot(planeN, planeP));
         }
-        
         
         // Get signed distance of each point in triangle to plane
         float d0 = dist(inTri.Triangle.p1.Xyz);
@@ -296,32 +307,11 @@ public static class VectorExtTriangle
         Vector3 intersectionPoint = segmentStart + t * segmentDirection;
 
         // 6. Проверяем, лежит ли точка внутри треугольника
-        if (IsPointInsideTriangle(intersectionPoint, tri))
+        if (Triangle.IsPointInsideTriangle(intersectionPoint, tri.Triangle))
         {
             return intersectionPoint;
         }
 
         return Vector3.Zero; // Возвращаем нулевой вектор, если пересечения с треугольником нет
-    }
-
-    // Метод для проверки, находится ли точка внутри треугольника
-    private static bool IsPointInsideTriangle(Vector3 point, TexturedTriangle triangle)
-    {
-        Vector3 v0 = triangle.Triangle.p3.Xyz - triangle.Triangle.p1.Xyz;
-        Vector3 v1 = triangle.Triangle.p2.Xyz - triangle.Triangle.p1.Xyz;
-        Vector3 v2 = point - triangle.Triangle.p1.Xyz;
-
-        float dot00 = Vector3.Dot(v0, v0);
-        float dot01 = Vector3.Dot(v0, v1);
-        float dot02 = Vector3.Dot(v0, v2);
-        float dot11 = Vector3.Dot(v1, v1);
-        float dot12 = Vector3.Dot(v1, v2);
-
-        float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-        float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-        float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-        // Точка внутри треугольника, если u, v >= 0 и u + v <= 1
-        return (u >= 0) && (v >= 0) && (u + v <= 1);
     }
 }

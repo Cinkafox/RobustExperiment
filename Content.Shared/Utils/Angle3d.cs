@@ -5,6 +5,7 @@ public readonly struct Angle3d : IApproxEquatable<Angle3d>, IEquatable<Angle3d>
     public readonly Angle Pitch = Angle.Zero;
     public readonly Angle Yaw = Angle.Zero;
     public readonly Angle Roll = Angle.Zero;
+    public Matrix4 Matrix => Matrix4Helpers.CreateRotation(this);
 
     public Angle3d()
     {
@@ -45,5 +46,19 @@ public readonly struct Angle3d : IApproxEquatable<Angle3d>, IEquatable<Angle3d>
     public override string ToString()
     {
         return $"PITCH:{Pitch} YAW:{Yaw} ROLL:{Roll}";
+    }
+
+    public Vector3 ToVec()
+    {
+        var x = Math.Cos(Pitch) * Math.Cos(Yaw);
+        var y = Math.Sin(Pitch);
+        var z = Math.Cos(Pitch) * Math.Sin(Yaw);
+
+        return new Vector3((float)x, (float)y, (float)z);
+    }
+
+    public Vector3 RotateVec(Vector3 pos)
+    {
+        return Vector3.Transform(pos, Matrix);
     }
 }

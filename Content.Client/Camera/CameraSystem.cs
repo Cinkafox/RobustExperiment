@@ -1,6 +1,5 @@
 ﻿using Content.Shared.Transform;
 using Content.Shared.Utils;
-using Robust.Client.Input;
 using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Player;
@@ -10,10 +9,9 @@ namespace Content.Client.Camera;
 public sealed class CameraSystem : EntitySystem
 {
     [Dependency] private readonly CameraManager _cameraManager = default!;
-    [Dependency] private readonly IInputManager _inputManager = default!;
     
     public Vector3 Shifter = Vector3.Zero;
-    public Angle3d AngleShift = new Angle3d();
+    public Angle3d AngleShift = new();
     
     public override void Initialize()
     {
@@ -47,7 +45,7 @@ public sealed class CameraSystem : EntitySystem
 
         transform.LocalRotation += AngleShift;
 
-        var shift = Vector3.Transform(Shifter, Matrix4Helpers.CreateRotation(transform.LocalRotation));
+        var shift = Vector3.Transform(Shifter, Matrix4Helpers.CreateRotationY(transform.LocalRotation.Yaw));
 
         transform.LocalPosition += shift * frameTime * 3;
     }

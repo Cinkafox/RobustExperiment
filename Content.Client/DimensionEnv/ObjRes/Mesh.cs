@@ -14,7 +14,6 @@ public sealed class Mesh
     public List<FaceContent> Faces = new();
     public List<Vector2> TextureCoords = new();
     public List<Material> Materials = new();
-    public Matrix4 Transform = Matrix4.Identity;
 
     public static Mesh Parse(TextReader textReader,ResPath path)
     {

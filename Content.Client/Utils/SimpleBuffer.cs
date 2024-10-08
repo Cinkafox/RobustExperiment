@@ -5,7 +5,8 @@ namespace Content.Client.Utils;
 public sealed class SimpleBuffer<T> : IEnumerable<T>
 {
     public readonly T[] Buffer;
-    
+
+    public bool IsInLimit => Length == Limit;
     public readonly int Limit;
     public int Length;
     public int Shift;

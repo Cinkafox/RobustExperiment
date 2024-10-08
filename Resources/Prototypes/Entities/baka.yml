@@ -3,12 +3,6 @@
   components:
     - type: Camera
       fov: 4
-      
-- type: entity
-  id: alexandra
-  components:
-    - type: Model
-      path: "/Models/alexandra/untitled_back.obj"
 
 - type: entity
   id: car
