@@ -4,13 +4,6 @@ namespace Content.Packaging;
 
 public sealed class CommandLineArgs
 {
-    // PJB forgib me
-
-    /// <summary>
-    /// Generate client or server.
-    /// </summary>
-    public bool Client { get; set; }
-
     /// <summary>
     /// Should we also build the relevant project.
     /// </summary>
@@ -40,7 +33,6 @@ public sealed class CommandLineArgs
     public static bool TryParse(IReadOnlyList<string> args, [NotNullWhen(true)] out CommandLineArgs? parsed)
     {
         parsed = null;
-        bool? client = null;
         var skipBuild = false;
         var wipeRelease = true;
         var hybridAcz = false;
@@ -54,23 +46,6 @@ public sealed class CommandLineArgs
         {
             i++;
             var arg = enumerator.Current;
-            if (i == 0)
-            {
-                if (arg == "client")
-                {
-                    client = true;
-                }
-                else if (arg == "server")
-                {
-                    client = false;
-                }
-                else
-                {
-                    return false;
-                }
-
-                continue;
-            }
 
             if (arg == "--skip-build")
             {
@@ -116,13 +91,7 @@ public sealed class CommandLineArgs
             }
         }
 
-        if (client == null)
-        {
-            Console.WriteLine("Client / server packaging unspecified.");
-            return false;
-        }
-
-        parsed = new CommandLineArgs(client.Value, skipBuild, wipeRelease, hybridAcz, platforms, configuration);
+        parsed = new CommandLineArgs(skipBuild, wipeRelease, hybridAcz, platforms, configuration);
         return true;
     }
 
@@ -141,14 +110,12 @@ Options:
     }
 
     private CommandLineArgs(
-        bool client,
         bool skipBuild,
         bool wipeRelease,
         bool hybridAcz,
         List<string>? platforms,
         string configuration)
     {
-        Client = client;
         SkipBuild = skipBuild;
         WipeRelease = wipeRelease;
         HybridAcz = hybridAcz;
