@@ -7,18 +7,18 @@
         <viewport:GameViewport/>
     </controls:AnchorControl>
     
-   <controls:AnchorControl LayoutPreset="Wide">
-       <BoxContainer Name="MainContainer" >
-           <BoxContainer Orientation="Horizontal" Margin="15 200 15 15">
-               <BoxContainer Orientation="Vertical">
-                   <PanelContainer StyleClasses="dreamPanel">
-                       <BoxContainer Orientation="Vertical">
-                           <Label Text="W - вперед"/>
-                           <Label Text="S - назад"/> 
-                           <Label Text="A - поворот туды"/>
-                           <Label Text="D - поворот сюды"/>
-                           <Label Text="Лагает? Похуй!"/>
-                           <Label Text="Артефакты? Поебать!"/>
+   <controls:AnchorControl LayoutPreset="Wide" HorizontalExpand="True" HorizontalAlignment="Left">
+       <BoxContainer Name="MainContainer" HorizontalExpand="True" HorizontalAlignment="Left" >
+           <BoxContainer Orientation="Horizontal" Margin="15 15 15 15" HorizontalExpand="True" HorizontalAlignment="Left">
+               <BoxContainer Orientation="Vertical" HorizontalExpand="True" HorizontalAlignment="Left" VerticalAlignment="Center">
+                   <PanelContainer StyleClasses="menuPanel" HorizontalExpand="True" HorizontalAlignment="Left" VerticalAlignment="Center">
+                       <BoxContainer Orientation="Vertical" HorizontalExpand="True" HorizontalAlignment="Left" >
+                           <Label Text="W - вперед" StyleClasses="menuPanel"/>
+                           <Label Text="S - назад" StyleClasses="menuPanel"/> 
+                           <Label Text="A - поворот туды" StyleClasses="menuPanel"/>
+                           <Label Text="D - поворот сюды" StyleClasses="menuPanel"/>
+                           <Label Text="Лагает? Похуй!" StyleClasses="menuPanel"/>
+                           <Label Text="Артефакты? Поебать!" StyleClasses="menuPanel"/>
                        </BoxContainer>
                    </PanelContainer>
                </BoxContainer>

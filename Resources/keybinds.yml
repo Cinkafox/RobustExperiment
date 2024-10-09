@@ -1,5 +1,5 @@
-﻿version: 1 # Currently unused.
-binds: # These are all the current engine keybinds.
+﻿version: 1 # Not used right now, whatever.
+binds:
   - function: UIClick
     type: State
     key: MouseLeft
@@ -17,6 +17,11 @@ binds: # These are all the current engine keybinds.
     type: State
     key: MouseLeft
     canFocus: true
+  - function: UseSecondary
+    type: State
+    key: MouseRight
+    canFocus: true
+    priority: -1 # UIRightClick & EditorCancelPlace should fire first.
   - function: ShowDebugMonitors
     type: Toggle
     key: F3
@@ -39,27 +44,20 @@ binds: # These are all the current engine keybinds.
   - function: Walk
     type: State
     key: Shift
-  - function: EditorLinePlace
+  # Camera
+  - function: CameraRotateLeft
     type: State
-    key: MouseLeft
-    canFocus: true
-    mod1: Shift
-  - function: EditorGridPlace
+    key: NumpadNum7
+  - function: CameraRotateRight
     type: State
-    key: MouseLeft
-    canFocus: true
-    mod1: Control
-  - function: EditorPlaceObject
+    key: NumpadNum9
+  - function: CameraReset
     type: State
-    key: MouseLeft
-    canFocus: true
-  - function: EditorCancelPlace
+    key: NumpadNum8
+  # Misc
+  - function: ToggleFullscreen
     type: State
-    key: MouseRight
-    canFocus: true
-  - function: EditorRotateObject
-    type: State
-    key: MouseMiddle
+    key: F11
   - function: TextCursorSelect
     type: State
     key: MouseLeft
@@ -68,6 +66,10 @@ binds: # These are all the current engine keybinds.
   - function: ShowDebugConsole
     type: State
     key: Tilde
+  - function: MouseMiddle
+    type: State
+    key: MouseMiddle
+    canFocus: true
   - function: TextCursorLeft
     type: State
     key: Left
@@ -76,6 +78,16 @@ binds: # These are all the current engine keybinds.
     type: State
     key: Right
     canRepeat: true
+  - function: TextCursorUp
+    type: State
+    key: Up
+    canRepeat: true
+    priority: 2
+  - function: TextCursorDown
+    type: State
+    key: Down
+    canRepeat: true
+    priority: 2
   - function: TextCursorWordLeft
     type: State
     key: Left
@@ -104,6 +116,18 @@ binds: # These are all the current engine keybinds.
   - function: TextCursorSelectRight
     type: State
     key: Right
+    mod1: Shift
+    canRepeat: true
+    allowSubCombs: true
+  - function: TextCursorSelectUp
+    type: State
+    key: Up
+    mod1: Shift
+    canRepeat: true
+    allowSubCombs: true
+  - function: TextCursorSelectDown
+    type: State
+    key: Down
     mod1: Shift
     canRepeat: true
     allowSubCombs: true
@@ -136,12 +160,44 @@ binds: # These are all the current engine keybinds.
     type: State
     key: BackSpace
     canRepeat: true
+  - function: TextDelete
+    type: State
+    key: Delete
+    canRepeat: true
+  - function: TextWordBackspace
+    type: State
+    key: BackSpace
+    mod1: Control
+    canRepeat: true
+    allowSubCombs: true
+  - function: TextWordDelete
+    type: State
+    key: Delete
+    mod1: Control
+    canRepeat: true
+    allowSubCombs: true
+  - function: TextNewline
+    type: State
+    key: Return
+    canRepeat: true
+  - function: TextNewline
+    type: State
+    key: NumpadEnter
+    canRepeat: true
   - function: TextSubmit
     type: State
     key: Return
   - function: TextSubmit
     type: State
     key: NumpadEnter
+  - function: MultilineTextSubmit
+    type: State
+    key: Return
+    mod1: Control
+  - function: MultilineTextSubmit
+    type: State
+    key: NumpadEnter
+    mod1: Control
   - function: TextSelectAll
     type: State
     key: A
@@ -168,6 +224,16 @@ binds: # These are all the current engine keybinds.
   - function: TextHistoryNext
     type: State
     key: Down
+  - function: TextCompleteNext
+    type: State
+    key: Down
+    priority: 1
+    canRepeat: true
+  - function: TextCompletePrev
+    type: State
+    key: Up
+    priority: 1
+    canRepeat: true
   - function: TextReleaseFocus
     type: State
     key: Escape
@@ -175,10 +241,31 @@ binds: # These are all the current engine keybinds.
   - function: TextScrollToBottom
     type: State
     key: PageDown
-  - function: TextDelete
+  - function: TextTabComplete
     type: State
-    key: Delete
-    canRepeat: true
+    key: Tab
+  - function: OpenEntitySpawnWindow
+    type: State
+    key: F5
+  - function: OpenAdminMenu
+    type: State
+    key: F7
+  - function: OpenDecalSpawnWindow
+    type: State
+    key: F8
+  - function: ToggleRoundEndSummaryWindow
+    type: Toggle
+    key: F9
+  - function: OpenSandboxWindow
+    type: State
+    key: B
+  - function: TakeScreenshot
+    type: State
+    key: F2
+  - function: TakeScreenshotNoUI
+    type: State
+    key: F2
+    mod1: Shift
   - function: GuiTabNavigateNext
     type: State
     key: Tab
@@ -186,6 +273,10 @@ binds: # These are all the current engine keybinds.
     type: State
     key: Tab
     mod1: Shift
-  - function: SkipDialog
+  - function: EscapeContext
     type: State
-    key: Space
+    key: Escape
+  - function: WindowCloseAll
+    type: State
+    key: Escape
+    mod1: Shift

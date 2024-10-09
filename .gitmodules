@@ -1,3 +1,6 @@
 [submodule "RobustToolbox"]
 	path = RobustToolbox
 	url = https://github.com/space-wizards/RobustToolbox/
+[submodule "StyleSheetify"]
+	path = StyleSheetify
+	url = https://github.com/Cinkafox/StyleSheetify

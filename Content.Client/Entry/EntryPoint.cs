@@ -1,17 +1,13 @@
-﻿using Content.Client.Bone;
-using Content.Client.Game;
-using Content.Client.StyleSheet;
+﻿using Content.Client.Game;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Client;
-using Robust.Client.Animations;
 using Robust.Client.GameObjects;
 using Robust.Client.Player;
 using Robust.Client.State;
 using Robust.Client.UserInterface;
-using Robust.Shared.Animations;
 using Robust.Shared.ContentPack;
-using Robust.Shared.Map;
+using Content.StyleSheetify.Client.StyleSheet;
 
 namespace Content.Client.Entry;
 
@@ -19,12 +15,14 @@ public sealed class EntryPoint : GameClient
 {
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
     [Dependency] private readonly IStateManager _stateManager = default!;
-    [Dependency] private readonly StyleSheetManager _styleSheetManager = default!;
+    [Dependency] private readonly IStyleSheetManager _styleSheetManager = default!;
     [Dependency] private readonly IEntityManager _entityManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     
     public override void PreInit()
     {
+        StyleSheetify.Client.DependencyRegistration.Register(IoCManager.Instance!);
+        IoCManager.BuildGraph();
         IoCManager.InjectDependencies(this);
     }
     

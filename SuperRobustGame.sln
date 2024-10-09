@@ -52,6 +52,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robust.Xaml", "RobustToolbo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content.Packaging", "Content.Packaging\Content.Packaging.csproj", "{717963DD-19F8-4F14-9DF2-F39E1D15FEAE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content.StyleSheetify.Shared", "StyleSheetify\Content.StyleSheetify.Shared\Content.StyleSheetify.Shared.csproj", "{AE6CA89E-D36B-4B11-9D2F-4FE493F2AB58}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content.StyleSheetify.Client", "StyleSheetify\Content.StyleSheetify.Client\Content.StyleSheetify.Client.csproj", "{13E45837-A39E-4519-ABC7-36154A914655}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -158,6 +162,14 @@ Global
 		{717963DD-19F8-4F14-9DF2-F39E1D15FEAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{717963DD-19F8-4F14-9DF2-F39E1D15FEAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{717963DD-19F8-4F14-9DF2-F39E1D15FEAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE6CA89E-D36B-4B11-9D2F-4FE493F2AB58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE6CA89E-D36B-4B11-9D2F-4FE493F2AB58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE6CA89E-D36B-4B11-9D2F-4FE493F2AB58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE6CA89E-D36B-4B11-9D2F-4FE493F2AB58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13E45837-A39E-4519-ABC7-36154A914655}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13E45837-A39E-4519-ABC7-36154A914655}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13E45837-A39E-4519-ABC7-36154A914655}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13E45837-A39E-4519-ABC7-36154A914655}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DCA7E086-1C4B-4BE1-8C2E-149524938607} = {77978585-1301-4238-BD49-5A01F7709853}

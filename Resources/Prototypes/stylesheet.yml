@@ -1,98 +1,102 @@
 ﻿- type: dynamicValue
   id: notoSansFont12
   value:
-    valueType: Content.Client.Font.FontSpecifier
+    valueType: Content.Game.Font.FontSpecifier
     value:
       font: "/Fonts/Minecraft/minecraft.ttf"
       size: 12
-  
+
 - type: dynamicValue
   id: notoSansMono12
   value:
-    valueType: Content.Client.Font.FontSpecifier
+    valueType: Content.Game.Font.FontSpecifier
     value:
       font: "/Fonts/Minecraft/minecraft.ttf"
       size: 12
-    
+
 - type: dynamicValue
   id: scrollBarNormal
   value:
-    valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+    valueType: Robust.Client.Graphics.StyleBoxFlat
     value:
-      backgroundColor: "#80808059"
-      contentMarginLeftOverride: 10
-      contentMarginTopOverride: 10
-    
+      backgroundColor: "#DDDDDD88"
+      contentMarginLeftOverride: 8
+      contentMarginTopOverride: 8
+
 - type: dynamicValue
   id: scrollBarHovered
   value:
-    valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+    valueType: Robust.Client.Graphics.StyleBoxFlat
     value:
-      backgroundColor: "#8C8C8C59"
-      contentMarginLeftOverride: 10
-      contentMarginTopOverride: 10
-    
+      backgroundColor: "#CCCCCCAA"
+      contentMarginLeftOverride: 8
+      contentMarginTopOverride: 8
+
 - type: dynamicValue
   id: scrollBarGrabbed
   value:
-    valueType: Content.Client.StyleSheet.StyleBox.StyleBoxFlatData
+    valueType: Robust.Client.Graphics.StyleBoxFlat
     value:
-      backgroundColor: "#8C8C8C59"
-      contentMarginLeftOverride: 10
-      contentMarginTopOverride: 10
-    
+      backgroundColor: "#AAAAAAFF"
+      contentMarginLeftOverride: 8
+      contentMarginTopOverride: 8
+
+- type: dynamicValue
+  id: novelPanel
+  value:
+    valueType: Robust.Client.Graphics.StyleBoxTexture
+    value:
+      texture: "/Textures/Interface/Novelle/paper_background_book.svg.96dpi.png"
+      mode: stretch
+      patchMarginLeft: 25.0
+      patchMarginBottom: 18.0
+      patchMarginRight: 16.0
+      patchMarginTop: 18.0
+
+- type: dynamicValue
+  id: novelPanelHover
+  value:
+    parent: novelPanel
+    value:
+      modulate: "#AAAAAA"
+
+- type: dynamicValue
+  id: novelPanelPush
+  value:
+    parent: novelPanel
+    value:
+      modulate: "#999999"
+
 - type: styleSheet
   id: default
   typeDefinition:
     ContainerButton: "Robust.Client.UserInterface.Controls.ContainerButton"
   styles:
-    ".monospace":
+    .monospace:
       font: notoSansMono12
     "":
       font: notoSansFont12
-      font-color: "#FFFFFF"
-    ".windowPanel":
-      panel:
-        valueType: Robust.Client.Graphics.StyleBoxFlat
-        value:
-          backgroundColor: "#aaaaaa"
-          borderColor: "#ffffff"
-      header:
-        valueType: Robust.Client.Graphics.StyleBoxFlat
-        value:
-          backgroundColor: "#aaaaaa"
-          borderColor: "#ffffff"
-          padding: 10,10,10,10
+      font-color: "#ffffff"
+    .windowPanel:
+      panel: novelPanel
+      header: novelPanel
     ContainerButton.button#normal:
-      stylebox:
-        valueType: Robust.Client.Graphics.StyleBoxFlat
-        value:
-          backgroundColor: "#00000000"
-          borderColor: "#ffffff"
-          borderThickness: 2,2,2,2
-          contentMarginBottomOverride: 8
-          contentMarginLeftOverride: 8
-          contentMarginRightOverride: 8
-          contentMarginTopOverride: 8
+      stylebox: novelPanel
     ContainerButton.button#hover:
+      stylebox: novelPanelHover
+    ContainerButton.button#pressed:
+      stylebox: novelPanelPush
+    ContainerButton.button#disabled:
       stylebox:
-        valueType: Robust.Client.Graphics.StyleBoxFlat
+        parent: novelPanel
         value:
-          backgroundColor: "#00000000"
-          borderColor: "#ffffff"
-          borderThickness: 2,2,2,2
-          contentMarginBottomOverride: 8
-          contentMarginLeftOverride: 14
-          contentMarginRightOverride: 10
-          contentMarginTopOverride: 8
-    .dreamPanel:
-      panel:
-        valueType: Robust.Client.Graphics.StyleBoxFlat
-        value:
-          backgroundColor: "#222222"
-          borderColor: "#444444"
-          borderThickness: 2,2,2,2
-          contentMarginBottomOverride: 8
-          contentMarginLeftOverride: 8
-          contentMarginRightOverride: 8
-          contentMarginTopOverride: 8
+          modulate: "#555555"
+    .windowCloseButton:
+      texture:
+        isLazy: true
+        valueType: Robust.Client.Graphics.Texture
+        value: "/Textures/Interface/Novelle/cross.svg.png"
+      modulate-self: "#FF6666"
+    .menuPanel:
+      panel: novelPanel
+      font-color: "#222222"
