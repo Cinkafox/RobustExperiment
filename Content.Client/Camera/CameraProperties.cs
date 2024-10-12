@@ -5,10 +5,10 @@ namespace Content.Client.Camera;
 public struct CameraProperties
 {
     public Vector3 Position;
-    public Angle3d Angle;
+    public EulerAngles Angle;
     public float FoV;
     
-    public CameraProperties(Vector3 position, Angle3d angle, float foV)
+    public CameraProperties(Vector3 position, EulerAngles angle, float foV)
     {
         Position = position;
         Angle = angle;

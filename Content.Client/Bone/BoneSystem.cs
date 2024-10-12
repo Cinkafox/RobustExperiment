@@ -1,7 +1,6 @@
 ﻿using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
 using Content.Shared.Transform;
-using Content.Shared.Utils;
 
 namespace Content.Client.Bone;
 
@@ -19,7 +18,7 @@ public sealed class BoneSystem : EntitySystem
     {
         var transform = Comp<Transform3dComponent>(ent);
         ent.Comp.OriginalPosition = transform.WorldPosition;
-        ent.Comp.OriginalRotation = transform.WorldRotation;
+        ent.Comp.OriginalRotation = transform.WorldAngle;
     }
 
     private void OnComponentInit(Entity<SkeletonComponent> ent, ref ComponentInit args)
@@ -32,8 +31,8 @@ public sealed class BoneSystem : EntitySystem
             RemComp(ent, ent.Comp);
             return;
         }
-
-        ent.Comp.Root = CreateBone(ent.Comp.Compound, ent);
+        
+        ent.Comp.Root = CreateBone(ent.Comp.Compound, ent.Owner);
     }
 
     private EntityUid CreateBone(BoneCompound boneCompound, EntityUid parent)
@@ -58,23 +57,21 @@ public sealed class BoneSystem : EntitySystem
         return bone;
     }
     
-    private void ProceedBone(Entity<BoneComponent?> entity, MeshRender mesh, EntityUid uid)
+    private void ProceedBone(Entity<BoneComponent?> entity, MeshRender mesh, Transform3dComponent? parentTransform)
     {
         if(!Resolve(entity, ref entity.Comp))
             return;
 
         var boneTransform = Comp<Transform3dComponent>(entity);
-        var ownerTransform = Comp<Transform3dComponent>(uid);
+        
 
         foreach (var data in entity.Comp.BoneVertexDatum)
         {
-            var matrix =
-                Matrix4Helpers.CreateTranslation(entity.Comp.OriginalPosition);
+            mesh.TranslatedVertexes[data.BoneIndices] = mesh.Mesh.Vertexes[data.BoneIndices];
             
-
             mesh.TranslatedVertexes[data.BoneIndices] -= entity.Comp.OriginalPosition;
             mesh.TranslatedVertexes[data.BoneIndices] =
-                (boneTransform.WorldRotation - entity.Comp.OriginalRotation).RotateVec(mesh.TranslatedVertexes[data.BoneIndices]);
+                (boneTransform.WorldAngle - entity.Comp.OriginalRotation).RotateVec(mesh.TranslatedVertexes[data.BoneIndices]);
 
             mesh.TranslatedVertexes[data.BoneIndices] += entity.Comp.OriginalPosition;
             
@@ -84,7 +81,7 @@ public sealed class BoneSystem : EntitySystem
 
         foreach (var child in entity.Comp.Childs)
         {
-            ProceedBone(child, mesh, uid);
+            ProceedBone(child, mesh, boneTransform);
         }
     }
     
@@ -95,7 +92,7 @@ public sealed class BoneSystem : EntitySystem
         {
             if(!model.MeshRenderInitialized) return;
             
-            ProceedBone(skeleton.Root, model.MeshRender, uid);
+            ProceedBone(skeleton.Root, model.MeshRender, null);
         }
     }
 }

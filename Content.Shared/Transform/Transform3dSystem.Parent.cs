@@ -1,7 +1,4 @@
-﻿using System.Numerics;
-using Robust.Shared.Map;
-using Robust.Shared.Utility;
-using Vector3 = Robust.Shared.Maths.Vector3;
+﻿using Robust.Shared.Utility;
 
 namespace Content.Shared.Transform;
 
@@ -9,29 +6,29 @@ public sealed partial class Transform3dSystem
 {
     public Transform3dComponent? GetParent(EntityUid uid)
     {
-        return GetParent(XformQuery.GetComponent(uid));
+        return GetParent(_xformQuery.GetComponent(uid));
     }
 
     public Transform3dComponent? GetParent(Transform3dComponent xform)
     {
         if (!xform.ParentUid.IsValid())
             return null;
-        return XformQuery.GetComponent(xform.ParentUid);
+        return _xformQuery.GetComponent(xform.ParentUid);
     }
 
     public EntityUid GetParentUid(EntityUid uid)
     {
-        return XformQuery.GetComponent(uid).ParentUid;
+        return _xformQuery.GetComponent(uid).ParentUid;
     }
 
     public void SetParent(EntityUid uid, EntityUid parent)
     {
-        SetParent(uid, XformQuery.GetComponent(uid), parent, XformQuery);
+        SetParent(uid, _xformQuery.GetComponent(uid), parent, _xformQuery);
     }
 
     public void SetParent(EntityUid uid, Transform3dComponent xform, EntityUid parent, Transform3dComponent? parentXform = null)
     {
-        SetParent(uid, xform, parent, XformQuery, parentXform);
+        SetParent(uid, xform, parent, _xformQuery, parentXform);
     }
 
     public void SetParent(EntityUid uid, Transform3dComponent xform, EntityUid parent, EntityQuery<Transform3dComponent> xformQuery, Transform3dComponent? parentXform = null)
@@ -48,8 +45,9 @@ public sealed partial class Transform3dSystem
 
         if (!xformQuery.Resolve(parent, ref parentXform))
             return;
-
-        var (_, parRot, parInvMatrix) = GetWorldPositionRotationInvMatrix(parentXform, xformQuery);
+        
+        var parRot = parentXform.WorldAngle;
+        var parInvMatrix = parentXform.InvWorldMatrix;
         var (pos, rot) = GetWorldPositionRotation(xform, xformQuery);
         var newPos = Vector3.Transform(pos, parInvMatrix);
         var newRot = rot - parRot;
@@ -63,7 +61,7 @@ public sealed partial class Transform3dSystem
     
     public void DetachEntity(EntityUid uid, Transform3dComponent xform)
     {
-        XformQuery.TryGetComponent(xform.ParentUid, out var oldXform);
+        _xformQuery.TryGetComponent(xform.ParentUid, out var oldXform);
         DetachEntity(uid, xform, MetaData(uid), oldXform);
     }
 

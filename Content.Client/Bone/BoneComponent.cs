@@ -1,5 +1,4 @@
 ﻿using Content.Shared.Utils;
-using Vector3 = Robust.Shared.Maths.Vector3;
 
 namespace Content.Client.Bone;
 
@@ -10,7 +9,7 @@ public sealed partial class BoneComponent : Component
     [DataField] public HashSet<EntityUid> Childs = new HashSet<EntityUid>();
 
     [DataField] public Vector3 OriginalPosition;
-    [DataField] public Angle3d OriginalRotation;
+    [DataField] public EulerAngles OriginalRotation;
 }
 
 [DataDefinition]

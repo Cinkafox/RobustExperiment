@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace Content.Client.DimensionEnv.ObjRes;
+namespace Content.Client.DimensionEnv.ObjRes.Content;
 
 public sealed class NormalContent : BaseContent
 {

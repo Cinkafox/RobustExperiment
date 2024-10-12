@@ -2,13 +2,11 @@
 
 public sealed partial class Transform3dSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-
-    public EntityQuery<Transform3dComponent> XformQuery;
+    private EntityQuery<Transform3dComponent> _xformQuery;
     
     public override void Initialize()
     {
-        XformQuery = GetEntityQuery<Transform3dComponent>();
+        _xformQuery = GetEntityQuery<Transform3dComponent>();
         EntityManager.ComponentAdded += EntityManagerOnComponentAdded;
     }
     

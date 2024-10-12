@@ -11,7 +11,7 @@ public sealed class CameraSystem : EntitySystem
     [Dependency] private readonly CameraManager _cameraManager = default!;
     
     public Vector3 Shifter = Vector3.Zero;
-    public Angle3d AngleShift = new();
+    public EulerAngles AngleShift = new();
     
     public override void Initialize()
     {
@@ -20,8 +20,8 @@ public sealed class CameraSystem : EntitySystem
         CommandBinds.Builder
             .Bind(EngineKeyFunctions.MoveUp, new GoInputHandler(this,new Vector3(0, 0, -1)))
             .Bind(EngineKeyFunctions.MoveDown, new GoInputHandler(this,new Vector3(0, 0, 1)))
-            .Bind(EngineKeyFunctions.MoveLeft, new AngleInputHandler(this,new Angle3d(0, Angle.FromDegrees(2),0)))
-            .Bind(EngineKeyFunctions.MoveRight, new AngleInputHandler(this,new Angle3d(0, Angle.FromDegrees(-2),0)))
+            .Bind(EngineKeyFunctions.MoveLeft, new AngleInputHandler(this,new EulerAngles(0, Angle.FromDegrees(2),0)))
+            .Bind(EngineKeyFunctions.MoveRight, new AngleInputHandler(this,new EulerAngles(0, Angle.FromDegrees(-2),0)))
             .Register<CameraSystem>();
     }
 
@@ -43,9 +43,9 @@ public sealed class CameraSystem : EntitySystem
         if(!_cameraManager.Camera.HasValue) return;
         var transform = _cameraManager.Camera.Value.Item1;
 
-        transform.LocalRotation += AngleShift;
+        transform.LocalAngle -= AngleShift;
 
-        var shift = Vector3.Transform(Shifter, Matrix4Helpers.CreateRotationY(transform.LocalRotation.Yaw));
+        var shift = Vector3.Transform(Shifter, Matrix4Helpers.CreateRotationY(transform.WorldAngle.Yaw));
 
         transform.LocalPosition += shift * frameTime * 3;
     }
@@ -54,9 +54,9 @@ public sealed class CameraSystem : EntitySystem
 public sealed class AngleInputHandler : InputCmdHandler
 {
     private readonly CameraSystem _cameraSystem;
-    private readonly Angle3d _to;
+    private readonly EulerAngles _to;
 
-    public AngleInputHandler(CameraSystem cameraSystem, Angle3d to)
+    public AngleInputHandler(CameraSystem cameraSystem, EulerAngles to)
     {
         _cameraSystem = cameraSystem;
         _to = to;

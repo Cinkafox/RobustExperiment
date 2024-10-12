@@ -1,8 +1,6 @@
 ﻿using System.Collections;
 using System.Numerics;
 using Content.Client.Viewport;
-using Vector3 = Robust.Shared.Maths.Vector3;
-using Vector4 = Robust.Shared.Maths.Vector4;
 
 namespace Content.Client.Utils;
 
@@ -21,11 +19,11 @@ public struct Triangle : IEnumerable<Vector4>
         p3 = v3;
     }
 
-    public void Transform(Matrix4 matrix4)
+    public void Transform(Matrix4x4 matrix4)
     {
-        p1 = new Vector4(Vector3.Transform(p1.Xyz, matrix4),p1.W);
-        p2 = new Vector4(Vector3.Transform(p2.Xyz, matrix4),p1.W);
-        p3 = new Vector4(Vector3.Transform(p3.Xyz, matrix4),p1.W);
+        p1 = new Vector4(Vector3.Transform(p1.ToVec3(), matrix4),p1.W);
+        p2 = new Vector4(Vector3.Transform(p2.ToVec3(), matrix4),p1.W);
+        p3 = new Vector4(Vector3.Transform(p3.ToVec3(), matrix4),p1.W);
     }
 
     public Vector3 Normal()
@@ -42,9 +40,9 @@ public struct Triangle : IEnumerable<Vector4>
     
     public static bool IsPointInsideTriangle(Vector3 point, Triangle triangle)
     {
-        var v0 = triangle.p3.Xyz - triangle.p1.Xyz;
-        var v1 = triangle.p2.Xyz - triangle.p1.Xyz;
-        var v2 = point - triangle.p1.Xyz;
+        var v0 = triangle.p3.ToVec3() - triangle.p1.ToVec3();
+        var v1 = triangle.p2.ToVec3() - triangle.p1.ToVec3();
+        var v2 = point - triangle.p1.ToVec3();
 
         var dot00 = Vector3.Dot(v0, v0);
         var dot01 = Vector3.Dot(v0, v1);
@@ -82,7 +80,7 @@ public struct Triangle : IEnumerable<Vector4>
         drawingInstance.Clipping.Clear();
 
         // Проверяем каждую вершину inTri на нахождение внутри otherTri
-        if (IsPointInsideTriangle(inTri.Triangle.p1.Xyz, otherTri.Triangle))
+        if (IsPointInsideTriangle(inTri.Triangle.p1.ToVec3(), otherTri.Triangle))
         {
             drawingInstance.InsidePoints.Add(inTri.Triangle.p1);
             drawingInstance.InsideTex.Add(inTri.TexturePoint1);
@@ -93,7 +91,7 @@ public struct Triangle : IEnumerable<Vector4>
             drawingInstance.OutsideTex.Add(inTri.TexturePoint1);
         }
 
-        if (IsPointInsideTriangle(inTri.Triangle.p2.Xyz, otherTri.Triangle))
+        if (IsPointInsideTriangle(inTri.Triangle.p2.ToVec3(), otherTri.Triangle))
         {
             drawingInstance.InsidePoints.Add(inTri.Triangle.p2);
             drawingInstance.InsideTex.Add(inTri.TexturePoint2);
@@ -104,7 +102,7 @@ public struct Triangle : IEnumerable<Vector4>
             drawingInstance.OutsideTex.Add(inTri.TexturePoint2);
         }
 
-        if (IsPointInsideTriangle(inTri.Triangle.p3.Xyz, otherTri.Triangle))
+        if (IsPointInsideTriangle(inTri.Triangle.p3.ToVec3(), otherTri.Triangle))
         {
             drawingInstance.InsidePoints.Add(inTri.Triangle.p3);
             drawingInstance.InsideTex.Add(inTri.TexturePoint3);
@@ -128,8 +126,8 @@ public struct Triangle : IEnumerable<Vector4>
         {
             var outTri1 = new TexturedTriangle();
             outTri1.Triangle.p1 = drawingInstance.InsidePoints[0];
-            outTri1.Triangle.p2 = VectorExtTriangle.IntersectSegmentWithTriangle(drawingInstance.InsidePoints[0].Xyz, drawingInstance.OutsidePoints[0].Xyz, otherTri).ToVec4();
-            outTri1.Triangle.p3 = VectorExtTriangle.IntersectSegmentWithTriangle(drawingInstance.InsidePoints[0].Xyz, drawingInstance.OutsidePoints[1].Xyz, otherTri).ToVec4();
+            outTri1.Triangle.p2 = VectorExtTriangle.IntersectSegmentWithTriangle(drawingInstance.InsidePoints[0].ToVec3(), drawingInstance.OutsidePoints[0].ToVec3(), otherTri).ToVec4();
+            outTri1.Triangle.p3 = VectorExtTriangle.IntersectSegmentWithTriangle(drawingInstance.InsidePoints[0].ToVec3(), drawingInstance.OutsidePoints[1].ToVec3(), otherTri).ToVec4();
 
             outTri1.TextureId = inTri.TextureId;
             outTri1.TexturePoint1 = drawingInstance.InsideTex[0];
@@ -149,7 +147,7 @@ public struct Triangle : IEnumerable<Vector4>
 
             outTri1.Triangle.p1 = drawingInstance.InsidePoints[0];
             outTri1.Triangle.p2 = drawingInstance.InsidePoints[1];
-            outTri1.Triangle.p3 = VectorExtTriangle.IntersectSegmentWithTriangle(drawingInstance.InsidePoints[0].Xyz, drawingInstance.OutsidePoints[0].Xyz, otherTri).ToVec4();
+            outTri1.Triangle.p3 = VectorExtTriangle.IntersectSegmentWithTriangle(drawingInstance.InsidePoints[0].ToVec3(), drawingInstance.OutsidePoints[0].ToVec3(), otherTri).ToVec4();
 
             outTri1.TextureId = inTri.TextureId;
             outTri1.TexturePoint1 = drawingInstance.InsideTex[0];
@@ -160,7 +158,7 @@ public struct Triangle : IEnumerable<Vector4>
 
             outTri2.Triangle.p1 = drawingInstance.InsidePoints[1];
             outTri2.Triangle.p2 = outTri1.Triangle.p3;
-            outTri2.Triangle.p3 = VectorExtTriangle.IntersectSegmentWithTriangle(drawingInstance.InsidePoints[1].Xyz, drawingInstance.OutsidePoints[0].Xyz, otherTri).ToVec4();
+            outTri2.Triangle.p3 = VectorExtTriangle.IntersectSegmentWithTriangle(drawingInstance.InsidePoints[1].ToVec3(), drawingInstance.OutsidePoints[0].ToVec3(), otherTri).ToVec4();
 
             outTri2.TextureId = inTri.TextureId;
             outTri2.TexturePoint1 = drawingInstance.InsideTex[1];
@@ -174,7 +172,7 @@ public struct Triangle : IEnumerable<Vector4>
 
     public static void ClipAgainstClip(Vector3 planeP, Vector3 planeN,TexturedTriangle inTri,DrawingInstance drawingInstance)
     {
-        planeN.Normalize();
+        planeN = Vector3.Normalize(planeN);
         
         drawingInstance.OutsidePoints.Clear();
         drawingInstance.InsidePoints.Clear();
@@ -189,9 +187,9 @@ public struct Triangle : IEnumerable<Vector4>
         }
         
         // Get signed distance of each point in triangle to plane
-        float d0 = dist(inTri.Triangle.p1.Xyz);
-        float d1 = dist(inTri.Triangle.p2.Xyz);
-        float d2 = dist(inTri.Triangle.p3.Xyz);
+        float d0 = dist(inTri.Triangle.p1.ToVec3());
+        float d1 = dist(inTri.Triangle.p2.ToVec3());
+        float d2 = dist(inTri.Triangle.p3.ToVec3());
         
         if (d0 >= 0) { drawingInstance.InsidePoints.Add(inTri.Triangle.p1); drawingInstance.InsideTex.Add(inTri.TexturePoint1);}
         else { drawingInstance.OutsidePoints.Add(inTri.Triangle.p1); drawingInstance.OutsideTex.Add(inTri.TexturePoint1);}
@@ -211,10 +209,10 @@ public struct Triangle : IEnumerable<Vector4>
         {
             var outTri1 = new TexturedTriangle();
             outTri1.Triangle.p1 = drawingInstance.InsidePoints[0];
-            outTri1.Triangle.p2 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].Xyz,
-                drawingInstance.OutsidePoints[0].Xyz).ToVec4();
-            outTri1.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].Xyz,
-                drawingInstance.OutsidePoints[1].Xyz).ToVec4();
+            outTri1.Triangle.p2 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].ToVec3(),
+                drawingInstance.OutsidePoints[0].ToVec3()).ToVec4();
+            outTri1.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].ToVec3(),
+                drawingInstance.OutsidePoints[1].ToVec3()).ToVec4();
 
             outTri1.TextureId = inTri.TextureId;
             outTri1.TexturePoint1 = drawingInstance.InsideTex[0];
@@ -233,7 +231,7 @@ public struct Triangle : IEnumerable<Vector4>
             
             outTri1.Triangle.p1 = drawingInstance.InsidePoints[0];
             outTri1.Triangle.p2 = drawingInstance.InsidePoints[1];
-            outTri1.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].Xyz, drawingInstance.OutsidePoints[0].Xyz).ToVec4();
+            outTri1.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[0].ToVec3(), drawingInstance.OutsidePoints[0].ToVec3()).ToVec4();
             
             outTri1.TextureId = inTri.TextureId;
             outTri1.TexturePoint1 = drawingInstance.InsideTex[0];
@@ -244,7 +242,7 @@ public struct Triangle : IEnumerable<Vector4>
             
             outTri2.Triangle.p1 = drawingInstance.InsidePoints[1];
             outTri2.Triangle.p2 = outTri1.Triangle.p3;
-            outTri2.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[1].Xyz, drawingInstance.OutsidePoints[0].Xyz).ToVec4();
+            outTri2.Triangle.p3 = VectorExt.IntersectPlane(planeP, planeN, drawingInstance.InsidePoints[1].ToVec3(), drawingInstance.OutsidePoints[0].ToVec3()).ToVec4();
             
             outTri2.TextureId = inTri.TextureId;
             outTri2.TexturePoint1 = drawingInstance.InsideTex[1];
@@ -275,13 +273,13 @@ public static class VectorExtTriangle
     public static Vector3 IntersectSegmentWithTriangle(Vector3 segmentStart, Vector3 segmentEnd, TexturedTriangle tri)
     {
         // 1. Вычисляем нормаль плоскости треугольника
-        Vector3 v0 = tri.Triangle.p2.Xyz - tri.Triangle.p1.Xyz;
-        Vector3 v1 = tri.Triangle.p3.Xyz - tri.Triangle.p1.Xyz;
+        Vector3 v0 = tri.Triangle.p2.ToVec3() - tri.Triangle.p1.ToVec3();
+        Vector3 v1 = tri.Triangle.p3.ToVec3() - tri.Triangle.p1.ToVec3();
         Vector3 normal = Vector3.Cross(v0, v1);
-        normal.Normalize();
+        normal = Vector3.Normalize(normal);
 
         // 2. Вычисляем плоскость: нормаль и точка на плоскости (p1)
-        Vector3 planePoint = tri.Triangle.p1.Xyz;
+        Vector3 planePoint = tri.Triangle.p1.ToVec3();
 
         // 3. Находим точку пересечения отрезка с плоскостью
         Vector3 segmentDirection = segmentEnd - segmentStart;

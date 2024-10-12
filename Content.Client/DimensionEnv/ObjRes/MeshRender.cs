@@ -2,16 +2,13 @@
 using Content.Client.DimensionEnv.ObjRes.Content;
 using Content.Client.Utils;
 using Content.Client.Viewport;
-using Robust.Client.Graphics;
-using Vector3 = Robust.Shared.Maths.Vector3;
-using Vector4 = Robust.Shared.Maths.Vector4;
 
 namespace Content.Client.DimensionEnv.ObjRes;
 
 public sealed class MeshRender
 {
     public Mesh Mesh;
-    public Matrix4 Transform = Matrix4.Identity;
+    public Matrix4x4 Transform = Matrix4x4.Identity;
     public bool IsMeshTranslated { get; private set; }
     public int TextureBufferCoord { get; private set; }
 
@@ -48,7 +45,7 @@ public sealed class MeshRender
     {
         for (int i = 0; i < Mesh.Vertexes.Count; i++)
         {
-            _translatedVertexes[i] = Mesh.Vertexes[i];
+            _translatedVertexes[i] = Vector3.Transform(Mesh.Vertexes[i], Transform);
         }
 
         IsMeshTranslated = true;

@@ -1,12 +1,9 @@
-﻿using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using Content.Client.Camera;
 using Content.Client.Utils;
 using Robust.Client.Graphics;
 using Robust.Shared.Profiling;
 using Robust.Shared.Threading;
-using Vector3 = Robust.Shared.Maths.Vector3;
-using Vector4 = Robust.Shared.Maths.Vector4;
 
 namespace Content.Client.Viewport;
 
@@ -25,8 +22,8 @@ public sealed class DrawingHandle3d : IDisposable
 
     private CameraProperties _cameraProperties;
 
-    public Matrix4 ViewMatrix { get; }
-    public Matrix4 ProjectionMatrix { get; }
+    public Matrix4x4 ViewMatrix { get; }
+    public Matrix4x4 ProjectionMatrix { get; }
     
     public Vector4 ToScreenVec(Vector4 vertex)
     {
@@ -39,27 +36,39 @@ public sealed class DrawingHandle3d : IDisposable
 
     private void FlushScreen(TexturedTriangle triangle)
     {
-        _drawingInstance.DrawVertexBuffer[0] = ToScreen(triangle.Triangle.p1.Xyz,triangle.TexturePoint1);
-        _drawingInstance.DrawVertexBuffer[1] = ToScreen(triangle.Triangle.p2.Xyz,triangle.TexturePoint2);
-        _drawingInstance.DrawVertexBuffer[2] = ToScreen(triangle.Triangle.p3.Xyz,triangle.TexturePoint3);
+        _drawingInstance.DrawVertexBuffer[0] = ToScreen(triangle.Triangle.p1.ToVec3(),triangle.TexturePoint1);
+        _drawingInstance.DrawVertexBuffer[1] = ToScreen(triangle.Triangle.p2.ToVec3(),triangle.TexturePoint2);
+        _drawingInstance.DrawVertexBuffer[2] = ToScreen(triangle.Triangle.p3.ToVec3(),triangle.TexturePoint3);
     }
     
     public DrawVertexUV2D ToScreen(Vector3 vertex, Vector2 uvPos)
     {
-        return new DrawVertexUV2D(vertex.Xy,uvPos);
+        return new DrawVertexUV2D(new Vector2(vertex.X, vertex.Y),uvPos);
     }
 
     public void DrawCircle(Vector3 position, float radius, Color color, bool filled = true)
     {
+        var camPos = _cameraProperties.Position;
+
+        var distance = Math.Sqrt(Math.Pow(camPos.X - position.X, 2) + Math.Pow(camPos.Y - position.Y, 2) +
+                                 Math.Pow(camPos.Z - position.Z, 2));
+
+        radius = (float)(radius / distance);
+        
         position = Vector3.Transform(position, ViewMatrix);
         position = Vector3.Transform(position, ProjectionMatrix);
 
         position.X *= -1;
         position.Y *= -1;
         
-        position = ToScreenVec(position.ToVec4()).Xyz;
+        if (position.Z > 0)
+        {
+            return;
+        }
         
-        _handleBase.DrawCircle(position.Xy, radius, color, filled);
+        position = ToScreenVec(position.ToVec4()).ToVec3();
+        
+        _handleBase.DrawCircle(new Vector2(position.X, position.Y), radius, color, filled);
     }
     
     public void DrawPolygon(Triangle triangle, Vector2 p1, Vector2 p2, Vector2 p3, int textureId)
@@ -67,8 +76,8 @@ public sealed class DrawingHandle3d : IDisposable
         CheckDisposed();
         
         var normal = triangle.Normal();
-        normal.Normalize();
-        var vCameraRay = Vector3.Subtract(triangle.p1.Xyz, _cameraProperties.Position);
+        normal = Vector3.Normalize(normal);
+        var vCameraRay = Vector3.Subtract(triangle.p1.ToVec3(), _cameraProperties.Position);
         if(Vector3.Dot(normal, vCameraRay) >= 1) return;
 
         triangle.Transform(ViewMatrix);
@@ -80,9 +89,9 @@ public sealed class DrawingHandle3d : IDisposable
 
         for (int i = 0; i < _drawingInstance.Clipping.Length; i++)
         {
-            trtex.Triangle.p1 = Vector3.Transform(_drawingInstance.Clipping[i].Triangle.p1.Xyz, ProjectionMatrix).ToVec4();
-            trtex.Triangle.p2 = Vector3.Transform(_drawingInstance.Clipping[i].Triangle.p2.Xyz, ProjectionMatrix).ToVec4();
-            trtex.Triangle.p3 = Vector3.Transform(_drawingInstance.Clipping[i].Triangle.p3.Xyz, ProjectionMatrix).ToVec4();
+            trtex.Triangle.p1 = Vector3.Transform(_drawingInstance.Clipping[i].Triangle.p1.ToVec3(), ProjectionMatrix).ToVec4();
+            trtex.Triangle.p2 = Vector3.Transform(_drawingInstance.Clipping[i].Triangle.p2.ToVec3(), ProjectionMatrix).ToVec4();
+            trtex.Triangle.p3 = Vector3.Transform(_drawingInstance.Clipping[i].Triangle.p3.ToVec3(), ProjectionMatrix).ToVec4();
             trtex.TexturePoint1 = _drawingInstance.Clipping[i].TexturePoint1;
             trtex.TexturePoint2 = _drawingInstance.Clipping[i].TexturePoint2;
             trtex.TexturePoint3 = _drawingInstance.Clipping[i].TexturePoint3;
@@ -195,15 +204,15 @@ public sealed class DrawingHandle3d : IDisposable
         Vector3 yaxis = new Vector3(sinPitch * sinPitch, cosPitch, cosYaw * sinPitch);
         Vector3 zaxis = new Vector3(sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw);
         
-        ViewMatrix = new Matrix4(new Vector4(xaxis.X,            yaxis.X,            zaxis.X,      0), 
-            new Vector4(xaxis.Y,            yaxis.Y,            zaxis.Y,      0),
-            new Vector4(xaxis.Z,            yaxis.Z,            zaxis.Z,      0), 
-            new Vector4(-Vector3.Dot(xaxis,_cameraProperties.Position),
+        ViewMatrix = new Matrix4x4(xaxis.X,            yaxis.X,            zaxis.X,      0, 
+           xaxis.Y,            yaxis.Y,            zaxis.Y,      0,
+            xaxis.Z,            yaxis.Z,            zaxis.Z,      0, 
+            -Vector3.Dot(xaxis,_cameraProperties.Position),
                 -Vector3.Dot(yaxis,_cameraProperties.Position),
-                -Vector3.Dot(zaxis,_cameraProperties.Position), 1));
+                -Vector3.Dot(zaxis,_cameraProperties.Position), 1);
 
         
-        ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(
+        ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
             MathF.PI / _cameraProperties.FoV, // Field of view
             Width/Height, // Aspect ratio
             0.1f, // Near plane

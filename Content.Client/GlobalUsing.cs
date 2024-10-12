@@ -8,3 +8,6 @@ global using Robust.Shared.IoC;
 global using Robust.Shared.Maths;
 global using Robust.Shared.ViewVariables;
 global using Robust.Shared.Serialization.Manager.Attributes;
+global using Vector3 = System.Numerics.Vector3;
+global using Vector4 = System.Numerics.Vector4;
+global using Quaternion = System.Numerics.Quaternion;

@@ -6,7 +6,6 @@ using Robust.Client.Utility;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Color = Robust.Shared.Maths.Color;
-using Vector4 = Robust.Shared.Maths.Vector4;
 
 namespace Content.Client.Viewport;
 

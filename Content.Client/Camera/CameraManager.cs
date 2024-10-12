@@ -12,7 +12,7 @@ public sealed class CameraManager
         get 
             {
                 if (Camera is null) return null;
-                return new CameraProperties(Camera.Value.Item1.WorldPosition, Camera.Value.Item1.WorldRotation,
+                return new CameraProperties(Camera.Value.Item1.WorldPosition, Camera.Value.Item1.WorldAngle,
                     Camera.Value.Item2.FoV);
             }
     }

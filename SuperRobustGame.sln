@@ -58,6 +58,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content.StyleSheetify.Clien
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StyleSheet", "StyleSheet", "{2BBA69B4-BADD-4AE8-897F-E458F8A35F11}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content.UnitTests", "Content.UnitTests\Content.UnitTests.csproj", "{05566CEF-A9B3-41EC-959B-488D9D9A4FB5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -172,6 +174,10 @@ Global
 		{13E45837-A39E-4519-ABC7-36154A914655}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13E45837-A39E-4519-ABC7-36154A914655}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13E45837-A39E-4519-ABC7-36154A914655}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05566CEF-A9B3-41EC-959B-488D9D9A4FB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05566CEF-A9B3-41EC-959B-488D9D9A4FB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05566CEF-A9B3-41EC-959B-488D9D9A4FB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05566CEF-A9B3-41EC-959B-488D9D9A4FB5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DCA7E086-1C4B-4BE1-8C2E-149524938607} = {77978585-1301-4238-BD49-5A01F7709853}

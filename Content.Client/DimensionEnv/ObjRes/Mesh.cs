@@ -3,7 +3,6 @@ using System.Numerics;
 using Content.Client.DimensionEnv.ObjRes.Content;
 using Content.Client.DimensionEnv.ObjRes.MTL;
 using Robust.Shared.Utility;
-using Vector3 = Robust.Shared.Maths.Vector3;
 
 namespace Content.Client.DimensionEnv.ObjRes;
 

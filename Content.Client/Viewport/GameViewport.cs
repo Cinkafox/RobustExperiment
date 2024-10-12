@@ -1,16 +1,13 @@
-﻿using Content.Client.Bone;
-using Content.Client.Camera;
+﻿using Content.Client.Camera;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
 using Content.Shared.Transform;
-using Content.Shared.Utils;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Profiling;
 using Robust.Shared.Threading;
-using Vector3 = Robust.Shared.Maths.Vector3;
 
 namespace Content.Client.Viewport;
 
@@ -81,11 +78,13 @@ public sealed class GameViewport : Control
         drawHandle.Flush();
         gr3.Dispose();
         
-        // var q = _entityManager.EntityQueryEnumerator<Transform3dComponent, BoneComponent>();
-        // while (q.MoveNext(out var t, out var b))
-        // {
-        //     drawHandle.DrawCircle(t.WorldPosition, 8f, Color.Aqua, true);
-        // }
+        var q = _entityManager.EntityQueryEnumerator<Transform3dComponent>();
+        while (q.MoveNext(out var t))
+        {
+            drawHandle.DrawCircle(t.WorldPosition, 20f, Color.Aqua);
+            var d = t.WorldAngle.ToVec() * 0.2f + t.WorldPosition;
+            drawHandle.DrawCircle(d, 15f, Color.Blue);
+        }
     }
     
     protected override void KeyBindDown(GUIBoundKeyEventArgs args)

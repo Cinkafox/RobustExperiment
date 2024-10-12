@@ -39,13 +39,14 @@ public sealed class EntryPoint : GameClient
         var camera = _entityManager.Spawn("camera");
         transform.SetParent(camera, mapId);
         transform.SetWorldPosition(camera, new Vector3(0, 2, 5));
-        transform.SetWorldRotation(camera, new Angle3d(0,Angle.FromDegrees(180),0));
+        transform.SetWorldRotation(camera, new EulerAngles(0,Angle.FromDegrees(180),0));
 
         _playerManager.SetAttachedEntity(_playerManager.LocalSession, camera);
         
         var ent = _entityManager.Spawn("alexandra");
         transform.SetParent(ent, mapId);
         transform.SetWorldPosition(ent, new Vector3(0,0,0));
+        transform.SetWorldRotation(ent, new EulerAngles(0,Angle.FromDegrees(0),0));
         
         _stateManager.RequestStateChange<ContentGameState>();
         

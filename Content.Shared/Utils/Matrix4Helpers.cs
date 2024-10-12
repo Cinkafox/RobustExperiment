@@ -1,12 +1,11 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using Vector3 = Robust.Shared.Maths.Vector3;
 
 namespace Content.Shared.Utils;
 
 public static class Matrix4Helpers
 {
-    public static bool EqualsApprox(this Matrix4 a, Matrix4 b, float tolerance = 1e-6f)
+    public static bool EqualsApprox(this Matrix4x4 a, Matrix4x4 b, float tolerance = 1e-6f)
     {
         return
             Math.Abs(a.M11 - b.M11) <= tolerance &&
@@ -28,36 +27,38 @@ public static class Matrix4Helpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool EqualsApprox(this Matrix4 a, Matrix4 b, double tolerance)
+    public static bool EqualsApprox(this Matrix4x4 a, Matrix4x4 b, double tolerance)
     {
         return a.EqualsApprox(b, (float)tolerance);
     }
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateTransform(float posX, float posY, float posZ, double angleX, double angleY, double angleZ, float scaleX = 1, float scaleY = 1, float scaleZ = 1)
+    public static Matrix4x4 CreateTransform(float posX, float posY, float posZ, float x, float y, float z, float w, float scaleX = 1, float scaleY = 1, float scaleZ = 1)
     {
-        // Вычисляем синусы и косинусы для каждого угла
-        var sinX = (float)Math.Sin(angleX);
-        var cosX = (float)Math.Cos(angleX);
-        var sinY = (float)Math.Sin(angleY);
-        var cosY = (float)Math.Cos(angleY);
-        var sinZ = (float)Math.Sin(angleZ);
-        var cosZ = (float)Math.Cos(angleZ);
+        float xx = x * x;
+        float yy = y * y;
+        float zz = z * z;
 
-        // Применяем комбинацию вращений по X, Y и Z
-        return new Matrix4
+        float xy = x * y;
+        float wz = z * w;
+        float xz = z * x;
+        float wy = y * w;
+        float yz = y * z;
+        float wx = x * w;
+        
+        return new Matrix4x4
         {
-            M11 = cosY * cosZ * scaleX,
-            M12 = (cosY * sinZ) * scaleX,
-            M13 = -sinY * scaleX,
+            M11 = (1.0f - 2.0f * (yy + zz)) * scaleX,
+            M12 = 2.0f * (xy + wz) * scaleX,
+            M13 = 2.0f * (xz - wy),
             M14 = 0,
-            M21 = (sinX * sinY * cosZ - cosX * sinZ) * scaleY,
-            M22 = (sinX * sinY * sinZ + cosX * cosZ) * scaleY,
-            M23 = sinX * cosY * scaleY,
+            M21 = 2.0f * (xy - wz) * scaleY,
+            M22 = (1.0f - 2.0f * (zz + xx)) * scaleY,
+            M23 = 2.0f * (yz + wx) * scaleY,
             M24 = 0,
-            M31 = (cosX * sinY * cosZ + sinX * sinZ) * scaleZ,
-            M32 = (cosX * sinY * sinZ - sinX * cosZ) * scaleZ,
-            M33 = cosX * cosY * scaleZ,
+            M31 = 2.0f * (xz + wy) * scaleZ,
+            M32 = 2.0f * (yz - wx) * scaleZ,
+            M33 = (1.0f - 2.0f * (yy + xx)) * scaleZ,
             M34 = 0,
             M41 = posX,
             M42 = posY,
@@ -67,60 +68,88 @@ public static class Matrix4Helpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateInverseTransform(float posX, float posY, float posZ, double angleX, double angleY, double angleZ, float scaleX = 1, float scaleY = 1, float scaleZ = 1)
+    public static Matrix4x4 CreateInverseTransform(float posX, float posY, float posZ, float x, float y, float z, float w, float scaleX = 1, float scaleY = 1, float scaleZ = 1)
     {
-        // Вычисляем синусы и косинусы для каждого угла
-        var sinX = (float)Math.Sin(angleX);
-        var cosX = (float)Math.Cos(angleX);
-        var sinY = (float)Math.Sin(angleY);
-        var cosY = (float)Math.Cos(angleY);
-        var sinZ = (float)Math.Sin(angleZ);
-        var cosZ = (float)Math.Cos(angleZ);
+        // Invert the scale
+        float invScaleX = 1.0f / scaleX;
+        float invScaleY = 1.0f / scaleY;
+        float invScaleZ = 1.0f / scaleZ;
 
-        // Применяем комбинацию инверсных вращений по X, Y и Z
-        return new Matrix4
+        // Conjugate the quaternion for inverse rotation
+        float invX = -x;
+        float invY = -y;
+        float invZ = -z;
+        float invW = w;
+
+        float xx = invX * invX;
+        float yy = invY * invY;
+        float zz = invZ * invZ;
+
+        float xy = invX * invY;
+        float wz = invZ * invW;
+        float xz = invZ * invX;
+        float wy = invY * invW;
+        float yz = invY * invZ;
+        float wx = invX * invW;
+
+        // Construct the inverse rotation matrix scaled by the inverse of the scale factors
+        var rotationInv = new Matrix4x4
         {
-            M11 = cosY * cosZ / scaleX,
-            M12 = (sinX * sinY * cosZ - cosX * sinZ) / scaleY,
-            M13 = (cosX * sinY * cosZ + sinX * sinZ) / scaleZ,
+            M11 = (1.0f - 2.0f * (yy + zz)) * invScaleX,
+            M12 = 2.0f * (xy - wz) * invScaleX,
+            M13 = 2.0f * (xz + wy) * invScaleX,
             M14 = 0,
-            M21 = cosY * sinZ / scaleX,
-            M22 = (sinX * sinY * sinZ + cosX * cosZ) / scaleY,
-            M23 = (cosX * sinY * sinZ - sinX * cosZ) / scaleZ,
+            M21 = 2.0f * (xy + wz) * invScaleY,
+            M22 = (1.0f - 2.0f * (zz + xx)) * invScaleY,
+            M23 = 2.0f * (yz - wx) * invScaleY,
             M24 = 0,
-            M31 = -sinY / scaleX,
-            M32 = sinX * cosY / scaleY,
-            M33 = cosX * cosY / scaleZ,
+            M31 = 2.0f * (xz - wy) * invScaleZ,
+            M32 = 2.0f * (yz + wx) * invScaleZ,
+            M33 = (1.0f - 2.0f * (yy + xx)) * invScaleZ,
             M34 = 0,
-            M41 = -(posX * cosY * cosZ + posY * cosY * sinZ - posZ * sinY) / scaleX,
-            M42 = -(posX * (sinX * sinY * cosZ - cosX * sinZ) + posY * (sinX * sinY * sinZ + cosX * cosZ) - posZ * sinX * cosY) / scaleY,
-            M43 = -(posX * (cosX * sinY * cosZ + sinX * sinZ) + posY * (cosX * sinY * sinZ - sinX * cosZ) - posZ * cosX * cosY) / scaleZ,
+            M41 = 0,
+            M42 = 0,
+            M43 = 0,
             M44 = 1
         };
-    }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateTransform(Vector3 pos, Angle3d angle, Vector3 scale)
-    {
-        return CreateTransform(pos.X, pos.Y, pos.Z, angle.Pitch, angle.Yaw, angle.Roll, scale.X, scale.Y, scale.Z);
+        // Calculate the inverse translation
+        float invPosX = -posX;
+        float invPosY = -posY;
+        float invPosZ = -posZ;
+
+        // Apply inverse translation to the rotation matrix
+        rotationInv.M41 = invPosX * rotationInv.M11 + invPosY * rotationInv.M21 + invPosZ * rotationInv.M31;
+        rotationInv.M42 = invPosX * rotationInv.M12 + invPosY * rotationInv.M22 + invPosZ * rotationInv.M32;
+        rotationInv.M43 = invPosX * rotationInv.M13 + invPosY * rotationInv.M23 + invPosZ * rotationInv.M33;
+
+        return rotationInv;
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateInverseTransform(Vector3 pos, Angle3d angle, Vector3 scale)
+    public static Matrix4x4 CreateTransform(Vector3 pos, Quaternion quaternion, Vector3 scale)
     {
-        return CreateInverseTransform(pos.X, pos.Y, pos.Z, angle.Pitch, angle.Yaw, angle.Roll, scale.X, scale.Y, scale.Z);
+        quaternion = Quaternion.Normalize(quaternion);
+        return CreateTransform(pos.X, pos.Y, pos.Z, quaternion.X, quaternion.Y, quaternion.Z, quaternion.W, scale.X, scale.Y, scale.Z);
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Matrix4x4 CreateInverseTransform(Vector3 pos, Quaternion quaternion, Vector3 scale)
+    {
+        quaternion = Quaternion.Normalize(quaternion);
+        return CreateInverseTransform(pos.X, pos.Y, pos.Z, quaternion.X, quaternion.Y, quaternion.Z, quaternion.W, scale.X, scale.Y, scale.Z);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateTranslation(Vector3 pos)
+    public static Matrix4x4 CreateTranslation(Vector3 pos)
     {
         return CreateTranslation(pos.X, pos.Y, pos.Z);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateTranslation(float x, float y, float z)
+    public static Matrix4x4 CreateTranslation(float x, float y, float z)
     {
-        return new Matrix4
+        return new Matrix4x4
         {
             M11 = 1,
             M12 = 0,
@@ -142,12 +171,12 @@ public static class Matrix4Helpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateRotationX(double angle)
+    public static Matrix4x4 CreateRotationX(double angle)
     {
         var cos = (float)Math.Cos(angle);
         var sin = (float)Math.Sin(angle);
 
-        return new Matrix4
+        return new Matrix4x4
         {
             M11 = 1,
             M12 = 0,
@@ -169,12 +198,12 @@ public static class Matrix4Helpers
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateRotationY(double angle)
+    public static Matrix4x4 CreateRotationY(double angle)
     {
         var cos = (float)Math.Cos(angle);
         var sin = (float)Math.Sin(angle);
 
-        return new Matrix4
+        return new Matrix4x4
         {
             M11 = cos,
             M12 = 0,
@@ -196,12 +225,12 @@ public static class Matrix4Helpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateRotationZ(double angle)
+    public static Matrix4x4 CreateRotationZ(double angle)
     {
         var cos = (float)Math.Cos(angle);
         var sin = (float)Math.Sin(angle);
 
-        return new Matrix4
+        return new Matrix4x4
         {
             M11 = cos,
             M12 = sin,
@@ -223,9 +252,9 @@ public static class Matrix4Helpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateScale(float x, float y, float z)
+    public static Matrix4x4 CreateScale(float x, float y, float z)
     {
-        return new Matrix4
+        return new Matrix4x4
         {
             M11 = x,
             M12 = 0,
@@ -245,41 +274,56 @@ public static class Matrix4Helpers
             M44 = 1
         };
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Matrix4x4 CreateRotation(Quaternion quaternion)
+    {
+        quaternion = Quaternion.Normalize(quaternion);
+        
+        float x = quaternion.X;
+        float y = quaternion.Y;
+        float z = quaternion.Z;
+        float w = quaternion.W;
+        
+        float xx = x * x;
+        float yy = y * y;
+        float zz = z * z;
+        float xy = x * y;
+        float xz = x * z;
+        float yz = y * z;
+        float wx = w * x;
+        float wy = w * y;
+        float wz = w * z;
+
+        return new Matrix4x4(
+            1.0f - 2.0f * (yy + zz), 2.0f * (xy - wz), 2.0f * (xz + wy), 0.0f,
+            2.0f * (xy + wz), 1.0f - 2.0f * (xx + zz), 2.0f * (yz - wx), 0.0f,
+            2.0f * (xz - wy), 2.0f * (yz + wx), 1.0f - 2.0f * (xx + yy), 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4 CreateRotation(Angle3d transformLocalRotation)
+    public static Matrix4x4 CreateRotation(EulerAngles rotation)
     {
-        var angleX = transformLocalRotation.Pitch;
-        var angleY = transformLocalRotation.Yaw;
-        var angleZ = transformLocalRotation.Roll;
+        return CreateRotation(rotation.ToQuaternion());
         
-        // Вычисляем синусы и косинусы для каждого угла
-        var sinX = (float)Math.Sin(angleX);
-        var cosX = (float)Math.Cos(angleX);
-        var sinY = (float)Math.Sin(angleY);
-        var cosY = (float)Math.Cos(angleY);
-        var sinZ = (float)Math.Sin(angleZ);
-        var cosZ = (float)Math.Cos(angleZ);
-
-        // Применяем комбинацию вращений по X, Y и Z
-        return new Matrix4
-        {
-            M11 = cosY * cosZ,
-            M12 = (cosY * sinZ),
-            M13 = -sinY,
-            M14 = 0,
-            M21 = (sinX * sinY * cosZ - cosX * sinZ),
-            M22 = (sinX * sinY * sinZ + cosX * cosZ),
-            M23 = sinX * cosY,
-            M24 = 0,
-            M31 = (cosX * sinY * cosZ + sinX * sinZ),
-            M32 = (cosX * sinY * sinZ - sinX * cosZ),
-            M33 = cosX * cosY,
-            M34 = 0,
-            M41 = 0,
-            M42 = 0,
-            M43 = 0,
-            M44 = 1
-        };
+        var pitchRad = rotation.Pitch.Theta;
+        var yawRad = rotation.Yaw.Theta;
+        var rollRad = rotation.Roll.Theta;
+        
+        float sinPitch = (float)Math.Sin(pitchRad);
+        float cosPitch = (float)Math.Cos(pitchRad);
+        float sinYaw = (float)Math.Sin(yawRad);
+        float cosYaw = (float)Math.Cos(yawRad);
+        float sinRoll = (float)Math.Sin(rollRad);
+        float cosRoll = (float)Math.Cos(rollRad);
+        
+        return new Matrix4x4(
+            cosYaw * cosRoll, cosYaw * sinRoll * sinPitch - sinYaw * cosPitch, cosYaw * sinRoll * cosPitch + sinYaw * sinPitch, 0.0f,
+            sinYaw * cosRoll, sinYaw * sinRoll * sinPitch + cosYaw * cosPitch, sinYaw * sinRoll * cosPitch - cosYaw * sinPitch, 0.0f,
+            -sinRoll, cosRoll * sinPitch, cosRoll * cosPitch, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
     }
 }
