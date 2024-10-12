@@ -52,27 +52,25 @@ public sealed partial class Transform3dSystem
         var newPos = Vector3.Transform(pos, parInvMatrix);
         var newRot = rot - parRot;
 
-        parentXform._children.Add(uid);
-        xform._parent = parent;
-        xform._isRooted = false;
+        xform.ParentUid = parent;
         
         SetWorldPositionRotationInternal(uid, newPos, newRot);
     }
     
     public void DetachEntity(EntityUid uid, Transform3dComponent xform)
     {
-        _xformQuery.TryGetComponent(xform.ParentUid, out var oldXform);
-        DetachEntity(uid, xform, MetaData(uid), oldXform);
-    }
+        var parentUid = xform.ParentUid;
+        var parentXform = _xformQuery.GetComponent(parentUid);
+        
+        if(parentXform.IsRooted) 
+            return;
 
-   
-    public void DetachEntity(
-            EntityUid uid,
-            Transform3dComponent xform,
-            MetaDataComponent meta,
-            Transform3dComponent? oldXform,
-            bool terminating = false)
+        while (!parentXform.IsRooted)
         {
-            
+            parentUid = parentXform.ParentUid;
+            parentXform = _xformQuery.GetComponent(parentUid);
         }
+
+        SetParent(uid, xform, parentUid, parentXform);
+    }
 }

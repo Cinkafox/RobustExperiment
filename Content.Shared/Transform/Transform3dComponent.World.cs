@@ -86,7 +86,7 @@ public partial class Transform3dComponent
     {
         get
         {
-            if (!_isRooted)
+            if (!IsRooted)
             {
                 // parent coords to world coords
                 return Vector3.Transform(_localPosition, _entMan.GetComponent<Transform3dComponent>(ParentUid).WorldMatrix);
@@ -96,7 +96,7 @@ public partial class Transform3dComponent
         }
         set
         {
-            if (_isRooted)
+            if (IsRooted)
             {
                 DebugTools.Assert("Parent is invalid while attempting to set WorldPosition - did you try to move root node?");
                 return;

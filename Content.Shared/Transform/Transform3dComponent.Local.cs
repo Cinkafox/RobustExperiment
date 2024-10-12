@@ -33,7 +33,7 @@ public partial class Transform3dComponent
         get => _localScale;
         set
         {
-            if(_isRooted)
+            if(IsRooted)
                 return;
             
             if(_localScale.Equals(value))
@@ -51,7 +51,7 @@ public partial class Transform3dComponent
         get => _localRotation;
         set
         {
-            if(_isRooted)
+            if(IsRooted)
                 return;
 
             if (_localRotation.Equals(value))
