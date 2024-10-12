@@ -19,6 +19,9 @@
                            <Label Text="D - поворот сюды" StyleClasses="menuPanel"/>
                            <Label Text="Лагает? Похуй!" StyleClasses="menuPanel"/>
                            <Label Text="Артефакты? Поебать!" StyleClasses="menuPanel"/>
+                           <BoxContainer Orientation="Vertical" Name="ConfContainer">
+                               
+                           </BoxContainer>
                        </BoxContainer>
                    </PanelContainer>
                </BoxContainer>

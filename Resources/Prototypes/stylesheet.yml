@@ -100,3 +100,13 @@
     .menuPanel:
       panel: novelPanel
       font-color: "#222222"
+    .checkBox:
+      texture:
+        valueType: Robust.Client.Graphics.Texture
+        value: "/Textures/Interface/Icons/plus.png"
+      texture-size-target: 16,16
+    .checkBox.checkBoxChecked:
+      texture:
+        valueType: Robust.Client.Graphics.Texture
+        value: "/Textures/Interface/Icons/gal.png"
+      texture-size-target: 16,16

@@ -1,4 +1,5 @@
 ﻿using Content.Client.Camera;
+using Content.Client.ConfigurationUI;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
 using Content.Shared.Transform;
@@ -20,6 +21,7 @@ public sealed class GameViewport : Control
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
     [Dependency] private readonly IClyde _clyde = default!;
     [Dependency] private readonly IParallelManager _parallel = default!;
+    [Dependency] private readonly ConfigurationUIManager _configuration = default!;
 
     private Label Info;
     public GameViewport()
@@ -40,6 +42,9 @@ public sealed class GameViewport : Control
     
     protected override void Draw(DrawingHandleScreen handle)
     {
+        if(_configuration.GetValueOrDefault<bool>("pause_render", false))
+            return;
+        
         var cameraProp = _cameraManager.CameraProperties;
         if(!cameraProp.HasValue)
         {
@@ -77,6 +82,9 @@ public sealed class GameViewport : Control
         var gr3 = _profManager.Group("Draw3d.Flush");
         drawHandle.Flush();
         gr3.Dispose();
+        
+        if(!_configuration.GetValueOrDefault<bool>("transform_view_enabled", false))
+            return;
         
         var q = _entityManager.EntityQueryEnumerator<Transform3dComponent>();
         while (q.MoveNext(out var t))
