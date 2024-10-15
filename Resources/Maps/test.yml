@@ -1,0 +1,30 @@
+﻿meta:
+  format: 6
+  postmapinit: false
+tilemap:
+entities:
+  - proto: ""
+    entities:
+      - uid: 1
+        components:
+          - type: MetaData
+          - type: Transform
+            parent: invalid
+          - type: Transform3d
+          - type: MapGrid
+          - type: Broadphase
+  - proto: "camera"
+    entities:
+      - uid: 2
+        components:
+          - type: Transform3d
+            pos: 0,2,5
+            rot: 0,180,0
+            parent: 2
+  - proto: "alexandra"
+    entities:
+      - uid: 3
+        components:
+          - type: Transform3d
+            parent: 2
+...

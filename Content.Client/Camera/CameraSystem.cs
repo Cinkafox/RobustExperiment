@@ -20,10 +20,10 @@ public sealed class CameraSystem : EntitySystem
         SubscribeLocalEvent<CameraComponent, LocalPlayerDetachedEvent>(OnDeattached);
         
         CommandBinds.Builder
-            .Bind(EngineKeyFunctions.MoveUp, new GoInputHandler(this,new Vector3(0, 0, -1)))
-            .Bind(EngineKeyFunctions.MoveDown, new GoInputHandler(this,new Vector3(0, 0, 1)))
-            .Bind(EngineKeyFunctions.MoveLeft, new AngleInputHandler(this,new EulerAngles(0, Angle.FromDegrees(2),0)))
-            .Bind(EngineKeyFunctions.MoveRight, new AngleInputHandler(this,new EulerAngles(0, Angle.FromDegrees(-2),0)))
+            .Bind(EngineKeyFunctions.MoveUp, new GoInputHandler(this,new Vector3(0, 0, -4)))
+            .Bind(EngineKeyFunctions.MoveDown, new GoInputHandler(this,new Vector3(0, 0, 4)))
+            .Bind(EngineKeyFunctions.MoveLeft, new AngleInputHandler(this,new EulerAngles(0, Angle.FromDegrees(100),0)))
+            .Bind(EngineKeyFunctions.MoveRight, new AngleInputHandler(this,new EulerAngles(0, Angle.FromDegrees(-100),0)))
             .Register<CameraSystem>();
     }
 
@@ -40,16 +40,16 @@ public sealed class CameraSystem : EntitySystem
         _cameraManager.Camera = (transform3dComponent, ent.Comp, ent);
     }
 
-    public override void Update(float frameTime)
+    public override void FrameUpdate(float frameTime)
     {
         if(!_cameraManager.Camera.HasValue) return;
         var transform = _cameraManager.Camera.Value.Item1;
 
-        transform.LocalAngle -= AngleShift;
+        transform.LocalAngle -= AngleShift * frameTime;
 
         var shift = Vector3.Transform(Shifter, Matrix4Helpers.CreateRotationY(transform.WorldAngle.Yaw));
 
-        transform.LocalPosition += shift * frameTime * 3;
+        transform.LocalPosition += shift * frameTime;
     }
 }
 

@@ -19,14 +19,14 @@ public sealed class FaceContent : BaseContent
             switch (splited.Length)
             {
                 case 1:
-                    Face.Vertices[i - 1] = new FaceVertex(Parse(splited[0]));
+                    Face.Vertices[i - 1] = new FaceVertex(Parse(splited[0]) - 1);
                     break;
                 case 2:
-                    Face.Vertices[i - 1] = new FaceVertex(Parse(splited[0]), Parse(splited[1]));
+                    Face.Vertices[i - 1] = new FaceVertex(Parse(splited[0]) - 1, Parse(splited[1]));
                     Face.HasTexturePos = true;
                     break;
                 case 3:
-                    Face.Vertices[i - 1] = new FaceVertex(Parse(splited[0]), Parse(splited[1]),Parse(splited[2]));
+                    Face.Vertices[i - 1] = new FaceVertex(Parse(splited[0]) - 1, Parse(splited[1]),Parse(splited[2]) - 1);
                     Face.HasNormal = true;
                     Face.HasTexturePos = true;
                     break;

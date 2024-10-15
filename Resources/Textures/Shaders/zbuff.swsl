@@ -1,0 +1,6 @@
+﻿uniform sampler2D ZBuff;
+uniform highp float CurrentZ;
+
+void fragment() {
+    COLOR = zTexture(FRAGCOORD.xy);
+}

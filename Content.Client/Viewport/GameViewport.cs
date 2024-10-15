@@ -25,19 +25,19 @@ public sealed class GameViewport : Control
     [Dependency] private readonly IParallelManager _parallel = default!;
     [Dependency] private readonly ConfigurationUIManager _configuration = default!;
 
-    private Label Info;
+    private readonly Label _info;
     public GameViewport()
     {
         IoCManager.InjectDependencies(this);
         RectClipContent = true;
-        Info = new Label();
+        _info = new Label();
         _userInterfaceManager.OnScreenChanged += UserInterfaceManagerOnOnScreenChanged;
         
     }
 
     private void UserInterfaceManagerOnOnScreenChanged((UIScreen? Old, UIScreen? New) obj)
     {
-        obj.New?.AddChild(Info);
+        obj.New?.AddChild(_info);
     }
 
     public readonly DrawingInstance DrawingInstance = new();
@@ -68,52 +68,85 @@ public sealed class GameViewport : Control
     
     protected override void Draw(DrawingHandleScreen handle)
     {
-        if(_configuration.GetValueOrDefault<bool>("pause_render", false))
+        using (_profManager.Group("3d"))
+        {
+            Draw3d(handle);
+        }
+    }
+
+    private void Draw3d(DrawingHandleScreen handle)
+    {
+        if(_configuration.GetValue<bool>("pause_render"))
             return;
-        
+    
         var cameraProp = _cameraManager.CameraProperties;
         if(!cameraProp.HasValue)
         {
             return;
-        };
+        }
         
-        DrawSkyBox(handle);
-        
-        var drawHandle = new DrawingHandle3d(handle, Width, Height, cameraProp.Value, DrawingInstance,_profManager,_parallel);
-        
-        var query = _entityManager.EntityQueryEnumerator<Transform3dComponent, ModelComponent>();
-        while (query.MoveNext(out var uid, out var transform3dComponent, out var modelComponent))
+        if(_configuration.GetValue<bool>("render_shitty_skybox"))
         {
-            if(_cameraManager.Camera!.Value.Item3 == uid) 
-                continue;
-            
-            if (!modelComponent.MeshRenderInitialized)
+            using (_profManager.Group("DrawSkyBox"))
             {
-                modelComponent.MeshRender = new MeshRender(modelComponent.CurrentMesh,
-                    DrawingInstance.AllocTexture(modelComponent.CurrentMesh.Materials));
-                modelComponent.MeshRenderInitialized = true;
+                DrawSkyBox(handle);
             }
+        }
+        
+        var drawHandle = new DrawingHandle3d(handle, Width, Height, cameraProp.Value, DrawingInstance,_parallel);
 
-            modelComponent.MeshRender.Transform = transform3dComponent.WorldMatrix;
+        if (_configuration.GetValue<bool>("render_parallel_triangle"))
+            drawHandle.DoParallelTriangle = true;
+        
+        if (_configuration.GetValue<bool>("render_debug"))
+            drawHandle.DrawDebug = true;
+
+        using (_profManager.Group("DrawAllMeshes"))
+        {
+            var query = _entityManager.EntityQueryEnumerator<Transform3dComponent, ModelComponent>();
+            while (query.MoveNext(out var uid, out var transform3dComponent, out var modelComponent))
+            {
+                if(_cameraManager.Camera!.Value.Item3 == uid) 
+                    continue;
             
-            var gr5 = _profManager.Group("Draw3d.DrawMesh");
-            modelComponent.MeshRender.Draw(drawHandle);
-            gr5.Dispose();
+                if (!modelComponent.MeshRenderInitialized)
+                {
+                    modelComponent.MeshRender = new MeshRender(modelComponent.CurrentMesh,
+                        DrawingInstance.AllocTexture(modelComponent.CurrentMesh.Materials));
+                    modelComponent.MeshRenderInitialized = true;
+                }
+
+                modelComponent.MeshRender.Transform = transform3dComponent.WorldMatrix;
+
+                using (_profManager.Group("DrawMesh_"+uid))
+                {
+                    if(_configuration.GetValue<bool>("render_draw_parallel")) 
+                        modelComponent.MeshRender.DrawParallel(drawHandle);
+                    else
+                        modelComponent.MeshRender.Draw(drawHandle);
+                }
+            }
         }
 
-        Info.Text = $"                  Triangles: {DrawingInstance.TriangleBuffer.Count}, Textures pool: {DrawingInstance.TextureBuffer.Length}";
-        
-        drawHandle.Flush();
-        
-        if(!_configuration.GetValueOrDefault<bool>("transform_view_enabled", false))
-            return;
-        
-        var q = _entityManager.EntityQueryEnumerator<Transform3dComponent>();
-        while (q.MoveNext(out var t))
+        _info.Text = $"                  Triangles: {DrawingInstance.TriangleBuffer.Count}, Textures pool: {DrawingInstance.TextureBuffer.Length}";
+
+        using (_profManager.Group("Flush"))
         {
-            drawHandle.DrawCircle(t.WorldPosition, 20f, Color.Aqua);
-            var d = t.WorldAngle.ToVec() * 0.2f + t.WorldPosition;
-            drawHandle.DrawCircle(d, 15f, Color.Blue);
+            drawHandle.Flush();
+        }
+        
+        if(!_configuration.GetValue<bool>("transform_view_enabled"))
+            return;
+
+        using (_profManager.Group("DrawTransform"))
+        {
+            var q = _entityManager.EntityQueryEnumerator<Transform3dComponent>();
+            while (q.MoveNext(out var t))
+            {
+                drawHandle.DrawCircle(t.WorldPosition, 20f, Color.Aqua);
+                var d = t.WorldAngle.ToVec() * 0.2f + t.WorldPosition;
+                drawHandle.DrawCircle(d, 15f, Color.Blue);
+            }
         }
     }
     

@@ -8,6 +8,7 @@ using Robust.Client.State;
 using Robust.Client.UserInterface;
 using Robust.Shared.ContentPack;
 using Content.StyleSheetify.Client.StyleSheet;
+using Robust.Shared.Map;
 
 namespace Content.Client.Entry;
 
@@ -18,6 +19,8 @@ public sealed class EntryPoint : GameClient
     [Dependency] private readonly IStyleSheetManager _styleSheetManager = default!;
     [Dependency] private readonly IEntityManager _entityManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
+
+    public EntityUid MapUid;
     
     public override void PreInit()
     {
@@ -33,23 +36,30 @@ public sealed class EntryPoint : GameClient
         
         IoCManager.Resolve<IBaseClient>().StartSinglePlayer();
         
-        var mapId = _entityManager.System<MapSystem>().CreateMap();
-        var transform = _entityManager.System<Transform3dSystem>();
+        MapUid = _entityManager.System<MapSystem>().CreateMap(false);
 
-        var camera = _entityManager.Spawn("camera");
-        transform.SetParent(camera, mapId);
-        transform.SetWorldPosition(camera, new Vector3(0, 2, 5));
-        transform.SetWorldRotation(camera, new EulerAngles(0,Angle.FromDegrees(180),0));
+        var camera = Spawn("camera", new Vector3(0,2,5), EulerAngles.CreateFromDegrees(0,180.0,0));
 
         _playerManager.SetAttachedEntity(_playerManager.LocalSession, camera);
         
-        var ent = _entityManager.Spawn("alexandra");
-        transform.SetParent(ent, mapId);
-        transform.SetWorldPosition(ent, new Vector3(0,0,0));
-        transform.SetWorldRotation(ent, new EulerAngles(0,Angle.FromDegrees(0),0));
+        var ent = Spawn("alexandra", Vector3.Zero, EulerAngles.Zero);
+
+        Spawn("car", new Vector3(5,0,0), EulerAngles.Zero);
         
         _stateManager.RequestStateChange<ContentGameState>();
         
         _entityManager.System<AlexandraAnimationSystem>().Play(ent);
+    }
+
+    private EntityUid Spawn(string protoId, Vector3 position, EulerAngles rotation)
+    {
+        var transform = _entityManager.System<Transform3dSystem>();
+        
+        var ent = _entityManager.Spawn(protoId);
+        transform.SetParent(ent, MapUid);
+        transform.SetWorldPosition(ent, position);
+        transform.SetWorldRotation(ent, rotation);
+
+        return ent;
     }
 }

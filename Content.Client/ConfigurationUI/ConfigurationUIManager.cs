@@ -49,18 +49,17 @@ public sealed class ConfigurationUIManager : IInitializeBehavior
         return _containers[item.Name];
     }
 
-    public T GetValueOrDefault<T>(string name, T def)
+    public T GetValue<T>(string name)
     {
-        if (!_containers.TryGetValue(name, out var value) ||
-            value.CurrentConfigurationItem.Value is not T tva) 
-            return def;
+        if (!_containers.TryGetValue(name, out var value)) 
+            throw new Exception("NO VALUE");
 
-        return tva;
+        return (T)value.CurrentConfigurationItem.Value;
     }
 
-    public Control GetControl(Type type, Action<ConfigValueChangedEvent>? onChanged)
+    public Control GetControl(ConfigurationItem configurationItem, Action<ConfigValueChangedEvent>? onChanged)
     {
-        return _configurationValues[type].CreateControl(onChanged);
+        return _configurationValues[configurationItem.Type].CreateControl(configurationItem.Value, onChanged);
     }
 
     private void UpdateValues()
@@ -77,7 +76,7 @@ public sealed class ConfigurationUIManager : IInitializeBehavior
 public interface IConfigurationValue
 {
     public Type ValueType { get; }
-    public Control CreateControl(Action<ConfigValueChangedEvent>? onChanged);
+    public Control CreateControl(object value, Action<ConfigValueChangedEvent>? onChanged);
 }
 
 
@@ -85,9 +84,10 @@ public sealed class BoolConfigValue : IConfigurationValue
 {
     public Type ValueType => typeof(bool);
 
-    public Control CreateControl(Action<ConfigValueChangedEvent>? onChanged)
+    public Control CreateControl(object value, Action<ConfigValueChangedEvent>? onChanged)
     {
         var c = new CheckBox();
+        c.Pressed = (bool)value;
         c.OnToggled += COnOnToggled;
 
         return c;

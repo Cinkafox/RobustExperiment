@@ -6,7 +6,6 @@ namespace Content.Client.UserInterface.Controls;
 public sealed class ConfigurationContainer : BoxContainer
 {
     [Dependency] private readonly ConfigurationUIManager _configuration = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
     
     private ConfigurationItem? _configurationItem;
 
@@ -46,7 +45,7 @@ public sealed class ConfigurationContainer : BoxContainer
         };
         Children.Add(label);
 
-        var valueContainer = _configuration.GetControl(CurrentConfigurationItem.Type, OnChanged);
+        var valueContainer = _configuration.GetControl(CurrentConfigurationItem, OnChanged);
         valueContainer.HorizontalExpand = true;
         valueContainer.HorizontalAlignment = HAlignment.Right;
         Children.Add(valueContainer);
@@ -58,23 +57,25 @@ public sealed class ConfigurationContainer : BoxContainer
     }
 }
 
+[Virtual]
 public class ConfigurationItem
 {
     public string Name { get; }
     public Type Type { get; }
 
-    public object? Value { get; set; } = null;
+    public object Value { get; set; }
     
-    public ConfigurationItem(string name, Type type)
+    public ConfigurationItem(string name, Type type, object def)
     {
         Name = name;
         Type = type;
+        Value = def;
     }
 }
 
 public sealed class ConfigurationItem<T> : ConfigurationItem
 {
-    public ConfigurationItem(string name) : base(name, typeof(T))
+    public ConfigurationItem(string name, T def) : base(name, typeof(T), def ?? throw new Exception(nameof(def)))
     {
     }
 }

@@ -14,6 +14,11 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
     public EulerAngles()
     {
     }
+
+    public static EulerAngles CreateFromDegrees(double pitch, double yaw, double roll)
+    {
+        return new EulerAngles(Angle.FromDegrees(pitch), Angle.FromDegrees(yaw), Angle.FromDegrees(roll));
+    }
     
     public EulerAngles(Angle pitch, Angle yaw, Angle roll)
     {
@@ -30,6 +35,11 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
     public static EulerAngles operator -(EulerAngles one, EulerAngles two)
     {
         return new EulerAngles(one.Pitch - two.Pitch, one.Yaw - two.Yaw, one.Roll - two.Roll);
+    }
+
+    public static EulerAngles operator *(EulerAngles one, float two)
+    {
+        return new EulerAngles(one.Pitch * two, one.Yaw * two, one.Roll * two);
     }
 
     public bool EqualsApprox(EulerAngles other)
