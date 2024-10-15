@@ -13,8 +13,13 @@
       path: "/Models/car/lowpoly car.obj"
       
 - type: entity
+  id: room
+  components:
+    - type: Model
+      path: "/Models/room/WALAD CHAMBRE.obj"
+      
+- type: entity
   id: world
   components:
     - type: Model
       path: "/Models/world/forest 2 by creepercoastal.obj"
-      
