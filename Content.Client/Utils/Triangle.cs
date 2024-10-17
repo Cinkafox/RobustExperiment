@@ -316,4 +316,9 @@ public static class VectorExtTriangle
 
         return Vector3.Zero; // Возвращаем нулевой вектор, если пересечения с треугольником нет
     }
+
+    public static Robust.Shared.Maths.Vector3 ToRobustVector(this Vector3 vector3)
+    {
+        return new Robust.Shared.Maths.Vector3(vector3.X, vector3.Y, vector3.Z);
+    }
 }

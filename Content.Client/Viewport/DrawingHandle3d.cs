@@ -22,6 +22,7 @@ public sealed class DrawingHandle3d : IDisposable
 
     public bool DoParallelTriangle = false;
     public bool DrawDebug = false;
+    public bool DrawLighting = true;
 
     public readonly CameraProperties CameraProperties;
 
@@ -130,17 +131,21 @@ public sealed class DrawingHandle3d : IDisposable
     
     private void FlushScreen(TexturedTriangle triangle)
     {
-        DrawingInstance.DrawVertex3dBuffer[0] = triangle.Triangle.p1;
-        DrawingInstance.DrawVertex3dBuffer[1] = triangle.Triangle.p2;
-        DrawingInstance.DrawVertex3dBuffer[2] = triangle.Triangle.p3;
+        DrawingInstance.DrawVertex3dBuffer[0] = new Robust.Shared.Maths.Vector3(triangle.Triangle.p1.X / Width , triangle.Triangle.p1.Y / Height, triangle.Triangle.p1.Z);
+        DrawingInstance.DrawVertex3dBuffer[1] = new Robust.Shared.Maths.Vector3(triangle.Triangle.p2.X / Width , triangle.Triangle.p2.Y / Height, triangle.Triangle.p2.Z);
+        DrawingInstance.DrawVertex3dBuffer[2] = new Robust.Shared.Maths.Vector3(triangle.Triangle.p3.X / Width , triangle.Triangle.p3.Y / Height, triangle.Triangle.p3.Z);
         
         DrawingInstance.DrawVertexUntexturedBuffer[0] = new Vector2(triangle.Triangle.p1.X, triangle.Triangle.p1.Y);
         DrawingInstance.DrawVertexUntexturedBuffer[1] = new Vector2(triangle.Triangle.p2.X, triangle.Triangle.p2.Y);
         DrawingInstance.DrawVertexUntexturedBuffer[2] = new Vector2(triangle.Triangle.p3.X, triangle.Triangle.p3.Y);
+
+        DrawingInstance.DrawVertexTexturePointBuffer[0] = triangle.TexturePoint1;
+        DrawingInstance.DrawVertexTexturePointBuffer[1] = triangle.TexturePoint2;
+        DrawingInstance.DrawVertexTexturePointBuffer[2] = triangle.TexturePoint3;
         
-        DrawingInstance.DrawVertexBuffer[0] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[0], triangle.TexturePoint1);
-        DrawingInstance.DrawVertexBuffer[1] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[1], triangle.TexturePoint2);;
-        DrawingInstance.DrawVertexBuffer[2] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[2], triangle.TexturePoint3);;
+        DrawingInstance.DrawVertexBuffer[0] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[0], DrawingInstance.DrawVertexTexturePointBuffer[0]);
+        DrawingInstance.DrawVertexBuffer[1] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[1], DrawingInstance.DrawVertexTexturePointBuffer[1]);
+        DrawingInstance.DrawVertexBuffer[2] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[2],  DrawingInstance.DrawVertexTexturePointBuffer[2]);
     }
 
     private void DrawPrimitiveTriangleWithClipping(TexturedTriangle triToRaster)
@@ -148,6 +153,9 @@ public sealed class DrawingHandle3d : IDisposable
         DrawingInstance.ListTriangles.Clear();
             
         DrawingInstance.ListTriangles.Add(triToRaster);
+        
+        var normal = triToRaster.Triangle.Normal();
+        normal = Vector3.Normalize(normal);
         int nNewTriangles = 1;
 
         for (int p = 0; p < 4; p++)
@@ -189,28 +197,31 @@ public sealed class DrawingHandle3d : IDisposable
         
         foreach (var triangle in DrawingInstance.ListTriangles)
         {
-            DrawPrimitiveTriangle(triangle);
+            DrawPrimitiveTriangle(triangle, normal);
         }
     }
 
-    public void DrawPrimitiveTriangle(TexturedTriangle triangle)
+    public void DrawPrimitiveTriangle(TexturedTriangle triangle, Vector3 normal)
     {
         var texture = DrawingInstance.TextureBuffer[triangle.TextureId];
-        
         FlushScreen(triangle);
-        HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, DrawingInstance.DrawVertexBuffer);
+        
+        if(DrawLighting)
+        {
+            //TODO: optimize shader thing for future z buff
+            var shaderInst = DrawingInstance.ShaderInstance.Duplicate();
+            shaderInst.SetParameter("normal", normal.ToRobustVector());
+            HandleBase.UseShader(shaderInst);
+            HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, DrawingInstance.DrawVertexBuffer);
+            HandleBase.UseShader(null);
+        }else
+            HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, DrawingInstance.DrawVertexBuffer);
+        
+        
         if(!DrawDebug) 
             return;
         
         HandleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop, DrawingInstance.DrawVertexUntexturedBuffer, Color.Blue);
-    }
-    
-    private void DrawPrimitiveTriangleShade(TexturedTriangle triangle)
-    {
-        var texture = DrawingInstance.TextureBuffer[triangle.TextureId];
-        FlushScreen(triangle);
-        
-        HandleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop, DrawingInstance.DrawVertexUntexturedBuffer, Color.White);
     }
     
 
@@ -241,7 +252,6 @@ public sealed class DrawingHandle3d : IDisposable
             -Vector3.Dot(xaxis,CameraProperties.Position),
                 -Vector3.Dot(yaxis,CameraProperties.Position),
                 -Vector3.Dot(zaxis,CameraProperties.Position), 1);
-
         
         ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
             MathF.PI / CameraProperties.FoV,
@@ -249,6 +259,8 @@ public sealed class DrawingHandle3d : IDisposable
             0.1f, 
             100.0f
         );
+
+        DrawingInstance.ShaderInstance.SetParameter("cameraPos", cameraProperties.Position.ToRobustVector());
     }
     
     private void CheckDisposed()

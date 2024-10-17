@@ -3,6 +3,7 @@ using Content.Client.DimensionEnv.ObjRes.MTL;
 using Content.Client.Utils;
 using Robust.Client.Graphics;
 using Robust.Client.Utility;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Threading;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -14,19 +15,22 @@ public sealed class DrawingInstance
 {
     public readonly SortedDictionary<float,TexturedTriangle> TriangleBuffer = new();
     public readonly List<TexturedTriangle> ListTriangles = new();
-    
+
     public readonly SimpleBuffer<Texture> TextureBuffer = new(64*3);
-    public readonly Vector3[] DrawVertex3dBuffer = new Vector3[3];
+    public readonly Robust.Shared.Maths.Vector3[] DrawVertex3dBuffer = new Robust.Shared.Maths.Vector3[3];
     public readonly Vector2[] DrawVertexUntexturedBuffer = new Vector2[3];
+    public readonly Vector2[] DrawVertexTexturePointBuffer = new Vector2[3];
     public readonly DrawVertexUV2D[] DrawVertexBuffer = new DrawVertexUV2D[3];
 
     public readonly ClippingInstance ClippingInstance = new();
-
     public readonly TriangleJob Job;
+
+    public readonly ShaderInstance ShaderInstance;
 
     public DrawingInstance()
     {
         Job = new TriangleJob(this);
+        ShaderInstance = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("ZDepthShader").InstanceUnique();
     }
 
     public void AppendTriangle(TexturedTriangle texturedTriangle)

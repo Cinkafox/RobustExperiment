@@ -100,6 +100,9 @@ public sealed class GameViewport : Control
         
         if (_configuration.GetValue<bool>("render_debug"))
             drawHandle.DrawDebug = true;
+        
+        if (!_configuration.GetValue<bool>("render_lighting"))
+            drawHandle.DrawLighting = false;
 
         using (_profManager.Group("DrawAllMeshes"))
         {

@@ -15,11 +15,13 @@ public sealed partial class ContentGame : UIScreen
     {
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
+        
         ConfContainer.AddChild(_configuration.GetOrCreateContainer(new ConfigurationItem<bool>("transform_view_enabled", false)));
         ConfContainer.AddChild(_configuration.GetOrCreateContainer(new ConfigurationItem<bool>("pause_render", false)));
         ConfContainer.AddChild(_configuration.GetOrCreateContainer(new ConfigurationItem<bool>("render_shitty_skybox", true)));
         ConfContainer.AddChild(_configuration.GetOrCreateContainer(new ConfigurationItem<bool>("render_draw_parallel", false)));
         ConfContainer.AddChild(_configuration.GetOrCreateContainer(new ConfigurationItem<bool>("render_parallel_triangle", false)));
         ConfContainer.AddChild(_configuration.GetOrCreateContainer(new ConfigurationItem<bool>("render_debug", false)));
+        ConfContainer.AddChild(_configuration.GetOrCreateContainer(new ConfigurationItem<bool>("render_lighting", true)));
     }
 }

@@ -1,6 +1,15 @@
-﻿uniform sampler2D ZBuff;
-uniform highp float CurrentZ;
+﻿uniform highp vec3 normal;
+uniform highp vec3 cameraPos;
 
 void fragment() {
-    COLOR = zTexture(FRAGCOORD.xy);
+    highp vec3 lightDir = vec3(-1,-1,0);
+    highp vec4 texCol = zTexture(UV);
+    highp vec3 norm = normalize(normal);
+    highp vec3 direction = normalize(lightDir);
+
+    // Compute the diffuse component using the dot product
+    highp float diff = max(dot(norm, direction), 0.0);
+    highp vec3 diffuse = diff * vec3(1,1,1) * vec3(20) + vec3(0.2);
+
+    COLOR = vec4(texCol.xyz * diffuse, texCol.w);
 }
