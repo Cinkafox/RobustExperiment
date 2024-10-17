@@ -1,15 +1,15 @@
-﻿using System.Numerics;
-using Content.Client.Camera;
+﻿using Content.Client.Camera;
 using Content.Client.ConfigurationUI;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
-using Content.Client.SkyBoxes;
+using Content.Client.Utils;
 using Content.Shared.Transform;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Profiling;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Threading;
 
 namespace Content.Client.Viewport;
@@ -24,15 +24,18 @@ public sealed class GameViewport : Control
     [Dependency] private readonly IClyde _clyde = default!;
     [Dependency] private readonly IParallelManager _parallel = default!;
     [Dependency] private readonly ConfigurationUIManager _configuration = default!;
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
 
     private readonly Label _info;
+    private readonly ShaderInstance SkyInstance;
+    
     public GameViewport()
     {
         IoCManager.InjectDependencies(this);
         RectClipContent = true;
         _info = new Label();
         _userInterfaceManager.OnScreenChanged += UserInterfaceManagerOnOnScreenChanged;
-        
+        SkyInstance = _prototypeManager.Index<ShaderPrototype>("SkyShader").InstanceUnique();
     }
 
     private void UserInterfaceManagerOnOnScreenChanged((UIScreen? Old, UIScreen? New) obj)
@@ -45,25 +48,16 @@ public sealed class GameViewport : Control
     private void DrawSkyBox(DrawingHandleScreen handle)
     {
         var cameraProp = _cameraManager.CameraProperties;
-        if(!cameraProp.HasValue || 
-           !_entityManager.TryGetComponent<SkyBoxComponent>(_cameraManager.Camera!.Value.uid, out var skyBoxComponent))
+        if(!cameraProp.HasValue)
         {
             return;
         };
 
-        var rot = (float)(cameraProp.Value.Angle.Yaw.Theta / float.Pi);
-
-        var scale = skyBoxComponent.Texture.Size;
-        var shift = new Vector2(rot, 0);
-        var lefttop = (new Vector2(0 / 4f, 1 / 3f)) * scale;
-        var rightbottom = (new Vector2(4 / 4f, 2 / 3f)) * scale;
+        SkyInstance.SetParameter("cameraDir", cameraProp.Value.Angle.ToVec().ToRobustVector());
         
-        handle.DrawTextureRectRegion(skyBoxComponent.Texture, new UIBox2(-shift * scale, (Rect.BottomRight*new Vector2(2,1) - shift* scale)), new UIBox2(lefttop , rightbottom));
-
-        if (rot < 0)
-        {
-            handle.DrawTextureRectRegion(skyBoxComponent.Texture, new UIBox2(-shift * scale - new Vector2(Rect.Right ,0), (Rect.BottomRight*new Vector2(2,1) - shift* scale - new Vector2(Rect.Right ,0))), new UIBox2(lefttop , rightbottom));
-        }
+        handle.UseShader(SkyInstance);
+        handle.DrawRect(Rect, Color.White);
+        handle.UseShader(null);
     }
     
     protected override void Draw(DrawingHandleScreen handle)

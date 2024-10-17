@@ -147,15 +147,31 @@ public sealed class DrawingHandle3d : IDisposable
         DrawingInstance.DrawVertexBuffer[1] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[1], DrawingInstance.DrawVertexTexturePointBuffer[1]);
         DrawingInstance.DrawVertexBuffer[2] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[2],  DrawingInstance.DrawVertexTexturePointBuffer[2]);
     }
+    
+    private Robust.Shared.Maths.Vector3 Normal(Robust.Shared.Maths.Vector3 p1, Robust.Shared.Maths.Vector3 p2, Robust.Shared.Maths.Vector3 p3)
+    {
+        var u = new Vector3(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
+        var v = new Vector3(p3.X - p1.X, p3.Y - p1.Y, p3.Z - p1.Z);
+
+        float nx = u.Y * v.Z - u.Z * v.Y;
+        float ny = u.Z * v.X - u.X * v.Z;
+        float nz = u.X * v.Y - u.Y * v.X;
+
+        return new Robust.Shared.Maths.Vector3(nx, ny, nz);
+    }
+    
+    private Robust.Shared.Maths.Vector3 CurNormal = Robust.Shared.Maths.Vector3.Zero;
 
     private void DrawPrimitiveTriangleWithClipping(TexturedTriangle triToRaster)
     {
         DrawingInstance.ListTriangles.Clear();
-            
-        DrawingInstance.ListTriangles.Add(triToRaster);
         
-        var normal = triToRaster.Triangle.Normal();
-        normal = Vector3.Normalize(normal);
+        DrawingInstance.ListTriangles.Add(triToRaster);
+        FlushScreen(triToRaster);
+        
+        CurNormal = Normal(DrawingInstance.DrawVertex3dBuffer[0],DrawingInstance.DrawVertex3dBuffer[1],DrawingInstance.DrawVertex3dBuffer[2]);
+        CurNormal.Normalize();
+        
         int nNewTriangles = 1;
 
         for (int p = 0; p < 4; p++)
@@ -197,20 +213,21 @@ public sealed class DrawingHandle3d : IDisposable
         
         foreach (var triangle in DrawingInstance.ListTriangles)
         {
-            DrawPrimitiveTriangle(triangle, normal);
+            DrawPrimitiveTriangle(triangle);
         }
     }
 
-    public void DrawPrimitiveTriangle(TexturedTriangle triangle, Vector3 normal)
+    public void DrawPrimitiveTriangle(TexturedTriangle triangle)
     {
         var texture = DrawingInstance.TextureBuffer[triangle.TextureId];
         FlushScreen(triangle);
-        
         if(DrawLighting)
         {
             //TODO: optimize shader thing for future z buff
             var shaderInst = DrawingInstance.ShaderInstance.Duplicate();
-            shaderInst.SetParameter("normal", normal.ToRobustVector());
+            shaderInst.SetParameter("normal", CurNormal);
+            shaderInst.SetParameter("p1", DrawingInstance.DrawVertex3dBuffer[0]);
+            
             HandleBase.UseShader(shaderInst);
             HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, DrawingInstance.DrawVertexBuffer);
             HandleBase.UseShader(null);

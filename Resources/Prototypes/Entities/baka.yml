@@ -3,8 +3,6 @@
   components:
     - type: Camera
       fov: 4
-    - type: SkyBox
-      skyboxPath: "/Textures/skybox.png"
 
 - type: entity
   id: car

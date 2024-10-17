@@ -1,0 +1,9 @@
+﻿- type: shader
+  id: ZDepthShader
+  kind: source
+  path: "/Textures/Shaders/zbuff.swsl"
+
+- type: shader
+  id: SkyShader
+  kind: source
+  path: "/Textures/Shaders/sky.swsl"

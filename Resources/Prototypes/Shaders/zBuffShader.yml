@@ -1,4 +1,0 @@
-﻿- type: shader
-  id: ZDepthShader
-  kind: source
-  path: "/Textures/Shaders/zbuff.swsl"

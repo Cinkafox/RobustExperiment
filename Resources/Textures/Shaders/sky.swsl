@@ -1,0 +1,28 @@
+﻿uniform highp vec3 cameraDir;
+
+highp vec3 GetSky(highp vec3 rd) {
+    highp vec3 sunColour = vec3(1.0, 0.75, 0.6);
+    highp vec3 sunLight = normalize(vec3(-1.8,0.4,-1.8));
+    
+	highp float sunAmount = max( dot( rd, sunLight), 0.0 );
+	highp float v = pow(1.0-max(rd.y,0.0),6.0);
+	highp vec3 sky = mix(vec3(0.1, 0.2, 0.3), vec3(0.32, 0.32, 0.32), v);
+	sky = sky + sunColour * sunAmount * sunAmount * 0.25;
+	sky = sky + sunColour * min(pow(sunAmount, 800.0)*1.5, 0.3);
+	return clamp(sky, 0.0, 1.0);
+}
+
+void fragment() {
+    highp vec2 aspect = vec2(1.0/SCREEN_PIXEL_SIZE.x, 1.0/SCREEN_PIXEL_SIZE.y);
+    
+    highp vec2 xy = FRAGCOORD.xy * SCREEN_PIXEL_SIZE.xy;
+    highp vec2 uv = (-1.0 + 2.0 * xy) * vec2(aspect.x/aspect.y,1.0);
+    
+    highp vec3 cw = normalize(vec3(cameraDir.y,0,cameraDir.x));
+    highp vec3 cp = vec3(0.0,1.0,0.0);
+    highp vec3 cu = cross(cw,cp);
+    highp vec3 cv = cross(cu,cw);
+    highp vec3 dir = normalize(uv.x*cu + uv.y*cv + 1.3*cw);
+
+    COLOR = vec4(GetSky(dir),1.0);
+}
