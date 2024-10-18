@@ -88,9 +88,6 @@ public sealed class GameViewport : Control
         }
         
         var drawHandle = new DrawingHandle3d(handle, Width, Height, cameraProp.Value, DrawingInstance,_parallel);
-
-        if (_configuration.GetValue<bool>("render_parallel_triangle"))
-            drawHandle.DoParallelTriangle = true;
         
         if (_configuration.GetValue<bool>("render_debug"))
             drawHandle.DrawDebug = true;

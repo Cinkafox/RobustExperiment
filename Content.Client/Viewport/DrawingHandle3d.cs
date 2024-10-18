@@ -19,8 +19,7 @@ public sealed class DrawingHandle3d : IDisposable
 
     public readonly float Width;
     public readonly float Height;
-
-    public bool DoParallelTriangle = false;
+    
     public bool DrawDebug = false;
     public bool DrawLighting = true;
 
@@ -65,6 +64,11 @@ public sealed class DrawingHandle3d : IDisposable
 
     public void DrawPolygon(TexturedTriangle triangle)
     {
+        DrawPolygon(triangle, ClippingInstance);
+    }
+
+    public void DrawPolygon(TexturedTriangle triangle, ClippingInstance clippingInstance)
+    {
         CheckDisposed();
         
         var normal = triangle.Triangle.Normal();
@@ -76,22 +80,16 @@ public sealed class DrawingHandle3d : IDisposable
         
 
         Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.1f), new Vector3(0.0f, 0.0f, 1.0f), triangle,
-            ClippingInstance);
+            clippingInstance);
 
-        if (DoParallelTriangle)
+        for (int i = 0; i < clippingInstance.Clipping.Length; i++)
         {
-            Parallel.ProcessNow(DrawingInstance.Job, ClippingInstance.Clipping.Length);
-            return;
-        }
-
-        for (int i = 0; i < ClippingInstance.Clipping.Length; i++)
-        {
-            triangle.Triangle.p1 = Vector3.Transform(ClippingInstance.Clipping[i].Triangle.p1, ProjectionMatrix);
-            triangle.Triangle.p2 = Vector3.Transform(ClippingInstance.Clipping[i].Triangle.p2, ProjectionMatrix);
-            triangle.Triangle.p3 = Vector3.Transform(ClippingInstance.Clipping[i].Triangle.p3, ProjectionMatrix);
-            triangle.TexturePoint1 = ClippingInstance.Clipping[i].TexturePoint1;
-            triangle.TexturePoint2 = ClippingInstance.Clipping[i].TexturePoint2;
-            triangle.TexturePoint3 = ClippingInstance.Clipping[i].TexturePoint3;
+            triangle.Triangle.p1 = Vector3.Transform(clippingInstance.Clipping[i].Triangle.p1, ProjectionMatrix);
+            triangle.Triangle.p2 = Vector3.Transform(clippingInstance.Clipping[i].Triangle.p2, ProjectionMatrix);
+            triangle.Triangle.p3 = Vector3.Transform(clippingInstance.Clipping[i].Triangle.p3, ProjectionMatrix);
+            triangle.TexturePoint1 = clippingInstance.Clipping[i].TexturePoint1;
+            triangle.TexturePoint2 = clippingInstance.Clipping[i].TexturePoint2;
+            triangle.TexturePoint3 = clippingInstance.Clipping[i].TexturePoint3;
         
             triangle.TexturePoint1.X /= triangle.Triangle.p1w;
             triangle.TexturePoint2.X /= triangle.Triangle.p2w;
@@ -126,6 +124,7 @@ public sealed class DrawingHandle3d : IDisposable
         }
         
         DrawingInstance.Flush();
+        DrawingInstance.ShadersPool.Clear();
         Dispose();
     }
     
@@ -221,18 +220,20 @@ public sealed class DrawingHandle3d : IDisposable
     {
         var texture = DrawingInstance.TextureBuffer[triangle.TextureId];
         FlushScreen(triangle);
+        
         if(DrawLighting)
         {
-            //TODO: optimize shader thing for future z buff
-            var shaderInst = DrawingInstance.ShaderInstance.Duplicate();
+            var shaderInst = DrawingInstance.ShadersPool.Pop();
             shaderInst.SetParameter("normal", CurNormal);
             shaderInst.SetParameter("p1", DrawingInstance.DrawVertex3dBuffer[0]);
             
             HandleBase.UseShader(shaderInst);
-            HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, DrawingInstance.DrawVertexBuffer);
+            HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList, texture, DrawingInstance.DrawVertexBuffer);
             HandleBase.UseShader(null);
         }else
-            HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList,texture, DrawingInstance.DrawVertexBuffer);
+        {
+            HandleBase.DrawPrimitives(DrawPrimitiveTopology.TriangleList, texture, DrawingInstance.DrawVertexBuffer);
+        }
         
         
         if(!DrawDebug) 
@@ -251,8 +252,6 @@ public sealed class DrawingHandle3d : IDisposable
         HandleBase = handleBase;
         Width = width;
         Height = height;
-
-        DrawingInstance.Job.DrawingHandle3d = this;
             
         float cosPitch = float.Cos((float)CameraProperties.Angle.Pitch);
         float sinPitch = float.Sin((float)CameraProperties.Angle.Pitch);

@@ -30,11 +30,9 @@ public sealed class SimpleBuffer<T> : IEnumerable<T>
 
     public T Pop()
     {
-        var obj = Buffer[Shift + Length];
+        var obj = Buffer[Shift];
 
         Shift++;
-        Length--;
-
         return obj;
     }
 

@@ -82,8 +82,7 @@ public struct Triangle : IEnumerable<Vector3>
         clippingInstance.InsideTex.Clear();
         clippingInstance.OutsideTex.Clear();
         clippingInstance.Clipping.Clear();
-
-        // Проверяем каждую вершину inTri на нахождение внутри otherTri
+        
         if (IsPointInsideTriangle(inTri.Triangle.p1, otherTri.Triangle))
         {
             clippingInstance.InsidePoints.Add(inTri.Triangle.p1);

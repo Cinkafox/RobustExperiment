@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Content.Client.DimensionEnv.ObjRes.MTL;
 using Content.Client.Utils;
+using Content.Shared.Thread;
 using Robust.Client.Graphics;
 using Robust.Client.Utility;
 using Robust.Shared.Prototypes;
@@ -22,15 +23,27 @@ public sealed class DrawingInstance
     public readonly Vector2[] DrawVertexTexturePointBuffer = new Vector2[3];
     public readonly DrawVertexUV2D[] DrawVertexBuffer = new DrawVertexUV2D[3];
 
+    public readonly SandboxCreator<ClippingInstance> ClipCreator = new();
+    public readonly ShaderCreator ShaderCreator;
+
     public readonly ClippingInstance ClippingInstance = new();
-    public readonly TriangleJob Job;
+    public readonly ThreadPool<ClippingInstance> AsyncClippingInstances;
+    public readonly SimpleBuffer<ShaderInstance> ShadersPool;
 
     public readonly ShaderInstance ShaderInstance;
 
     public DrawingInstance()
     {
-        Job = new TriangleJob(this);
+        AsyncClippingInstances = new(128, ClipCreator);
+        
         ShaderInstance = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("ZDepthShader").InstanceUnique();
+        ShaderCreator = new ShaderCreator(ShaderInstance);
+
+        ShadersPool = new SimpleBuffer<ShaderInstance>(5120);
+        for (int i = 0; i < ShadersPool.Buffer.Length; i++)
+        {
+            ShadersPool.Buffer[i] = ShaderCreator.Create();
+        }
     }
 
     public void AppendTriangle(TexturedTriangle texturedTriangle)
@@ -70,69 +83,5 @@ public sealed class DrawingInstance
     public void Flush()
     {
         TriangleBuffer.Clear();
-    }
-}
-
-public sealed class ClippingInstance
-{
-    public readonly SimpleBuffer<Vector3> InsidePoints = new(3);
-    public readonly SimpleBuffer<Vector3> OutsidePoints = new(3);
-    public readonly SimpleBuffer<Vector2> InsideTex = new(3);
-    public readonly SimpleBuffer<Vector2> OutsideTex = new(3);
-    public readonly SimpleBuffer<TexturedTriangle> Clipping = new(2);
-
-    public void Clear()
-    {
-        InsidePoints.Clear();
-        OutsidePoints.Clear();
-        InsideTex.Clear();
-        OutsideTex.Clear();
-        Clipping.Clear();
-    }
-}
-
-public sealed class TriangleJob : IParallelRobustJob
-{
-    private DrawingInstance _drawingInstance;
-    public DrawingHandle3d DrawingHandle3d = default!;
-
-    public TriangleJob(DrawingInstance drawingInstance)
-    {
-        _drawingInstance = drawingInstance;
-    }
-
-    public void Execute(int i)
-    {
-        var texTriangle = new TexturedTriangle(new Triangle(Vector3.Zero, Vector3.Zero, Vector3.Zero), Vector2.Zero,Vector2.Zero, Vector2.Zero, 0);
-        
-        texTriangle.Triangle.p1 = Vector3.Transform(_drawingInstance.ClippingInstance.Clipping[i].Triangle.p1, DrawingHandle3d.ProjectionMatrix);
-        texTriangle.Triangle.p2 = Vector3.Transform(_drawingInstance.ClippingInstance.Clipping[i].Triangle.p2, DrawingHandle3d.ProjectionMatrix);
-        texTriangle.Triangle.p3 = Vector3.Transform(_drawingInstance.ClippingInstance.Clipping[i].Triangle.p3, DrawingHandle3d.ProjectionMatrix);
-        texTriangle.TexturePoint1 = _drawingInstance.ClippingInstance.Clipping[i].TexturePoint1;
-        texTriangle.TexturePoint2 = _drawingInstance.ClippingInstance.Clipping[i].TexturePoint2;
-        texTriangle.TexturePoint3 = _drawingInstance.ClippingInstance.Clipping[i].TexturePoint3;
-
-        texTriangle.TexturePoint1.X /= texTriangle.Triangle.p1w;
-        texTriangle.TexturePoint2.X /= texTriangle.Triangle.p2w;
-        texTriangle.TexturePoint3.X /= texTriangle.Triangle.p3w;
-        texTriangle.TexturePoint1.Y /= texTriangle.Triangle.p1w;
-        texTriangle.TexturePoint2.Y /= texTriangle.Triangle.p2w;
-        texTriangle.TexturePoint3.Y /= texTriangle.Triangle.p3w;
-            
-        texTriangle.Triangle.p1.X *= -1;
-        texTriangle.Triangle.p2.X *= -1;
-        texTriangle.Triangle.p3.X *= -1;
-        texTriangle.Triangle.p1.Y *= -1;
-        texTriangle.Triangle.p2.Y *= -1;
-        texTriangle.Triangle.p3.Y *= -1;
-            
-        texTriangle.Triangle.p1 = DrawingHandle3d.ToScreenVec(texTriangle.Triangle.p1);
-        texTriangle.Triangle.p2 = DrawingHandle3d.ToScreenVec(texTriangle.Triangle.p2);
-        texTriangle.Triangle.p3 = DrawingHandle3d.ToScreenVec(texTriangle.Triangle.p3);
-            
-        lock (_drawingInstance.TriangleBuffer)
-        {
-            _drawingInstance.AppendTriangle(texTriangle);
-        }
     }
 }
