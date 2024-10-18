@@ -14,6 +14,7 @@ public sealed class ThreadPool<T> where T: class
 
     public ThreadPoolItem Take()
     {
+        //TODO: Make this think faster, not O(N)
         lock (_buffer)
         {
             for (int i = 0; i < _buffer.Length; i++)
