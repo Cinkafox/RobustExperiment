@@ -56,7 +56,7 @@ public sealed class GameViewport : Control
         SkyInstance.SetParameter("cameraDir", cameraProp.Value.Angle.ToVec().ToRobustVector());
         
         handle.UseShader(SkyInstance);
-        handle.DrawRect(Rect, Color.White);
+        handle.DrawRect(PixelRect, Color.White);
         handle.UseShader(null);
     }
     
@@ -87,7 +87,7 @@ public sealed class GameViewport : Control
             }
         }
         
-        var drawHandle = new DrawingHandle3d(handle, Width, Height, cameraProp.Value, DrawingInstance,_parallel);
+        var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, cameraProp.Value, DrawingInstance,_parallel);
         
         if (_configuration.GetValue<bool>("render_debug"))
             drawHandle.DrawDebug = true;
