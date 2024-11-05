@@ -45,6 +45,8 @@ public sealed class EntryPoint : GameClient
         var ent = Spawn("alexandra", Vector3.Zero, EulerAngles.Zero);
 
         Spawn("car", new Vector3(5,0,0), EulerAngles.Zero);
+
+        Spawn("pol", new Vector3(5, -2f, 0), EulerAngles.Zero);
         
         _stateManager.RequestStateChange<ContentGameState>();
         

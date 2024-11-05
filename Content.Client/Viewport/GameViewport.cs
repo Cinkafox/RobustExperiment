@@ -3,6 +3,7 @@ using Content.Client.ConfigurationUI;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
 using Content.Client.Utils;
+using Content.Shared.Debug;
 using Content.Shared.Transform;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
@@ -25,6 +26,8 @@ public sealed class GameViewport : Control
     [Dependency] private readonly IParallelManager _parallel = default!;
     [Dependency] private readonly ConfigurationUIManager _configuration = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    
+    private DebugSystem _debug = default!;
 
     private readonly Label _info;
     private readonly ShaderInstance SkyInstance;
@@ -41,6 +44,7 @@ public sealed class GameViewport : Control
     private void UserInterfaceManagerOnOnScreenChanged((UIScreen? Old, UIScreen? New) obj)
     {
         obj.New?.AddChild(_info);
+        _debug = _entityManager.System<DebugSystem>();
     }
 
     public readonly DrawingInstance DrawingInstance = new();
@@ -141,6 +145,11 @@ public sealed class GameViewport : Control
                 var d = t.WorldAngle.ToVec() * 0.2f + t.WorldPosition;
                 drawHandle.DrawCircle(d, 15f, Color.Blue);
             }
+        }
+
+        while (_debug.DrawQueue.TryDequeue(out var p))
+        {
+            drawHandle.DrawCircle(p.Position, p.Radius, p.Color);
         }
     }
     

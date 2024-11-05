@@ -9,6 +9,20 @@
   components:
     - type: Model
       path: "/Models/car/lowpoly car.obj"
+    - type: RigidBody
+      shape:
+         !type:SphereShape
+         radius: 1
+         
+- type: entity
+  id: pol
+  components:
+    - type: RigidBody
+      physType: Static
+      shape:
+        !type:PlaneShape
+        distance: 1
+      
       
 - type: entity
   id: room
