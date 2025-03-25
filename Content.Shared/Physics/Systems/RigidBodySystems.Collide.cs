@@ -51,31 +51,21 @@ public sealed partial class RigidBodySystem
             new TransformedPhysicShape(bTransform, bShape));
         
         if(!contact.HasContact) return;
-
-        if (a.Comp.PhysType == PhysType.Kinematic && b.Comp.PhysType == PhysType.Kinematic)
-        {
-            //aTransform.LocalPosition = contact.Normal * contact.Depth / 2;
-            //bTransform.LocalPosition = contact.Normal * contact.Depth / 2;
-        }
-        else
-        {
-            ProcessPhysType(a, aTransform, contact);
-            ProcessPhysType(b, bTransform, contact);
-        }
         
-        //Logger.Debug(contact.Normal + " " + contact.Depth + " " + contact.A + " " + contact.B + " " + aTransform.LocalPosition);
+        ProcessPhysType(new Entity<RigidBodyComponent, Transform3dComponent>(a.Owner,a.Comp, aTransform), 
+            contact, b.Comp.PhysType == PhysType.Kinematic);
+        //ProcessPhysType(new Entity<RigidBodyComponent, Transform3dComponent>(b.Owner,b.Comp, bTransform), 
+            //contact, a.Comp.PhysType == PhysType.Kinematic);
+        
+        
+        Logger.Debug(contact.Normal + " " + contact.Depth + " " + contact.A + " " + contact.B + " " + aTransform.LocalPosition);
     }
 
-    private void ProcessPhysType(Entity<RigidBodyComponent> a, Transform3dComponent aTransform, ManifoldPoints contact)
+    private void ProcessPhysType(Entity<RigidBodyComponent, Transform3dComponent> physicEntity, ManifoldPoints contact, bool anotherProcess)
     {
-        if (a.Comp.PhysType != PhysType.Kinematic) 
+        if (physicEntity.Comp1.PhysType != PhysType.Kinematic) 
             return;
-        
-        aTransform.LocalPosition += contact.B - contact.A;
-        var l = a.Comp.LinearForce.Length();
-        var m = 1f;
-        if (l > a.Comp.Mass) m = 1.2f;
-        
-        ApplyForce(a, contact.Normal * l * m);
+
+        ApplyForce(physicEntity, -(physicEntity.Comp1.LinearVelocity - physicEntity.Comp1.LinearVelocity * contact.Normal) * physicEntity.Comp1.Mass);
     }
 }

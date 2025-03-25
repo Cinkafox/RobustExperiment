@@ -18,7 +18,7 @@ public sealed class SphereCollider : ICollider<SphereShape, SphereShape>
 
         var distance = ab.Length();
         
-        if (    distance < 0.00001f
+        if (distance < 0.00001f
                 || distance > aRadius + bRadius)
         {
             return ManifoldPoints.Empty;
@@ -29,7 +29,7 @@ public sealed class SphereCollider : ICollider<SphereShape, SphereShape>
         var aDeep = aCenter + normal * aRadius;
         var bDeep = bCenter - normal * bRadius;
 
-        return new ManifoldPoints(aDeep, bDeep);
+        return new ManifoldPoints(aDeep, bDeep, normal, distance);
     }
 }
 
@@ -44,7 +44,7 @@ public sealed class SpherePlaneCollider : ICollider<SphereShape, PlaneShape>
         var normal = b.Rotation.RotateVec(b.Shape.Normal);
         var onPlane = normal * b.Shape.Distance + b.Position;
 
-        var distance = Vector3.Dot(aCenter - onPlane, normal); // distance from center of sphere to plane surface
+        var distance = Vector3.Dot(aCenter - onPlane, normal); 
 
         if (distance > aRadius) {
             return ManifoldPoints.Empty;

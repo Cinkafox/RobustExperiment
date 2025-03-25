@@ -1,17 +1,19 @@
 ﻿- type: dynamicValue
   id: notoSansFont12
   value:
-    valueType: Content.Game.Font.FontSpecifier
+    valueType: Content.StyleSheetify.Client.Font.FontSpecifier
     value:
-      font: "/Fonts/Minecraft/minecraft.ttf"
+      font:
+        - "/Fonts/Minecraft/minecraft.ttf"
       size: 12
 
 - type: dynamicValue
   id: notoSansMono12
   value:
-    valueType: Content.Game.Font.FontSpecifier
+    valueType: Content.StyleSheetify.Client.Font.FontSpecifier
     value:
-      font: "/Fonts/Minecraft/minecraft.ttf"
+      font: 
+        - "/Fonts/Minecraft/minecraft.ttf"
       size: 12
 
 - type: dynamicValue
@@ -80,13 +82,13 @@
     .windowPanel:
       panel: novelPanel
       header: novelPanel
-    ContainerButton.button#normal:
+    ContainerButton.button:normal:
       stylebox: novelPanel
-    ContainerButton.button#hover:
+    ContainerButton.button:hover:
       stylebox: novelPanelHover
-    ContainerButton.button#pressed:
+    ContainerButton.button:pressed:
       stylebox: novelPanelPush
-    ContainerButton.button#disabled:
+    ContainerButton.button:disabled:
       stylebox:
         parent: novelPanel
         value:
@@ -104,9 +106,9 @@
       texture:
         valueType: Robust.Client.Graphics.Texture
         value: "/Textures/Interface/Icons/plus.png"
-      texture-size-target: 16,16
+      texture-size-target: 16x16
     .checkBox.checkBoxChecked:
       texture:
         valueType: Robust.Client.Graphics.Texture
         value: "/Textures/Interface/Icons/gal.png"
-      texture-size-target: 16,16
+      texture-size-target: 16x16

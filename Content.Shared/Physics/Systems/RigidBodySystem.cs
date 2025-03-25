@@ -36,7 +36,7 @@ public sealed partial class RigidBodySystem : EntitySystem
         var query = EntityQueryEnumerator<RigidBodyComponent>();
         while (query.MoveNext(out var uid, out var rigidBodyComponent))
         {
-            ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0,-0.025f,0) * rigidBodyComponent.Mass);
+            ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0,-0.0025f,0) * rigidBodyComponent.Mass);
             
             if(ent.Owner == uid) 
                 continue;
@@ -64,8 +64,16 @@ public sealed partial class RigidBodySystem : EntitySystem
         }
     }
 
+    private int SkipDuration = 10;
+
     public override void Update(float frameTime)
     {
-        Simulate();
+        if(SkipDuration == 0 || true)
+        {
+            Simulate();
+            SkipDuration = 10;
+        }
+        
+        SkipDuration--;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Content.Client.Game;
+using Content.Shared.Physics.Components;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Client;
@@ -16,7 +17,7 @@ public sealed class EntryPoint : GameClient
 {
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
     [Dependency] private readonly IStateManager _stateManager = default!;
-    [Dependency] private readonly IStyleSheetManager _styleSheetManager = default!;
+    [Dependency] private readonly IContentStyleSheetManager _styleSheetManager = default!;
     [Dependency] private readonly IEntityManager _entityManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
 
@@ -24,7 +25,6 @@ public sealed class EntryPoint : GameClient
     
     public override void PreInit()
     {
-        StyleSheetify.Client.DependencyRegistration.Register(IoCManager.Instance!);
         IoCManager.BuildGraph();
         IoCManager.InjectDependencies(this);
     }
@@ -43,10 +43,6 @@ public sealed class EntryPoint : GameClient
         _playerManager.SetAttachedEntity(_playerManager.LocalSession, camera);
         
         var ent = Spawn("alexandra", Vector3.Zero, EulerAngles.Zero);
-
-        Spawn("car", new Vector3(5,0,0), EulerAngles.Zero);
-
-        Spawn("pol", new Vector3(5, -2f, 0), EulerAngles.Zero);
         
         _stateManager.RequestStateChange<ContentGameState>();
         

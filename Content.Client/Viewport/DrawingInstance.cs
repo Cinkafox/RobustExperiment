@@ -34,12 +34,12 @@ public sealed class DrawingInstance
 
     public DrawingInstance()
     {
-        AsyncClippingInstances = new(128, ClipCreator);
+        AsyncClippingInstances = new(128*2, ClipCreator);
         
         ShaderInstance = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("ZDepthShader").InstanceUnique();
         ShaderCreator = new ShaderCreator(ShaderInstance);
 
-        ShadersPool = new SimpleBuffer<ShaderInstance>(5120);
+        ShadersPool = new SimpleBuffer<ShaderInstance>(1024*10);
         for (int i = 0; i < ShadersPool.Buffer.Length; i++)
         {
             ShadersPool.Buffer[i] = ShaderCreator.Create();
