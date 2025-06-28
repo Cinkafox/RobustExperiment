@@ -17,7 +17,7 @@ public sealed class DrawingInstance
     public readonly SortedDictionary<float,TexturedTriangle> TriangleBuffer = new();
     public readonly List<TexturedTriangle> ListTriangles = new();
 
-    public readonly SimpleBuffer<Texture> TextureBuffer = new(64*3);
+    public readonly SimpleBuffer<Texture> TextureBuffer = new(64*32);
     public readonly Robust.Shared.Maths.Vector3[] DrawVertex3dBuffer = new Robust.Shared.Maths.Vector3[3];
     public readonly Vector2[] DrawVertexUntexturedBuffer = new Vector2[3];
     public readonly Vector2[] DrawVertexTexturePointBuffer = new Vector2[3];

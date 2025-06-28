@@ -35,3 +35,15 @@
   components:
     - type: Model
       path: "/Models/world/forest 2 by creepercoastal.obj"
+      
+- type: entity
+  id: nyash
+  components:
+    - type: Model
+      path: "/Models/nyash/nyash.obj"
+      
+- type: entity
+  id: femboy
+  components:
+    - type: Model
+      path: "/Models/femboy/femboy.obj"
