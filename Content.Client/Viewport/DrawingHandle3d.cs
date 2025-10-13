@@ -130,9 +130,9 @@ public sealed class DrawingHandle3d : IDisposable
     
     private void FlushScreen(TexturedTriangle triangle)
     {
-        DrawingInstance.DrawVertex3dBuffer[0] = new Robust.Shared.Maths.Vector3(triangle.Triangle.p1.X / Width , triangle.Triangle.p1.Y / Height, triangle.Triangle.p1.Z);
-        DrawingInstance.DrawVertex3dBuffer[1] = new Robust.Shared.Maths.Vector3(triangle.Triangle.p2.X / Width , triangle.Triangle.p2.Y / Height, triangle.Triangle.p2.Z);
-        DrawingInstance.DrawVertex3dBuffer[2] = new Robust.Shared.Maths.Vector3(triangle.Triangle.p3.X / Width , triangle.Triangle.p3.Y / Height, triangle.Triangle.p3.Z);
+        DrawingInstance.DrawVertex3dBuffer[0] = new Vector3(triangle.Triangle.p1.X / Width , triangle.Triangle.p1.Y / Height, triangle.Triangle.p1.Z);
+        DrawingInstance.DrawVertex3dBuffer[1] = new Vector3(triangle.Triangle.p2.X / Width , triangle.Triangle.p2.Y / Height, triangle.Triangle.p2.Z);
+        DrawingInstance.DrawVertex3dBuffer[2] = new Vector3(triangle.Triangle.p3.X / Width , triangle.Triangle.p3.Y / Height, triangle.Triangle.p3.Z);
         
         DrawingInstance.DrawVertexUntexturedBuffer[0] = new Vector2(triangle.Triangle.p1.X, triangle.Triangle.p1.Y);
         DrawingInstance.DrawVertexUntexturedBuffer[1] = new Vector2(triangle.Triangle.p2.X, triangle.Triangle.p2.Y);
@@ -147,7 +147,7 @@ public sealed class DrawingHandle3d : IDisposable
         DrawingInstance.DrawVertexBuffer[2] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[2],  DrawingInstance.DrawVertexTexturePointBuffer[2]);
     }
     
-    private Robust.Shared.Maths.Vector3 Normal(Robust.Shared.Maths.Vector3 p1, Robust.Shared.Maths.Vector3 p2, Robust.Shared.Maths.Vector3 p3)
+    private Vector3 Normal(Vector3 p1, Vector3 p2, Vector3 p3)
     {
         var u = new Vector3(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
         var v = new Vector3(p3.X - p1.X, p3.Y - p1.Y, p3.Z - p1.Z);
@@ -156,10 +156,10 @@ public sealed class DrawingHandle3d : IDisposable
         float ny = u.Z * v.X - u.X * v.Z;
         float nz = u.X * v.Y - u.Y * v.X;
 
-        return new Robust.Shared.Maths.Vector3(nx, ny, nz);
+        return new Vector3(nx, ny, nz);
     }
     
-    private Robust.Shared.Maths.Vector3 CurNormal = Robust.Shared.Maths.Vector3.Zero;
+    private Vector3 CurNormal = Vector3.Zero;
 
     private void DrawPrimitiveTriangleWithClipping(TexturedTriangle triToRaster)
     {
@@ -169,7 +169,7 @@ public sealed class DrawingHandle3d : IDisposable
         FlushScreen(triToRaster);
         
         CurNormal = Normal(DrawingInstance.DrawVertex3dBuffer[0],DrawingInstance.DrawVertex3dBuffer[1],DrawingInstance.DrawVertex3dBuffer[2]);
-        CurNormal.Normalize();
+        CurNormal = Vector3.Normalize(CurNormal);
         
         int nNewTriangles = 1;
 
@@ -276,7 +276,7 @@ public sealed class DrawingHandle3d : IDisposable
             100.0f
         );
 
-        DrawingInstance.ShaderInstance.SetParameter("cameraPos", cameraProperties.Position.ToRobustVector());
+        DrawingInstance.ShaderInstance.SetParameter("cameraPos", cameraProperties.Position);
     }
     
     private void CheckDisposed()

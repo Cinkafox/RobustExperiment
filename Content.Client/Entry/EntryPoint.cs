@@ -43,9 +43,7 @@ public sealed class EntryPoint : GameClient
         _playerManager.SetAttachedEntity(_playerManager.LocalSession, camera);
         _stateManager.RequestStateChange<ContentGameState>();
         
-        Spawn("femboy", new Vector3(1,0,0), EulerAngles.CreateFromDegrees(90.0*2,0,0));
-        var ent = Spawn("alexandra", new Vector3(0,-1,8), EulerAngles.CreateFromDegrees(0,0,0));
-        Spawn("nyash", new Vector3(-1,0,0), EulerAngles.CreateFromDegrees(90.0,0,0));
+        var ent = Spawn("alexandra", new Vector3(0,-1,0), EulerAngles.CreateFromDegrees(0,0,0));
         
         _entityManager.System<AlexandraAnimationSystem>().Play(ent);
     }

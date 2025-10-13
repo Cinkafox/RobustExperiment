@@ -57,7 +57,7 @@ public sealed class GameViewport : Control
             return;
         };
 
-        SkyInstance.SetParameter("cameraDir", cameraProp.Value.Angle.ToVec().ToRobustVector());
+        SkyInstance.SetParameter("cameraDir", cameraProp.Value.Angle.ToVec());
         
         handle.UseShader(SkyInstance);
         handle.DrawRect(PixelRect, Color.White);

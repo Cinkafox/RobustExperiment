@@ -64,12 +64,12 @@ public partial class Transform3dComponent
     
     [ViewVariables(VVAccess.ReadWrite)]
     [Animatable]
-    public Robust.Shared.Maths.Vector3 LocalAngleAnim
+    public Vector3 LocalAngleAnim
     {
         get
         {
             var angle = LocalRotation.ToEulerAngle();
-            return new Robust.Shared.Maths.Vector3((float)angle.Pitch, (float)angle.Yaw, (float)angle.Roll);
+            return new Vector3((float)angle.Pitch, (float)angle.Yaw, (float)angle.Roll);
         }
         set => LocalRotation = new EulerAngles(value.X, value.Y, value.Z).ToQuaternion();
     }

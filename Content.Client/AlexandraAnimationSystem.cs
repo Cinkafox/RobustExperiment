@@ -24,11 +24,11 @@ public sealed class AlexandraAnimationSystem: EntitySystem
                 Property = "LocalAngleAnim",
                 KeyFrames =
                 {
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(180)), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(160),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(180)), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(180)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(160),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(180)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0.5f),
                 }
             }
         }
@@ -46,11 +46,11 @@ public sealed class AlexandraAnimationSystem: EntitySystem
                 Property = "LocalAngleAnim",
                 KeyFrames =
                 {
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(30),(float)Angle.FromDegrees(-80), 0), 0f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(-60), 0), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(-20),(float)Angle.FromDegrees(-80), 0), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(-60), 0), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(30),(float)Angle.FromDegrees(-80), 0), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(30),(float)Angle.FromDegrees(-80), 0), 0f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(-60), 0), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(-20),(float)Angle.FromDegrees(-80), 0), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(-60), 0), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(30),(float)Angle.FromDegrees(-80), 0), 0.5f),
                 }
             }
         }
@@ -68,8 +68,8 @@ public sealed class AlexandraAnimationSystem: EntitySystem
                 Property = "LocalAngleAnim",
                 KeyFrames =
                 {
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3(0,0,0), 0f),
-                    new AnimationTrackProperty.KeyFrame(new Robust.Shared.Maths.Vector3((float)Angle.FromDegrees(359),0,0), 5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3(0,0,0), 0f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(359),0,0), 5f),
                 }
             }
         }
