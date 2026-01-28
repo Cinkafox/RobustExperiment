@@ -1,0 +1,45 @@
+﻿<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="DebugOpt" />
+    <BuildType Name="Release" />
+    <BuildType Name="Tools" />
+  </Configurations>
+  <Folder Name="/RobustToolbox/">
+    <Project Path="RobustToolbox/Avalonia.Base/Avalonia.Base.csproj" />
+    <Project Path="RobustToolbox/Lidgren.Network/Lidgren.Network.csproj" />
+    <Project Path="RobustToolbox/Robust.Analyzers/Robust.Analyzers.csproj" />
+    <Project Path="RobustToolbox/Robust.Client.Injectors/Robust.Client.Injectors.csproj" />
+    <Project Path="RobustToolbox/Robust.Client.NameGenerator/Robust.Client.NameGenerator.csproj" />
+    <Project Path="RobustToolbox/Robust.Client/Robust.Client.csproj" />
+    <Project Path="RobustToolbox/Robust.Packaging/Robust.Packaging.csproj" />
+    <Project Path="RobustToolbox/Robust.Serialization.Generator/Robust.Serialization.Generator.csproj" />
+    <Project Path="RobustToolbox/Robust.Shared.CompNetworkGenerator/Robust.Shared.CompNetworkGenerator.csproj" />
+    <Project Path="RobustToolbox/Robust.Shared.Maths/Robust.Shared.Maths.csproj" />
+    <Project Path="RobustToolbox/Robust.Shared.Scripting/Robust.Shared.Scripting.csproj" />
+    <Project Path="RobustToolbox/Robust.Shared/Robust.Shared.csproj" />
+    <Project Path="RobustToolbox/Robust.Xaml/Robust.Xaml.csproj" />
+  </Folder>
+  <Folder Name="/RobustToolbox/NetSerializer/">
+    <Project Path="RobustToolbox/NetSerializer/NetSerializer/NetSerializer.csproj" />
+  </Folder>
+  <Folder Name="/RobustToolbox/Robust.LoaderApi/">
+    <Project Path="RobustToolbox/Robust.LoaderApi/Robust.LoaderApi/Robust.LoaderApi.csproj" />
+  </Folder>
+  <Folder Name="/RobustToolbox/XamlX/" />
+  <Folder Name="/RobustToolbox/XamlX/src/">
+    <Project Path="RobustToolbox/XamlX/src/XamlX.IL.Cecil/XamlX.IL.Cecil.csproj" />
+    <Project Path="RobustToolbox/XamlX/src/XamlX/XamlX.csproj" />
+  </Folder>
+  <Folder Name="/StyleSheet/">
+    <Project Path="StyleSheetify\Content.StyleSheetify.Client\Content.StyleSheetify.Client.csproj" Type="Classic C#" />
+    <Project Path="StyleSheetify\Content.StyleSheetify.Shared\Content.StyleSheetify.Shared.csproj" Type="Classic C#" />
+  </Folder>
+  <Project Path="Content.Client\Content.Client.csproj" />
+  <Project Path="Content.Packaging\Content.Packaging.csproj" Type="Classic C#">
+    <Configuration Solution="DebugOpt|Any CPU" Project="Debug|Any CPU" />
+    <Configuration Solution="Tools|Any CPU" Project="Debug|Any CPU" />
+  </Project>
+  <Project Path="Content.Shared\Content.Shared.csproj" />
+  <Project Path="Content.UnitTests\Content.UnitTests.csproj" Type="Classic C#" />
+</Solution>

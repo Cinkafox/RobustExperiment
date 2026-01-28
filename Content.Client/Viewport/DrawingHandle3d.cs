@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
-using Content.Client.Camera;
 using Content.Client.Utils;
+using Content.Shared.Camera;
+using Content.Shared.Transform;
+using Content.Shared.Utils;
 using Robust.Client.Graphics;
 using Robust.Shared.Threading;
 
@@ -159,7 +161,7 @@ public sealed class DrawingHandle3d : IDisposable
         return new Vector3(nx, ny, nz);
     }
     
-    private Vector3 CurNormal = Vector3.Zero;
+    private Vector3 _curNormal = Vector3.Zero;
 
     private void DrawPrimitiveTriangleWithClipping(TexturedTriangle triToRaster)
     {
@@ -168,8 +170,8 @@ public sealed class DrawingHandle3d : IDisposable
         DrawingInstance.ListTriangles.Add(triToRaster);
         FlushScreen(triToRaster);
         
-        CurNormal = Normal(DrawingInstance.DrawVertex3dBuffer[0],DrawingInstance.DrawVertex3dBuffer[1],DrawingInstance.DrawVertex3dBuffer[2]);
-        CurNormal = Vector3.Normalize(CurNormal);
+        _curNormal = Normal(DrawingInstance.DrawVertex3dBuffer[0],DrawingInstance.DrawVertex3dBuffer[1],DrawingInstance.DrawVertex3dBuffer[2]);
+        _curNormal = Vector3.Normalize(_curNormal);
         
         int nNewTriangles = 1;
 
@@ -224,7 +226,7 @@ public sealed class DrawingHandle3d : IDisposable
         if(DrawLighting)
         {
             var shaderInst = DrawingInstance.ShadersPool.Pop();
-            shaderInst.SetParameter("normal", CurNormal);
+            shaderInst.SetParameter("normal", _curNormal);
             shaderInst.SetParameter("p1", DrawingInstance.DrawVertex3dBuffer[0]);
             
             HandleBase.UseShader(shaderInst);
@@ -243,11 +245,11 @@ public sealed class DrawingHandle3d : IDisposable
     }
     
 
-    public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height, CameraProperties cameraProperties,
+    public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height, Entity<CameraComponent, Transform3dComponent> camera,
         DrawingInstance drawingInstance, IParallelManager parallel)
     {
         Parallel = parallel;
-        CameraProperties = cameraProperties;
+        CameraProperties = new CameraProperties(camera.Comp2.WorldPosition, camera.Comp2.WorldAngle, camera.Comp1.FoV);
         DrawingInstance = drawingInstance;
         HandleBase = handleBase;
         Width = width;
@@ -276,7 +278,7 @@ public sealed class DrawingHandle3d : IDisposable
             100.0f
         );
 
-        DrawingInstance.ShaderInstance.SetParameter("cameraPos", cameraProperties.Position);
+        DrawingInstance.ShaderInstance.SetParameter("cameraPos", CameraProperties.Position);
     }
     
     private void CheckDisposed()
@@ -290,5 +292,19 @@ public sealed class DrawingHandle3d : IDisposable
     public void Dispose()
     {
         Disposed = true;
+    }
+}
+
+public struct CameraProperties
+{
+    public Vector3 Position;
+    public EulerAngles Angle;
+    public float FoV;
+    
+    public CameraProperties(Vector3 position, EulerAngles angle, float foV)
+    {
+        Position = position;
+        Angle = angle;
+        FoV = foV;
     }
 }

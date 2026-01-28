@@ -1,10 +1,10 @@
-﻿using Content.Client.Bone;
-using Content.Client.DimensionEnv;
+﻿using Content.Shared.Bone;
 using Content.Shared.Transform;
-using Content.Shared.Utils;
 using Robust.Client.Animations;
 using Robust.Client.GameObjects;
 using Robust.Shared.Animations;
+using BoneComponent = Content.Shared.Bone.BoneComponent;
+using SkeletonComponent = Content.Shared.Bone.SkeletonComponent;
 
 namespace Content.Client;
 
@@ -79,17 +79,23 @@ public sealed class AlexandraAnimationSystem: EntitySystem
     {
         base.Initialize();
         
-        SubscribeLocalEvent<Transform3dComponent, AnimationCompletedEvent>(OnEnd);
+        SubscribeLocalEvent<AlexandraAnimationComponent, AnimationCompletedEvent>(OnEnd);
+        SubscribeLocalEvent<AlexandraAnimationComponent, ComponentStartup>(OnInit);
     }
 
-    private void OnEnd(Entity<Transform3dComponent> ent, ref AnimationCompletedEvent args)
+    private void OnInit(Entity<AlexandraAnimationComponent> ent, ref ComponentStartup args)
+    {
+        Play(ent.Owner);
+    }
+
+    private void OnEnd(Entity<AlexandraAnimationComponent> ent, ref AnimationCompletedEvent args)
     {
         if(args.Key == "kadeem1") _animationPlayerSystem.Play(ent,Animation1 , "kadeem1");
         if(args.Key == "kadeem2") _animationPlayerSystem.Play(ent,Animation2 , "kadeem2");
         if(args.Key == "aaa") _animationPlayerSystem.Play(ent,Animation3 , "aaa");
     }
 
-    public void Play(EntityUid uid)
+    private void Play(EntityUid uid)
     {
         _animationPlayerSystem.Play(uid, Animation3, "aaa");
    

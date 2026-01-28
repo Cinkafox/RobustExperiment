@@ -1,6 +1,6 @@
 ﻿using Content.Shared.Utils;
 
-namespace Content.Client.Bone;
+namespace Content.Shared.Bone;
 
 [RegisterComponent]
 public sealed partial class SkeletonComponent : Component

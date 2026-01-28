@@ -1,12 +1,13 @@
-﻿using Content.Client.Camera;
+﻿using System.Diagnostics.CodeAnalysis;
 using Content.Client.ConfigurationUI;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
-using Content.Client.Utils;
+using Content.Shared.Camera;
 using Content.Shared.Debug;
 using Content.Shared.Transform;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
+using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Profiling;
@@ -19,13 +20,13 @@ public sealed class GameViewport : Control
 {
     [Dependency] private readonly ProfManager _profManager = default!;
     [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly CameraManager _cameraManager = default!;
     [Dependency] private readonly IInputManager _inputManager = default!;
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
     [Dependency] private readonly IClyde _clyde = default!;
     [Dependency] private readonly IParallelManager _parallel = default!;
     [Dependency] private readonly ConfigurationUIManager _configuration = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private readonly IPlayerManager _playerManager = default!;
     
     private DebugSystem _debug = default!;
 
@@ -51,13 +52,10 @@ public sealed class GameViewport : Control
 
     private void DrawSkyBox(DrawingHandleScreen handle)
     {
-        var cameraProp = _cameraManager.CameraProperties;
-        if(!cameraProp.HasValue)
-        {
+        if(!TryGetCamera(out var camera)) 
             return;
-        };
 
-        SkyInstance.SetParameter("cameraDir", cameraProp.Value.Angle.ToVec());
+        SkyInstance.SetParameter("cameraDir", camera.Value.Comp2.WorldAngle.ToVec());
         
         handle.UseShader(SkyInstance);
         handle.DrawRect(PixelRect, Color.White);
@@ -72,16 +70,25 @@ public sealed class GameViewport : Control
         }
     }
 
+    private bool TryGetCamera([NotNullWhen(true)] out Entity<CameraComponent, Transform3dComponent>? camera)
+    {
+        camera = null;
+        if (!_entityManager.TryGetComponent<CameraComponent>(_playerManager.LocalEntity, out var cameraComponent) ||
+            !_entityManager.TryGetComponent<Transform3dComponent>(_playerManager.LocalEntity, out var transform3dComponent))
+            return false;
+
+        camera = new Entity<CameraComponent, Transform3dComponent>(_playerManager.LocalEntity.Value, cameraComponent, transform3dComponent);
+        return true;
+    }
+
     private void Draw3d(DrawingHandleScreen handle)
     {
         if(_configuration.GetValue<bool>("pause_render"))
             return;
-    
-        var cameraProp = _cameraManager.CameraProperties;
-        if(!cameraProp.HasValue)
-        {
-            return;
-        }
+        
+        if(!TryGetCamera(out var camera))
+           return;
+        
         
         if(_configuration.GetValue<bool>("render_shitty_skybox"))
         {
@@ -91,7 +98,7 @@ public sealed class GameViewport : Control
             }
         }
         
-        var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, cameraProp.Value, DrawingInstance,_parallel);
+        var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, camera.Value, DrawingInstance,_parallel);
         
         if (_configuration.GetValue<bool>("render_debug"))
             drawHandle.DrawDebug = true;
@@ -104,7 +111,7 @@ public sealed class GameViewport : Control
             var query = _entityManager.EntityQueryEnumerator<Transform3dComponent, ModelComponent>();
             while (query.MoveNext(out var uid, out var transform3dComponent, out var modelComponent))
             {
-                if(_cameraManager.Camera!.Value.Item3 == uid) 
+                if(camera.Value.Owner == uid) 
                     continue;
             
                 if (!modelComponent.MeshRenderInitialized)

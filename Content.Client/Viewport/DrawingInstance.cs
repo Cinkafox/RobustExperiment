@@ -5,7 +5,6 @@ using Content.Shared.Thread;
 using Robust.Client.Graphics;
 using Robust.Client.Utility;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Threading;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Color = Robust.Shared.Maths.Color;
@@ -34,12 +33,12 @@ public sealed class DrawingInstance
 
     public DrawingInstance()
     {
-        AsyncClippingInstances = new(128*2, ClipCreator);
+        AsyncClippingInstances = new(128*16, ClipCreator);
         
         ShaderInstance = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("ZDepthShader").InstanceUnique();
         ShaderCreator = new ShaderCreator(ShaderInstance);
 
-        ShadersPool = new SimpleBuffer<ShaderInstance>(1024*10);
+        ShadersPool = new SimpleBuffer<ShaderInstance>(1024*128);
         for (int i = 0; i < ShadersPool.Buffer.Length; i++)
         {
             ShadersPool.Buffer[i] = ShaderCreator.Create();

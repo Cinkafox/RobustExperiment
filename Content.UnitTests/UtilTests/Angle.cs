@@ -1,10 +1,10 @@
 ﻿using Content.Shared.Utils;
-using Robust.Shared.Maths;
+using NUnit.Framework;
 using Quaternion = System.Numerics.Quaternion;
 
 namespace Content.UnitTests.UtilTests;
 
-public class Angle
+public sealed class Angle
 {
     
     [Test]

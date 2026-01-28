@@ -1,0 +1,28 @@
+﻿<Project>
+    <!--
+    Content specific properties
+    Import *before* Robust.Properties.targets
+    -->
+
+    <PropertyGroup>
+        <LangVersion Condition="'$(LangVersion)' == ''">14</LangVersion>
+        <IsPackable Condition="'$(IsPackable)' == ''">false</IsPackable>
+        <Nullable Condition="'$(Nullable)' == ''">enable</Nullable>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <OutputPath>bin\Debug\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugOpt|AnyCPU' ">
+        <OutputPath>bin\DebugOpt\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <OutputPath>bin\Release\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Tools|AnyCPU' ">
+        <OutputPath>bin\Tools\</OutputPath>
+    </PropertyGroup>
+</Project>

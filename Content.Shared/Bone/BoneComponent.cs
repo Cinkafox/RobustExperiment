@@ -1,12 +1,12 @@
 ﻿using Content.Shared.Utils;
 
-namespace Content.Client.Bone;
+namespace Content.Shared.Bone;
 
 [RegisterComponent]
 public sealed partial class BoneComponent : Component
 {
-    [DataField] public HashSet<BoneVertexData> BoneVertexDatum = new HashSet<BoneVertexData>();
-    [DataField] public HashSet<EntityUid> Childs = new HashSet<EntityUid>();
+    [DataField] public HashSet<BoneVertexData> BoneVertexDatum = new();
+    [DataField] public HashSet<EntityUid> Childs = new();
 
     [DataField] public Vector3 OriginalPosition;
     [DataField] public EulerAngles OriginalRotation;
