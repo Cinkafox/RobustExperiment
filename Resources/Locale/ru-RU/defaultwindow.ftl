@@ -1,0 +1,1 @@
+defaultwindow-placeholder-title = Пример заголовка окна

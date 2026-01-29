@@ -4,10 +4,10 @@ using Robust.Shared.Player;
 
 namespace Content.Shared.GameTicking;
 
-public abstract partial class SharedGameTicker : EntitySystem
+public abstract class SharedGameTicker : EntitySystem
 {
     [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly ISharedPlayerManager _playerManager = default!;
+    [Dependency] protected readonly ISharedPlayerManager PlayerManager = default!;
     [Dependency] private readonly SharedMapSystem _mapSystem = default!;
     
     public EntityUid MapUid;
@@ -15,13 +15,15 @@ public abstract partial class SharedGameTicker : EntitySystem
     public void InitializeGame()
     {
         MapUid = _mapSystem.CreateMap(false);
-
-        var camera = Spawn("camera", new Vector3(0,1,5), EulerAngles.CreateFromDegrees(0,180.0,0));
-
-        _playerManager.SetAttachedEntity(_playerManager.LocalSession, camera);
         
-        var ent = Spawn("alexandra", new Vector3(0,-1,0), EulerAngles.CreateFromDegrees(0,0,0));
-        //Spawn("world", new Vector3(0,-17,0), EulerAngles.CreateFromDegrees(0,0,0));
+        //Spawn("alexandra", new Vector3(0,-1,0), EulerAngles.CreateFromDegrees(0,0,0));
+        Spawn("world", new Vector3(0,-47,0), EulerAngles.CreateFromDegrees(0,0,0));
+    }
+
+    public void AttachSession(ICommonSession session)
+    {
+        var camera = Spawn("camera", new Vector3(0,1,5), EulerAngles.CreateFromDegrees(0,180.0,0));
+        PlayerManager.SetAttachedEntity(session, camera);
     }
     
     private EntityUid Spawn(string protoId, Vector3 position, EulerAngles rotation)

@@ -115,6 +115,5 @@ public sealed class AlexandraAnimationSystem: EntitySystem
             }
             count++;
         }
-        
     }
 }

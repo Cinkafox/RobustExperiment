@@ -23,6 +23,7 @@ public sealed class GameTicker : SharedGameTicker
     private void StartSinglePlayer()
     {
         InitializeGame();
+        AttachSession(PlayerManager.LocalSession ?? throw new InvalidOperationException());
         _stateManager.RequestStateChange<ContentGameState>();
     }
 }

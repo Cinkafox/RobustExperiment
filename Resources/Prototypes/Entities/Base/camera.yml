@@ -1,0 +1,5 @@
+﻿- type: entity
+  id: camera
+  components:
+    - type: Camera
+      fov: 4

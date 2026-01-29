@@ -1,10 +1,4 @@
 ﻿- type: entity
-  id: camera
-  components:
-    - type: Camera
-      fov: 4
-
-- type: entity
   id: car
   components:
     - type: Model
@@ -23,7 +17,6 @@
         !type:PlaneShape
         distance: 1
       
-      
 - type: entity
   id: room
   components:
@@ -34,7 +27,7 @@
   id: world
   components:
     - type: Model
-      path: "/Models/world/forest 2 by creepercoastal.obj"
+      path: "/Models/world2/world.obj"
       
 - type: entity
   id: nyash
