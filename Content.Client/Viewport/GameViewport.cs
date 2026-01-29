@@ -125,19 +125,16 @@ public sealed class GameViewport : Control
 
                 using (_profManager.Group("DrawMesh_"+uid))
                 {
-                    if(_configuration.GetValue<bool>("render_draw_parallel")) 
-                        modelComponent.MeshRender.DrawParallel(drawHandle);
-                    else
-                        modelComponent.MeshRender.Draw(drawHandle);
+                    modelComponent.MeshRender.Draw(drawHandle);
                 }
             }
         }
 
-        _info.Text = $"                  Triangles: {DrawingInstance.TriangleBuffer.Count}, Textures pool: {DrawingInstance.TextureBuffer.Length}";
+        _info.Text = $"                  Triangles: {DrawingInstance.TriangleBuffer.Length}, Textures pool: {DrawingInstance.TextureBuffer.Length}";
 
         using (_profManager.Group("Flush"))
         {
-            drawHandle.Flush();
+            drawHandle.Flush(_profManager);
         }
         
         if(!_configuration.GetValue<bool>("transform_view_enabled"))

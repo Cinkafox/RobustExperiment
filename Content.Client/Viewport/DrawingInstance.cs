@@ -13,8 +13,8 @@ namespace Content.Client.Viewport;
 
 public sealed class DrawingInstance
 {
-    public readonly SortedDictionary<float,TexturedTriangle> TriangleBuffer = new();
-    public readonly List<TexturedTriangle> ListTriangles = new();
+    public readonly SimpleBuffer<TexturedTriangle> TriangleBuffer = new(8192*128);
+    public readonly Queue<TexturedTriangle> ListTriangles = new();
 
     public readonly SimpleBuffer<Texture> TextureBuffer = new(64*32);
     public readonly Vector3[] DrawVertex3dBuffer = new Vector3[3];
@@ -26,39 +26,37 @@ public sealed class DrawingInstance
     public readonly ShaderCreator ShaderCreator;
 
     public readonly ClippingInstance ClippingInstance = new();
-    public readonly ThreadPool<ClippingInstance> AsyncClippingInstances;
     public readonly SimpleBuffer<ShaderInstance> ShadersPool;
 
     public readonly ShaderInstance ShaderInstance;
+    
+    public static readonly TriangleZComparer TriangleZComparer = new();
 
     public DrawingInstance()
     {
-        AsyncClippingInstances = new(128*16, ClipCreator);
-        
         ShaderInstance = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("ZDepthShader").InstanceUnique();
         ShaderCreator = new ShaderCreator(ShaderInstance);
 
         ShadersPool = new SimpleBuffer<ShaderInstance>(1024*128);
-        for (int i = 0; i < ShadersPool.Buffer.Length; i++)
+        for (var i = 0; i < ShadersPool.Buffer.Length; i++)
         {
             ShadersPool.Buffer[i] = ShaderCreator.Create();
         }
-    }
 
-    public void AppendTriangle(TexturedTriangle texturedTriangle)
-    {
-        var z = texturedTriangle.Triangle.Z;
-
-        while (!TriangleBuffer.TryAdd(z, texturedTriangle))
+        for (var i = 0; i < TriangleBuffer.Buffer.Length; i++)
         {
-            z += 0.01f;
+            TriangleBuffer.Buffer[i] = new TexturedTriangle();
         }
     }
 
-    public int AddTexture(Texture texture)
+    public void AppendTriangle(TexturedTriangle triangle)
     {
-        TextureBuffer.Add(texture);
-        return TextureBuffer.Length - 1;
+        TriangleBuffer.Add(triangle);
+    }
+    
+    public void PrepareFrame()
+    {
+        TriangleBuffer.Sort(TriangleZComparer);
     }
 
     public int AllocTexture(List<Material> materials)
@@ -82,5 +80,15 @@ public sealed class DrawingInstance
     public void Flush()
     {
         TriangleBuffer.Clear();
+    }
+}
+
+public sealed class TriangleZComparer : IComparer<TexturedTriangle>
+{
+    public int Compare(TexturedTriangle? a, TexturedTriangle? b)
+    {
+        if (a is null || b is null) return 0;
+        
+        return a.Triangle.Z.CompareTo(b.Triangle.Z);
     }
 }
