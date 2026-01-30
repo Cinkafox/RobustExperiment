@@ -17,7 +17,7 @@ void fragment() {
 
     // Compute the diffuse component using the dot product
     highp float diff = max(dot(normal, direction), 0.0);
-    highp vec3 diffuse = diff * vec3(1,1,1) * vec3(1) + vec3(0.2);
+    highp vec3 diffuse = diff * vec3(1,1,1) * vec3(0.25) + vec3(0.2);
 
     COLOR = vec4(texCol.xyz * diffuse, texCol.w);
 }

@@ -23,7 +23,6 @@ public sealed class GameViewport : Control
     [Dependency] private readonly IInputManager _inputManager = default!;
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
     [Dependency] private readonly IClyde _clyde = default!;
-    [Dependency] private readonly IParallelManager _parallel = default!;
     [Dependency] private readonly ConfigurationUIManager _configuration = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
@@ -98,7 +97,7 @@ public sealed class GameViewport : Control
             }
         }
         
-        var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, camera.Value, DrawingInstance,_parallel);
+        var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, camera.Value, DrawingInstance);
         
         if (_configuration.GetValue<bool>("render_debug"))
             drawHandle.DrawDebug = true;

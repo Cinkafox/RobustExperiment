@@ -16,8 +16,8 @@ public abstract class SharedGameTicker : EntitySystem
     {
         MapUid = _mapSystem.CreateMap(false);
         
-        //Spawn("alexandra", new Vector3(0,-1,0), EulerAngles.CreateFromDegrees(0,0,0));
-        Spawn("world", new Vector3(0,-47,0), EulerAngles.CreateFromDegrees(0,0,0));
+        Spawn("alexandra", new Vector3(0,-1,0), EulerAngles.CreateFromDegrees(0,0,0));
+        //Spawn("world", new Vector3(0,-47,0), EulerAngles.CreateFromDegrees(0,0,0));
     }
 
     public void AttachSession(ICommonSession session)

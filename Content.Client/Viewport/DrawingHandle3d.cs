@@ -1,11 +1,11 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 using Content.Client.Utils;
 using Content.Shared.Camera;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Client.Graphics;
 using Robust.Shared.Profiling;
-using Robust.Shared.Threading;
 
 namespace Content.Client.Viewport;
 
@@ -13,8 +13,6 @@ public sealed class DrawingHandle3d : IDisposable
 {
     private bool Disposed { get; set; }
     
-    public readonly IParallelManager Parallel;
-
     private readonly DrawingHandleBase _handleBase;
     public readonly DrawingInstance DrawingInstance;
 
@@ -82,8 +80,8 @@ public sealed class DrawingHandle3d : IDisposable
 
         triangle.Triangle.Transform(ViewMatrix);
         
-        Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.1f), new Vector3(0.0f, 0.0f, 1.0f), triangle, 
-            DrawingInstance, clippingInstance);
+        ClippingInstance.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.1f), new Vector3(0.0f, 0.0f, 1.0f), triangle, 
+            DrawingInstance);
 
         foreach (var texturedTriangle in clippingInstance.Clipping)
         {
@@ -137,33 +135,43 @@ public sealed class DrawingHandle3d : IDisposable
     
     private void FlushScreen(TexturedTriangle triangle)
     {
-        DrawingInstance.DrawVertex3dBuffer[0] = new Vector3(triangle.Triangle.p1.X / _width , triangle.Triangle.p1.Y / _height, triangle.Triangle.p1.Z);
-        DrawingInstance.DrawVertex3dBuffer[1] = new Vector3(triangle.Triangle.p2.X / _width , triangle.Triangle.p2.Y / _height, triangle.Triangle.p2.Z);
-        DrawingInstance.DrawVertex3dBuffer[2] = new Vector3(triangle.Triangle.p3.X / _width , triangle.Triangle.p3.Y / _height, triangle.Triangle.p3.Z);
+        SetVector3Data(ref DrawingInstance.DrawVertex3dBuffer[0], triangle.Triangle.p1.X / _width , triangle.Triangle.p1.Y / _height, triangle.Triangle.p1.Z);
+        SetVector3Data(ref DrawingInstance.DrawVertex3dBuffer[1], triangle.Triangle.p2.X / _width , triangle.Triangle.p2.Y / _height, triangle.Triangle.p2.Z);
+        SetVector3Data(ref DrawingInstance.DrawVertex3dBuffer[2], triangle.Triangle.p3.X / _width , triangle.Triangle.p3.Y / _height, triangle.Triangle.p3.Z);
         
-        DrawingInstance.DrawVertexUntexturedBuffer[0] = new Vector2(triangle.Triangle.p1.X, triangle.Triangle.p1.Y);
-        DrawingInstance.DrawVertexUntexturedBuffer[1] = new Vector2(triangle.Triangle.p2.X, triangle.Triangle.p2.Y);
-        DrawingInstance.DrawVertexUntexturedBuffer[2] = new Vector2(triangle.Triangle.p3.X, triangle.Triangle.p3.Y);
+        SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[0], triangle.Triangle.p1.X, triangle.Triangle.p1.Y);
+        SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[1], triangle.Triangle.p2.X, triangle.Triangle.p2.Y);
+        SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[2], triangle.Triangle.p3.X, triangle.Triangle.p3.Y);
 
         DrawingInstance.DrawVertexTexturePointBuffer[0] = triangle.TexturePoint1;
         DrawingInstance.DrawVertexTexturePointBuffer[1] = triangle.TexturePoint2;
         DrawingInstance.DrawVertexTexturePointBuffer[2] = triangle.TexturePoint3;
-        
-        DrawingInstance.DrawVertexBuffer[0] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[0], DrawingInstance.DrawVertexTexturePointBuffer[0]);
-        DrawingInstance.DrawVertexBuffer[1] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[1], DrawingInstance.DrawVertexTexturePointBuffer[1]);
-        DrawingInstance.DrawVertexBuffer[2] = new DrawVertexUV2D(DrawingInstance.DrawVertexUntexturedBuffer[2],  DrawingInstance.DrawVertexTexturePointBuffer[2]);
+
+        SetDrawVertexUV2D(ref DrawingInstance.DrawVertexBuffer[0], DrawingInstance.DrawVertexUntexturedBuffer[0],
+            DrawingInstance.DrawVertexTexturePointBuffer[0]);
+        SetDrawVertexUV2D(ref DrawingInstance.DrawVertexBuffer[1], DrawingInstance.DrawVertexUntexturedBuffer[1],
+            DrawingInstance.DrawVertexTexturePointBuffer[1]);
+        SetDrawVertexUV2D(ref DrawingInstance.DrawVertexBuffer[2], DrawingInstance.DrawVertexUntexturedBuffer[2],
+            DrawingInstance.DrawVertexTexturePointBuffer[2]);
     }
-    
-    private Vector3 Normal(Vector3 p1, Vector3 p2, Vector3 p3)
+
+    private void SetVector3Data(ref Vector3 vector3, float x, float y, float z)
     {
-        var u = new Vector3(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
-        var v = new Vector3(p3.X - p1.X, p3.Y - p1.Y, p3.Z - p1.Z);
+        vector3.X = x;
+        vector3.Y = y;
+        vector3.Z = z;
+    }
 
-        var nx = u.Y * v.Z - u.Z * v.Y;
-        var ny = u.Z * v.X - u.X * v.Z;
-        var nz = u.X * v.Y - u.Y * v.X;
+    private void SetVector2Data(ref Vector2 vector2, float x, float y)
+    {
+        vector2.X = x;
+        vector2.Y = y;
+    }
 
-        return new Vector3(nx, ny, nz);
+    private void SetDrawVertexUV2D(ref DrawVertexUV2D vertex, in Vector2 position, in Vector2 uv)
+    {
+        vertex.UV = uv;
+        vertex.Position = position;
     }
     
     private Vector3 _curNormal = Vector3.Zero;
@@ -173,10 +181,8 @@ public sealed class DrawingHandle3d : IDisposable
         DrawingInstance.ListTriangles.Clear();
         
         DrawingInstance.ListTriangles.Enqueue(triToRaster);
-        FlushScreen(triToRaster);
-        
-        _curNormal = Normal(DrawingInstance.DrawVertex3dBuffer[0],DrawingInstance.DrawVertex3dBuffer[1],DrawingInstance.DrawVertex3dBuffer[2]);
-        _curNormal = Vector3.Normalize(_curNormal);
+
+        _curNormal = triToRaster.Triangle.Normal();
         
         var nNewTriangles = 1;
 
@@ -191,19 +197,19 @@ public sealed class DrawingHandle3d : IDisposable
                 switch (p)
                 {
                     case 0:
-                        Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, DrawingInstance, ClippingInstance);
+                        ClippingInstance.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, DrawingInstance);
                         nTrisToAdd = ClippingInstance.Clipping.Length;
                         break;
                     case 1:
-                        Triangle.ClipAgainstClip(new Vector3(0.0f, _height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, DrawingInstance, ClippingInstance);
+                        ClippingInstance.ClipAgainstClip(new Vector3(0.0f, _height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, DrawingInstance);
                         nTrisToAdd = ClippingInstance.Clipping.Length;
                         break;
                     case 2:
-                        Triangle.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, DrawingInstance, ClippingInstance);
+                        ClippingInstance.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, DrawingInstance);
                         nTrisToAdd = ClippingInstance.Clipping.Length;
                         break;
                     case 3:
-                        Triangle.ClipAgainstClip(new Vector3(_width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, DrawingInstance, ClippingInstance);
+                        ClippingInstance.ClipAgainstClip(new Vector3(_width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, DrawingInstance);
                         nTrisToAdd = ClippingInstance.Clipping.Length;
                         break;
                 }
@@ -216,7 +222,7 @@ public sealed class DrawingHandle3d : IDisposable
             nNewTriangles = DrawingInstance.ListTriangles.Count;
         }
         
-        foreach (var triangle in DrawingInstance.ListTriangles)
+        foreach (var triangle in DrawingInstance.ListTriangles.Reverse())
         {
             DrawPrimitiveTriangle(triangle);
         }
@@ -244,14 +250,13 @@ public sealed class DrawingHandle3d : IDisposable
         if(!DrawDebug) 
             return;
         
-        _handleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop, DrawingInstance.DrawVertexUntexturedBuffer, Color.Blue);
+        _handleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop, DrawingInstance.DrawVertexUntexturedBuffer, Color.White);
     }
     
 
     public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height, Entity<CameraComponent, Transform3dComponent> camera,
-        DrawingInstance drawingInstance, IParallelManager parallel)
+        DrawingInstance drawingInstance)
     {
-        Parallel = parallel;
         _cameraProperties = new CameraProperties(camera.Comp2.WorldPosition, camera.Comp2.WorldAngle, camera.Comp1.FoV);
         DrawingInstance = drawingInstance;
         _handleBase = handleBase;

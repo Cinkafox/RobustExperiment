@@ -8,7 +8,7 @@ public sealed class SimpleBuffer<T> : IEnumerable<T>
     public readonly T[] Buffer;
     public bool IsInLimit => Length == Limit;
     public readonly int Limit;
-    public int Length { get; set; }
+    public int Length { get; private set; }
     public int Shift { get; private set; }
 
     public T this[int pos]

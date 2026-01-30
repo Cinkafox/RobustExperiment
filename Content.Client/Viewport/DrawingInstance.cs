@@ -5,6 +5,7 @@ using Content.Shared.Thread;
 using Robust.Client.Graphics;
 using Robust.Client.Utility;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Sandboxing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Color = Robust.Shared.Maths.Color;
@@ -22,36 +23,45 @@ public sealed class DrawingInstance
     public readonly Vector2[] DrawVertexTexturePointBuffer = new Vector2[3];
     public readonly DrawVertexUV2D[] DrawVertexBuffer = new DrawVertexUV2D[3];
 
-    public readonly SandboxCreator<ClippingInstance> ClipCreator = new();
-    public readonly ShaderCreator ShaderCreator;
-
     public readonly ClippingInstance ClippingInstance = new();
     public readonly SimpleBuffer<ShaderInstance> ShadersPool;
-
     public readonly ShaderInstance ShaderInstance;
-    
-    public static readonly TriangleZComparer TriangleZComparer = new();
+
+    private static readonly TriangleZComparer TriangleZComparer = new();
 
     public DrawingInstance()
     {
         ShaderInstance = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("ZDepthShader").InstanceUnique();
-        ShaderCreator = new ShaderCreator(ShaderInstance);
+        var shaderCreator = new ShaderCreator(ShaderInstance);
 
         ShadersPool = new SimpleBuffer<ShaderInstance>(1024*128);
         for (var i = 0; i < ShadersPool.Buffer.Length; i++)
         {
-            ShadersPool.Buffer[i] = ShaderCreator.Create();
+            ShadersPool.Buffer[i] = shaderCreator.Create();
         }
 
         for (var i = 0; i < TriangleBuffer.Buffer.Length; i++)
         {
             TriangleBuffer.Buffer[i] = new TexturedTriangle();
         }
+
+        FillArrays(ref DrawVertex3dBuffer, () => new Vector3());
+        FillArrays(ref DrawVertexUntexturedBuffer, () => new Vector2());
+        FillArrays(ref DrawVertexTexturePointBuffer, () => new Vector2());
+        FillArrays(ref DrawVertexBuffer, () => new DrawVertexUV2D(Vector2.Zero, Vector2.Zero));
     }
 
-    public void AppendTriangle(TexturedTriangle triangle)
+    private void FillArrays<T>(ref T[] array, Func<T> instance)
     {
-        TriangleBuffer.Add(triangle);
+        for (int i = 0; i < array.Length; i++)
+        {
+            array[i] = instance();
+        }
+    }
+    
+    public TexturedTriangle AllocTriangle()
+    {
+        return TriangleBuffer.Take();
     }
     
     public void PrepareFrame()

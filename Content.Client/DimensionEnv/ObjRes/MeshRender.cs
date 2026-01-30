@@ -63,7 +63,7 @@ public sealed class MeshRender
         var vert2 = face.Vertices[i2];
         var vert3 = face.Vertices[i3];
         
-        var currTriangle = handle.DrawingInstance.TriangleBuffer.Take();
+        var currTriangle = handle.DrawingInstance.AllocTriangle();
         
         currTriangle.Triangle.p1 = TranslatedVertexes[vert1.VertexId];
         currTriangle.Triangle.p2 = TranslatedVertexes[vert2.VertexId];
