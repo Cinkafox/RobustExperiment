@@ -18,10 +18,10 @@
         distance: 1
       
 - type: entity
-  id: room
+  id: tnew
   components:
     - type: Model
-      path: "/Models/room/WALAD CHAMBRE.obj"
+      path: "/Models/tnew/tardis_2010.obj"
       
 - type: entity
   id: world
