@@ -79,7 +79,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
     {
         base.Initialize();
         
-        SubscribeLocalEvent<AlexandraAnimationComponent, AnimationCompletedEvent>(OnEnd);
+        SubscribeLocalEvent<Transform3dComponent, AnimationCompletedEvent>(OnEnd);
         SubscribeLocalEvent<AlexandraAnimationComponent, ComponentStartup>(OnInit);
     }
 
@@ -88,7 +88,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
         Play(ent.Owner);
     }
 
-    private void OnEnd(Entity<AlexandraAnimationComponent> ent, ref AnimationCompletedEvent args)
+    private void OnEnd(Entity<Transform3dComponent> ent, ref AnimationCompletedEvent args)
     {
         if(args.Key == "kadeem1") _animationPlayerSystem.Play(ent,Animation1 , "kadeem1");
         if(args.Key == "kadeem2") _animationPlayerSystem.Play(ent,Animation2 , "kadeem2");
@@ -97,6 +97,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
 
     private void Play(EntityUid uid)
     {
+        Log.Info($"PLAY ANIMATION FOR {uid}");
         _animationPlayerSystem.Play(uid, Animation3, "aaa");
    
         var boneEnt = Comp<SkeletonComponent>(uid).Root;
