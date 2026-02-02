@@ -1,6 +1,4 @@
-﻿using Content.Client.DimensionEnv.ObjRes.MTL;
-
-namespace Content.Client.DimensionEnv.ObjRes.Content;
+﻿namespace Content.Client.DimensionEnv.ObjRes.Content;
 
 public sealed class FaceContent : BaseContent
 {
@@ -10,7 +8,7 @@ public sealed class FaceContent : BaseContent
     {
         var len = args.Length - argStart;
         if (len < 3)
-            throw new Exception("FUCKING BITCH! "+args.Length + " " + argStart);
+            throw new Exception($"Error while parsing face! Count of dots less that 3. Current value: {len}");
         Face = new Face(len);
         
         for (int i = argStart; i < args.Length; i++)
@@ -39,7 +37,7 @@ public sealed class FaceContent : BaseContent
     public int Parse(string arg)
     {
         var value = int.Parse(arg);
-        if (value <= 0) throw new Exception("FUCKCKCKFF");
+        if (value <= 0) throw new Exception("Error while parsing face.");
         return value;
     }
 }

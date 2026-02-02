@@ -1,15 +1,11 @@
 ﻿using System.Collections;
-using Robust.Shared.Sandboxing;
 
 namespace Content.Client.Utils;
 
 public sealed class SimpleBuffer<T> : IEnumerable<T>
 {
-    public readonly T[] Buffer;
-    public bool IsInLimit => Length == Limit;
-    public readonly int Limit;
+    private readonly T[] _buffer;
     public int Length { get; private set; }
-    public int Shift { get; private set; }
 
     public T this[int pos]
     {
@@ -19,43 +15,81 @@ public sealed class SimpleBuffer<T> : IEnumerable<T>
 
     public SimpleBuffer(int limit)
     {
-        Buffer = new T[limit];
-        Limit = limit;
+        _buffer = new T[limit];
     }
 
     public void Add(T obj)
     {
-        Buffer[Shift + Length] = obj;
+        _buffer[Length] = obj;
         Length++;
     }
-
-    public T Pop()
-    {
-        var obj = Buffer[Shift];
-        Shift++;
-        Length--;
-        return obj;
-    }
-
+    
     public T Get(int pos)
     {
-        return Buffer[Shift + pos];
+        return _buffer[pos];
     }
 
     public void Set(int pos, T obj)
     {
-        Buffer[Shift + pos] = obj;
+        _buffer[pos] = obj;
+    }
+
+    public void Clear()
+    {
+        Length = 0;
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        for (int i = 0; i < Length; i++)
+        {
+            yield return _buffer[i];
+        }
+    }
+    
+    public void Sort(IComparer<T>? comparer = null)
+    {
+        Array.Sort(_buffer, 0, Length, comparer);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+
+public sealed class SimplePool<T> : IEnumerable<T>
+{
+    private readonly T[] _buffer;
+    public int Length { get; private set; }
+    
+    private readonly Func<T> _factory;
+    
+    public SimplePool(int limit, Func<T> factory, bool init = false)
+    {
+        _buffer = new T[limit];
+        _factory = factory;
+
+        if(!init) return;
+        
+        for (var i = 0; i < limit; i++)
+        {
+            _buffer[i] = factory();
+        }
+    }
+    
+    public void Add(T obj)
+    {
+        _buffer[Length] = obj;
+        Length++;
     }
     
     public T Take()
     {
-        var realId = Shift + Length;
-        var objectSelected = Buffer[realId];
+        var objectSelected = _buffer[Length];
 
         if (objectSelected == null)
         {
-            objectSelected = (T)IoCManager.Resolve<ISandboxHelper>().CreateInstance(typeof(T));
-            Buffer[realId] = objectSelected;
+            objectSelected = _factory();
+            _buffer[Length] = objectSelected;
         }
         
         Length++;
@@ -65,19 +99,13 @@ public sealed class SimpleBuffer<T> : IEnumerable<T>
     public void Clear()
     {
         Length = 0;
-        Shift = 0;
     }
     
-    public void Sort(IComparer<T>? comparer = null)
-    {
-        Array.Sort(Buffer, Shift, Length, comparer);
-    }
-
     public IEnumerator<T> GetEnumerator()
     {
         for (int i = 0; i < Length; i++)
         {
-            yield return Buffer[Shift + i];
+            yield return _buffer[i];
         }
     }
 

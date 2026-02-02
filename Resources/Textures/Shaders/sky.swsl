@@ -18,7 +18,7 @@ void fragment() {
     highp vec2 xy = FRAGCOORD.xy * SCREEN_PIXEL_SIZE.xy;
     highp vec2 uv = (-1.0 + 2.0 * xy) * vec2(aspect.x/aspect.y,1.0);
     
-    highp vec3 cw = normalize(vec3(cameraDir.y,0,cameraDir.x));
+    highp vec3 cw = normalize(vec3(-cameraDir.y,0,cameraDir.x));
     highp vec3 cp = vec3(0.0,1.0,0.0);
     highp vec3 cu = cross(cw,cp);
     highp vec3 cv = cross(cu,cw);

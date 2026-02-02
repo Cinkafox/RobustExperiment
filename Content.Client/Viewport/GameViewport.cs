@@ -30,15 +30,19 @@ public sealed class GameViewport : Control
     private DebugSystem _debug = default!;
 
     private readonly Label _info;
-    private readonly ShaderInstance SkyInstance;
+    private readonly ShaderInstance _skyInstance;
+    
+    public readonly DrawingInstance DrawingInstance;
     
     public GameViewport()
     {
         IoCManager.InjectDependencies(this);
         RectClipContent = true;
+        DrawingInstance = new DrawingInstance(_prototypeManager);
+        
         _info = new Label();
         _userInterfaceManager.OnScreenChanged += UserInterfaceManagerOnOnScreenChanged;
-        SkyInstance = _prototypeManager.Index<ShaderPrototype>("SkyShader").InstanceUnique();
+        _skyInstance = _prototypeManager.Index<ShaderPrototype>("SkyShader").InstanceUnique();
     }
 
     private void UserInterfaceManagerOnOnScreenChanged((UIScreen? Old, UIScreen? New) obj)
@@ -46,17 +50,15 @@ public sealed class GameViewport : Control
         obj.New?.AddChild(_info);
         _debug = _entityManager.System<DebugSystem>();
     }
-
-    public readonly DrawingInstance DrawingInstance = new();
-
+    
     private void DrawSkyBox(DrawingHandleScreen handle)
     {
         if(!TryGetCamera(out var camera)) 
             return;
 
-        SkyInstance.SetParameter("cameraDir", camera.Value.Comp2.WorldAngle.ToVec());
+        _skyInstance.SetParameter("cameraDir", camera.Value.Comp2.WorldAngle.ToVec());
         
-        handle.UseShader(SkyInstance);
+        handle.UseShader(_skyInstance);
         handle.DrawRect(PixelRect, Color.White);
         handle.UseShader(null);
     }
@@ -129,7 +131,7 @@ public sealed class GameViewport : Control
             }
         }
 
-        _info.Text = $"                  Triangles: {DrawingInstance.TriangleBuffer.Length}, Textures pool: {DrawingInstance.TextureBuffer.Length}";
+        _info.Text = $"                  Triangles: {DrawingInstance.GetDrawnTriangles()}, Textures pool: {DrawingInstance.TextureBuffer.Length}";
 
         using (_profManager.Group("Flush"))
         {

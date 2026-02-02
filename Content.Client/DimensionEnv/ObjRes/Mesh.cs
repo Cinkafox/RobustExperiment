@@ -8,7 +8,7 @@ namespace Content.Client.DimensionEnv.ObjRes;
 
 public sealed class Mesh
 {
-    public List<Vector3> Vertexes = new();
+    public List<Vector4> Vertexes = new();
     public List<Vector3> Normals = new();
     public List<Face> Faces = new();
     public List<Vector2> TextureCoords = new();

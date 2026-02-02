@@ -15,12 +15,12 @@ public sealed class MeshRender
     {
         Mesh = mesh;
         TextureBufferCoord = textureBufferCoord;
-        _translatedVertexes = new Vector3[mesh.Vertexes.Count];
+        _translatedVertexes = new Vector4[mesh.Vertexes.Count];
     }
 
-    private readonly Vector3[] _translatedVertexes;
+    private readonly Vector4[] _translatedVertexes;
 
-    public Vector3[] TranslatedVertexes
+    public Vector4[] TranslatedVertexes
     {
         get
         {
@@ -31,9 +31,9 @@ public sealed class MeshRender
 
     private void TranslateMesh()
     {
-        for (int i = 0; i < Mesh.Vertexes.Count; i++)
+        for (var i = 0; i < Mesh.Vertexes.Count; i++)
         {
-            _translatedVertexes[i] = Vector3.Transform(Mesh.Vertexes[i], Transform);
+            _translatedVertexes[i] = Vector4.Transform(Mesh.Vertexes[i], Transform);
         }
 
         IsMeshTranslated = true;
@@ -62,9 +62,9 @@ public sealed class MeshRender
         var vert1 = face.Vertices[i1];
         var vert2 = face.Vertices[i2];
         var vert3 = face.Vertices[i3];
-        
-        var currTriangle = handle.DrawingInstance.AllocTriangle();
-        
+
+        var currTriangle = handle.DrawingInstance.TriangleBuffer.Take();
+
         currTriangle.Triangle.p1 = TranslatedVertexes[vert1.VertexId];
         currTriangle.Triangle.p2 = TranslatedVertexes[vert2.VertexId];
         currTriangle.Triangle.p3 = TranslatedVertexes[vert3.VertexId];

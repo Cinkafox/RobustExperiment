@@ -17,7 +17,7 @@ public sealed class BoneSystem : EntitySystem
     private void OnBoneInit(Entity<Shared.Bone.BoneComponent> ent, ref ComponentInit args)
     {
         var transform = Comp<Transform3dComponent>(ent);
-        ent.Comp.OriginalPosition = transform.WorldPosition;
+        ent.Comp.OriginalPosition = new Vector4(transform.WorldPosition, 1f);
         ent.Comp.OriginalRotation = transform.WorldAngle;
     }
 
@@ -76,7 +76,7 @@ public sealed class BoneSystem : EntitySystem
             mesh.TranslatedVertexes[data.BoneIndices] += entity.Comp.OriginalPosition;
             
             mesh.TranslatedVertexes[data.BoneIndices] +=
-                (boneTransform.WorldPosition - entity.Comp.OriginalPosition) * data.BoneWeights;
+                (new Vector4(boneTransform.WorldPosition, 1f) - entity.Comp.OriginalPosition) * data.BoneWeights;
         }
 
         foreach (var child in entity.Comp.Childs)

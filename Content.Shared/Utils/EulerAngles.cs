@@ -72,6 +72,11 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
         return Vector3.Transform(pos, Matrix);
     }
     
+    public Vector4 RotateVec(Vector4 pos)
+    {
+        return Vector4.Transform(pos, Matrix);
+    }
+    
     public Quaternion ToQuaternion()
     {
         var pitchRad = Pitch.Theta;

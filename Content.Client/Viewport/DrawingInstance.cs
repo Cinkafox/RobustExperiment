@@ -1,11 +1,9 @@
 ﻿using System.Numerics;
 using Content.Client.DimensionEnv.ObjRes.MTL;
 using Content.Client.Utils;
-using Content.Shared.Thread;
 using Robust.Client.Graphics;
 using Robust.Client.Utility;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Sandboxing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Color = Robust.Shared.Maths.Color;
@@ -14,36 +12,27 @@ namespace Content.Client.Viewport;
 
 public sealed class DrawingInstance
 {
-    public readonly SimpleBuffer<TexturedTriangle> TriangleBuffer = new(8192*128);
     public readonly Queue<TexturedTriangle> ListTriangles = new();
-
-    public readonly SimpleBuffer<Texture> TextureBuffer = new(64*32);
+    
     public readonly Vector3[] DrawVertex3dBuffer = new Vector3[3];
     public readonly Vector2[] DrawVertexUntexturedBuffer = new Vector2[3];
     public readonly Vector2[] DrawVertexTexturePointBuffer = new Vector2[3];
     public readonly DrawVertexUV2D[] DrawVertexBuffer = new DrawVertexUV2D[3];
 
     public readonly ClippingInstance ClippingInstance = new();
-    public readonly SimpleBuffer<ShaderInstance> ShadersPool;
+    public readonly SimplePool<ShaderInstance> ShadersPool;
     public readonly ShaderInstance ShaderInstance;
 
+    public readonly SimplePool<TexturedTriangle> TriangleBuffer = new(8192*128, () => new TexturedTriangle());
+    public readonly SimpleBuffer<Texture> TextureBuffer = new(64*32);
+    
+    private readonly SimpleBuffer<TexturedTriangle> _drawnBuffer = new(8192*128);
     private static readonly TriangleZComparer TriangleZComparer = new();
 
-    public DrawingInstance()
+    public DrawingInstance(IPrototypeManager prototypeManager)
     {
-        ShaderInstance = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("ZDepthShader").InstanceUnique();
-        var shaderCreator = new ShaderCreator(ShaderInstance);
-
-        ShadersPool = new SimpleBuffer<ShaderInstance>(1024*128);
-        for (var i = 0; i < ShadersPool.Buffer.Length; i++)
-        {
-            ShadersPool.Buffer[i] = shaderCreator.Create();
-        }
-
-        for (var i = 0; i < TriangleBuffer.Buffer.Length; i++)
-        {
-            TriangleBuffer.Buffer[i] = new TexturedTriangle();
-        }
+        ShaderInstance = prototypeManager.Index<ShaderPrototype>("ZDepthShader").InstanceUnique();
+        ShadersPool = new SimplePool<ShaderInstance>(1024*128, () => ShaderInstance.Duplicate(), true);
 
         FillArrays(ref DrawVertex3dBuffer, () => new Vector3());
         FillArrays(ref DrawVertexUntexturedBuffer, () => new Vector2());
@@ -58,15 +47,25 @@ public sealed class DrawingInstance
             array[i] = instance();
         }
     }
-    
-    public TexturedTriangle AllocTriangle()
+
+    public void AddTriangleDrawn(TexturedTriangle triangle)
     {
-        return TriangleBuffer.Take();
+        _drawnBuffer.Add(triangle);
+    }
+
+    public IEnumerable<TexturedTriangle> EnumerateDrawnTriangles()
+    {
+        return _drawnBuffer;
+    }
+
+    public int GetDrawnTriangles()
+    {
+        return _drawnBuffer.Length;
     }
     
     public void PrepareFrame()
     {
-        TriangleBuffer.Sort(TriangleZComparer);
+        _drawnBuffer.Sort(TriangleZComparer);
     }
 
     public int AllocTexture(List<Material> materials)
@@ -90,6 +89,8 @@ public sealed class DrawingInstance
     public void Flush()
     {
         TriangleBuffer.Clear();
+        _drawnBuffer.Clear();
+        ShadersPool.Clear();
     }
 }
 

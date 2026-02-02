@@ -13,8 +13,8 @@ public sealed class CameraSystem : EntitySystem
         CommandBinds.Builder
             .Bind(EngineKeyFunctions.MoveUp, new GoInputHandler(new Vector3(0, 0, -4)))
             .Bind(EngineKeyFunctions.MoveDown, new GoInputHandler(new Vector3(0, 0, 4)))
-            .Bind(EngineKeyFunctions.MoveLeft, new AngleInputHandler(new EulerAngles(0, Angle.FromDegrees(100),0)))
-            .Bind(EngineKeyFunctions.MoveRight, new AngleInputHandler(new EulerAngles(0, Angle.FromDegrees(-100),0)))
+            .Bind(EngineKeyFunctions.MoveLeft, new AngleInputHandler(new EulerAngles(0, Angle.FromDegrees(-100),0)))
+            .Bind(EngineKeyFunctions.MoveRight, new AngleInputHandler(new EulerAngles(0, Angle.FromDegrees(100),0)))
             .Register<CameraSystem>();
     }
 

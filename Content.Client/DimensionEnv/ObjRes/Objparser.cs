@@ -25,7 +25,7 @@ public sealed class Objparser
             }
             catch (Exception e)
             {
-                throw new Exception("WE ARE DOOMED IN LINE " + line, e);
+                throw new Exception("Exception was thrown in line " + line, e);
             }
         }
     }
@@ -41,19 +41,19 @@ public sealed class Objparser
         switch (splited[0])
         {
             case "v":
-                Contents.Add(new VertexContent(splited,argContent));
+                Contents.Add(new VertexContent(splited, argContent));
                 break;
             case "f":
-                Contents.Add(new FaceContent(splited,argContent));
+                Contents.Add(new FaceContent(splited, argContent));
                 break;
             case "vt":
-                Contents.Add(new TexturePosContent(splited,argContent));
+                Contents.Add(new TexturePosContent(splited, argContent));
                 break;
             case "vn":
-                Contents.Add(new NormalContent(splited,argContent));
+                Contents.Add(new NormalContent(splited, argContent));
                 break;
             case "mtllib":
-                Contents.Add(new MtlLoadContent(splited,argContent, Path));
+                Contents.Add(new MtlLoadContent(splited, argContent, Path));
                 break;
             case "usemtl":
                 Contents.Add(new MaterialContent(splited, argContent));

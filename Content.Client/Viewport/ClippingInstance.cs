@@ -5,8 +5,8 @@ namespace Content.Client.Viewport;
 
 public sealed class ClippingInstance
 {
-    public readonly SimpleBuffer<Vector3> InsidePoints = new(3);
-    public readonly SimpleBuffer<Vector3> OutsidePoints = new(3);
+    public readonly SimpleBuffer<Vector4> InsidePoints = new(3);
+    public readonly SimpleBuffer<Vector4> OutsidePoints = new(3);
     public readonly SimpleBuffer<Vector2> InsideTex = new(3);
     public readonly SimpleBuffer<Vector2> OutsideTex = new(3);
     public readonly SimpleBuffer<TexturedTriangle> Clipping = new(2);
@@ -31,9 +31,9 @@ public sealed class ClippingInstance
             return Vector3.Dot(planeN, p - planeP);
         }
         
-        var d0 = dist(inTri.Triangle.p1);
-        var d1 = dist(inTri.Triangle.p2);
-        var d2 = dist(inTri.Triangle.p3);
+        var d0 = dist(inTri.Triangle.GetP1());
+        var d1 = dist(inTri.Triangle.GetP2());
+        var d2 = dist(inTri.Triangle.GetP3());
         
         if (d0 >= 0) { InsidePoints.Add(inTri.Triangle.p1); InsideTex.Add(inTri.TexturePoint1);}
         else { OutsidePoints.Add(inTri.Triangle.p1); OutsideTex.Add(inTri.TexturePoint1);}
@@ -50,7 +50,7 @@ public sealed class ClippingInstance
         
         if (InsidePoints.Length == 1 && OutsidePoints.Length == 2)
         {
-            var outTri1 = drawingInstance.AllocTriangle();
+            var outTri1 = drawingInstance.TriangleBuffer.Take();
             
             outTri1.TextureId = inTri.TextureId;
             
@@ -71,8 +71,8 @@ public sealed class ClippingInstance
 
         if (InsidePoints.Length == 2 && OutsidePoints.Length == 1)
         {
-            var outTri1 = drawingInstance.AllocTriangle();
-            var outTri2 = drawingInstance.AllocTriangle();
+            var outTri1 = drawingInstance.TriangleBuffer.Take();
+            var outTri2 = drawingInstance.TriangleBuffer.Take();
             outTri1.TextureId = inTri.TextureId;
             outTri2.TextureId = inTri.TextureId;
             
@@ -97,16 +97,51 @@ public sealed class ClippingInstance
         }
     }
     
-    public static Vector3 IntersectPlane(Vector3 plane_p, Vector3 plane_n, Vector3 lineStart, Vector3 lineEnd, out float t)
+    public static Vector4 IntersectPlane(Vector3 plane_p, Vector3 plane_n, Vector4 lineStart, Vector4 lineEnd, out float t)
     {
         plane_n = Vector3.Normalize(plane_n);
+        var plane_d = -Vector3.Dot(plane_n, plane_p);
         
-        float plane_d = -Vector3.Dot(plane_n, plane_p);
-        float ad = Vector3.Dot(lineStart, plane_n);
-        float bd = Vector3.Dot(lineEnd, plane_n);
-        t = (-plane_d - ad) / (bd - ad);
-        var lineStartToEnd = Vector3.Subtract(lineEnd, lineStart);
-        var lineToIntersect = Vector3.Multiply(lineStartToEnd, t);
-        return Vector3.Add(lineStart, lineToIntersect);
+        var p0 = (Math.Abs(lineStart.W) > 1e-6f) 
+            ? new Vector3(lineStart.X / lineStart.W, lineStart.Y / lineStart.W, lineStart.Z / lineStart.W) 
+            : new Vector3(lineStart.X, lineStart.Y, lineStart.Z);
+        
+        var p1 = (Math.Abs(lineEnd.W) > 1e-6f) 
+            ? new Vector3(lineEnd.X / lineEnd.W, lineEnd.Y / lineEnd.W, lineEnd.Z / lineEnd.W) 
+            : new Vector3(lineEnd.X, lineEnd.Y, lineEnd.Z);
+        
+        var dist0 = Vector3.Dot(p0, plane_n) + plane_d;
+        var dist1 = Vector3.Dot(p1, plane_n) + plane_d;
+        
+        var denom = dist1 - dist0;
+        if (Math.Abs(denom) < 1e-6f)
+        {
+            t = 0.0f;
+            return Vector4.Zero; 
+        }
+        
+        t = -dist0 / denom;
+        
+        var intersectCartesian = p0 + (p1 - p0) * t;
+
+        float wResult;
+        if (Math.Abs(lineStart.W) > 1e-6f && Math.Abs(lineEnd.W) > 1e-6f)
+        {
+            var invW0 = 1.0f / lineStart.W;
+            var invW1 = 1.0f / lineEnd.W;
+            var invWResult = (1.0f - t) * invW0 + t * invW1;
+            wResult = (Math.Abs(invWResult) > 1e-6f) ? 1.0f / invWResult : 1.0f;
+        }
+        else
+        {
+            wResult = 1.0f;
+        }
+        
+        return new Vector4(
+            intersectCartesian.X * wResult,
+            intersectCartesian.Y * wResult,
+            intersectCartesian.Z * wResult,
+            wResult
+        );
     }
 }

@@ -12,12 +12,12 @@ highp float calculateZ(highp vec2 xy, highp vec3 p1, highp vec3 normal) {
 void fragment() {
     highp vec4 texCol = zTexture(UV);
 
-    highp vec3 lightDir = vec3(-1,-1,0);
+    highp vec3 lightDir = vec3(-2,3,0);
     highp vec3 direction = normalize(lightDir);
 
     // Compute the diffuse component using the dot product
     highp float diff = max(dot(normal, direction), 0.0);
-    highp vec3 diffuse = diff * vec3(1,1,1) * vec3(0.25) + vec3(0.2);
+    highp vec3 diffuse = diff * vec3(1,1,1) * vec3(1) + vec3(0.3);
 
     COLOR = vec4(texCol.xyz * diffuse, texCol.w);
 }

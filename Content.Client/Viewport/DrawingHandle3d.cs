@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using Content.Client.Utils;
 using Content.Shared.Camera;
 using Content.Shared.Transform;
@@ -28,87 +27,70 @@ public sealed class DrawingHandle3d : IDisposable
 
     private Matrix4x4 ViewMatrix { get; }
     private Matrix4x4 ProjectionMatrix { get; }
-
-    private Vector3 ToScreenVec(Vector3 vertex)
+    private Matrix4x4 ViewProjectionMatrix { get; } 
+    
+    private Vector3 ToScreenVec(Vector4 clipPos)
     {
-        var vertex2D = new Vector2(vertex.X / vertex.Z, vertex.Y / vertex.Z);
+        if (MathF.Abs(clipPos.W) < 1e-6f)
+            return Vector3.Zero;
         
-        var screenX = (vertex2D.X + 1.0f) * 0.5f * _width;
-        var screenY = (1.0f - vertex2D.Y) * 0.5f * _height;
-        return new Vector3(screenX,screenY, vertex.Z);
+        var ndcX = clipPos.X / clipPos.W;
+        var ndcY = clipPos.Y / clipPos.W;
+        var ndcZ = clipPos.Z / clipPos.W;
+        
+        var screenX = (ndcX + 1.0f) * 0.5f * _width;
+        var screenY = (ndcY + 1.0f) * 0.5f * _height; 
+        
+        return new Vector3(screenX, screenY, ndcZ);
     }
 
     public void DrawCircle(Vector3 position, float radius, Color color, bool filled = true)
     {
         var camPos = _cameraProperties.Position;
-
         var diff = camPos - position;
         var distance = diff.Length();
-
+        
+        if (distance < 0.1f) return;
+        
         radius /= distance;
         
-        position = Vector3.Transform(position, ViewMatrix * ProjectionMatrix);
-
-        position.X *= -1;
-        position.Y *= -1;
+        var clipPos = Vector4.Transform(new Vector4(position, 1.0f), ViewProjectionMatrix);
         
-        if (position.Z > 0)
-        {
+        if (clipPos.Z < -clipPos.W || clipPos.Z > clipPos.W || 
+            clipPos.X < -clipPos.W || clipPos.X > clipPos.W ||
+            clipPos.Y < -clipPos.W || clipPos.Y > clipPos.W)
             return;
-        }
-        
-        position = ToScreenVec(position);
-        
-        _handleBase.DrawCircle(new Vector2(position.X, position.Y), radius, color, filled);
+            
+        var screenPos = ToScreenVec(clipPos);
+        _handleBase.DrawCircle(new Vector2(screenPos.X, screenPos.Y), radius, color, filled);
     }
-
+    
     public void DrawPolygon(TexturedTriangle triangle)
-    {
-        DrawPolygon(triangle, ClippingInstance);
-    }
-
-    private void DrawPolygon(TexturedTriangle triangle, ClippingInstance clippingInstance)
     {
         CheckDisposed();
         
-        var normal = triangle.Triangle.Normal();
-        normal = Vector3.Normalize(normal);
-        var vCameraRay = Vector3.Normalize(triangle.Triangle.p1 - _cameraProperties.Position);
-        
+        var normal = Vector3.Normalize(triangle.Triangle.Normal());
+        var vCameraRay = Vector3.Normalize(triangle.Triangle.GetP1() - _cameraProperties.Position);
         if (Vector3.Dot(normal, vCameraRay) >= 0f)
             return;
-
+        
         triangle.Triangle.Transform(ViewMatrix);
         
-        ClippingInstance.ClipAgainstClip(new Vector3(0.0f, 0.0f, 0.1f), new Vector3(0.0f, 0.0f, 1.0f), triangle, 
+        ClippingInstance.ClipAgainstClip(
+            new Vector3(0.0f, 0.0f, 0.1f), 
+            new Vector3(0.0f, 0.0f, 1.0f), 
+            triangle, 
             DrawingInstance);
 
-        foreach (var texturedTriangle in clippingInstance.Clipping)
+        foreach (var clippedTriangle in ClippingInstance.Clipping)
         {
-            triangle.Triangle.p1 = Vector3.Transform(texturedTriangle.Triangle.p1, ProjectionMatrix);
-            triangle.Triangle.p2 = Vector3.Transform(texturedTriangle.Triangle.p2, ProjectionMatrix);
-            triangle.Triangle.p3 = Vector3.Transform(texturedTriangle.Triangle.p3, ProjectionMatrix);
-            triangle.TexturePoint1 = texturedTriangle.TexturePoint1;
-            triangle.TexturePoint2 = texturedTriangle.TexturePoint2;
-            triangle.TexturePoint3 = texturedTriangle.TexturePoint3;
-        
-            triangle.TexturePoint1.X /= triangle.Triangle.p1w;
-            triangle.TexturePoint2.X /= triangle.Triangle.p2w;
-            triangle.TexturePoint3.X /= triangle.Triangle.p3w;
-            triangle.TexturePoint1.Y /= triangle.Triangle.p1w;
-            triangle.TexturePoint2.Y /= triangle.Triangle.p2w;
-            triangle.TexturePoint3.Y /= triangle.Triangle.p3w;
+            clippedTriangle.Triangle.Transform(ProjectionMatrix);
             
-            triangle.Triangle.p1.X *= -1;
-            triangle.Triangle.p2.X *= -1;
-            triangle.Triangle.p3.X *= -1;
-            triangle.Triangle.p1.Y *= -1;
-            triangle.Triangle.p2.Y *= -1;
-            triangle.Triangle.p3.Y *= -1;
+            clippedTriangle.Triangle.SetP1(ToScreenVec(clippedTriangle.Triangle.p1));
+            clippedTriangle.Triangle.SetP2(ToScreenVec(clippedTriangle.Triangle.p2));
+            clippedTriangle.Triangle.SetP3(ToScreenVec(clippedTriangle.Triangle.p3));
             
-            triangle.Triangle.p1 = ToScreenVec(triangle.Triangle.p1);
-            triangle.Triangle.p2 = ToScreenVec(triangle.Triangle.p2);
-            triangle.Triangle.p3 = ToScreenVec(triangle.Triangle.p3);
+            DrawingInstance.AddTriangleDrawn(clippedTriangle);
         }
     }
     
@@ -119,7 +101,7 @@ public sealed class DrawingHandle3d : IDisposable
         
         using(profManager.Group("draw_frame"))
         {
-            foreach (var triToRaster in DrawingInstance.TriangleBuffer)
+            foreach (var triToRaster in DrawingInstance.EnumerateDrawnTriangles())
             {
                 DrawPrimitiveTriangleWithClipping(triToRaster);
             }
@@ -128,7 +110,6 @@ public sealed class DrawingHandle3d : IDisposable
         using(profManager.Group("flush_frame"))
         {
             DrawingInstance.Flush();
-            DrawingInstance.ShadersPool.Clear();
         }
         Dispose();
     }
@@ -222,7 +203,7 @@ public sealed class DrawingHandle3d : IDisposable
             nNewTriangles = DrawingInstance.ListTriangles.Count;
         }
         
-        foreach (var triangle in DrawingInstance.ListTriangles.Reverse())
+        foreach (var triangle in DrawingInstance.ListTriangles)
         {
             DrawPrimitiveTriangle(triangle);
         }
@@ -235,7 +216,7 @@ public sealed class DrawingHandle3d : IDisposable
         
         if(DrawLighting)
         {
-            var shaderInst = DrawingInstance.ShadersPool.Pop();
+            var shaderInst = DrawingInstance.ShadersPool.Take();
             shaderInst.SetParameter("normal", _curNormal);
             shaderInst.SetParameter("p1", DrawingInstance.DrawVertex3dBuffer[0]);
             
@@ -272,19 +253,24 @@ public sealed class DrawingHandle3d : IDisposable
         var yaxis = new Vector3(sinPitch * sinPitch, cosPitch, cosYaw * sinPitch);
         var zaxis = new Vector3(sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw);
         
-        ViewMatrix = new Matrix4x4(xaxis.X,            yaxis.X,            zaxis.X,      0, 
-           xaxis.Y,            yaxis.Y,            zaxis.Y,      0,
-            xaxis.Z,            yaxis.Z,            zaxis.Z,      0, 
-            -Vector3.Dot(xaxis,_cameraProperties.Position),
-                -Vector3.Dot(yaxis,_cameraProperties.Position),
-                -Vector3.Dot(zaxis,_cameraProperties.Position), 1);
+        ViewMatrix = new Matrix4x4(
+            xaxis.X, yaxis.X, zaxis.X, 0,
+            xaxis.Y, yaxis.Y, zaxis.Y, 0,
+            xaxis.Z, yaxis.Z, zaxis.Z, 0,
+            -Vector3.Dot(xaxis, _cameraProperties.Position),
+            -Vector3.Dot(yaxis, _cameraProperties.Position),
+            -Vector3.Dot(zaxis, _cameraProperties.Position),
+            1
+        );
         
         ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
             MathF.PI / _cameraProperties.FoV,
-            _width/_height,
+            _width / _height,
             0.1f, 
             100.0f
         );
+        
+        ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
 
         DrawingInstance.ShaderInstance.SetParameter("cameraPos", _cameraProperties.Position);
     }
