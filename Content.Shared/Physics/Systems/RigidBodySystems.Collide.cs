@@ -101,7 +101,11 @@ public sealed partial class RigidBodySystem
         if (velocityAlongNormal > 0f) return;
         
         const float restitution = 0.3f;
-        const float friction = 0.8f;
+        var (staticFriction, dynamicFriction) = GetCombinedFriction(
+            bodyA.SurfaceMaterial, bodyB.SurfaceMaterial);
+        
+        staticFriction = MathF.Min(staticFriction, bodyA.StaticFriction * bodyB.StaticFriction);
+        dynamicFriction = MathF.Min(dynamicFriction, bodyA.DynamicFriction * bodyB.DynamicFriction);
         
         float invMassA = (bodyA.PhysType == PhysType.Dynamic) ? 1f / bodyA.Mass : 0f;
         float invMassB = (bodyB.PhysType == PhysType.Dynamic) ? 1f / bodyB.Mass : 0f;
@@ -121,7 +125,7 @@ public sealed partial class RigidBodySystem
         if (tangent.Length() > 0.001f)
         {
             tangent = Vector3.Normalize(tangent);
-            var frictionImpulse = tangent * (-velocityAlongNormal * friction);
+            var frictionImpulse = tangent * (-velocityAlongNormal * staticFriction);
             
             if (bodyA.PhysType == PhysType.Dynamic)
                 bodyA.LinearVelocity -= frictionImpulse * invMassA;

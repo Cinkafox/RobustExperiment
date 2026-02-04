@@ -1,4 +1,4 @@
-﻿- type: Surface
+﻿- type: surface
   id: default
   defaultFriction:
     static: 0.8

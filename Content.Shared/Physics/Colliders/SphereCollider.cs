@@ -1,5 +1,4 @@
-﻿using Content.Shared.Physics.Components;
-using Content.Shared.Physics.Data;
+﻿using Content.Shared.Physics.Data;
 using PlaneShape = Content.Shared.Physics.Shapes.PlaneShape;
 using SphereShape = Content.Shared.Physics.Shapes.SphereShape;
 

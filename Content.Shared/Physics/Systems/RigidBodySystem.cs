@@ -35,7 +35,7 @@ public sealed partial class RigidBodySystem : EntitySystem
         SimulateStep(frameTime);
     }
 
-    public FrictionData GetCombinedFriction(ProtoId<SurfacePrototype> surfaceA, ProtoId<SurfacePrototype> surfaceB)
+    public (float, float ) GetCombinedFriction(ProtoId<SurfacePrototype> surfaceA, ProtoId<SurfacePrototype> surfaceB)
     {
         if (!_prototypeManager.TryIndex(surfaceA, out var prototypeA) ||
             !_prototypeManager.TryIndex(surfaceB, out var prototypeB))
@@ -44,7 +44,7 @@ public sealed partial class RigidBodySystem : EntitySystem
         var aFriction = prototypeA.DefaultFriction;
         var bFriction = prototypeB.DefaultFriction;
         
-        return new FrictionData(
+        return (
             MathF.Sqrt(aFriction.StaticFriction * bFriction.StaticFriction),
             MathF.Sqrt(aFriction.DynamicFriction * bFriction.DynamicFriction)
         );
