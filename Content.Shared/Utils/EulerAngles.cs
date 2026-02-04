@@ -83,12 +83,12 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
         var yawRad = Yaw.Theta;
         var rollRad = Roll.Theta;
         
-        float cy = (float)Math.Cos(yawRad * 0.5);
-        float sy = (float)Math.Sin(yawRad * 0.5);
-        float cp = (float)Math.Cos(pitchRad * 0.5);
-        float sp = (float)Math.Sin(pitchRad * 0.5);
-        float cr = (float)Math.Cos(rollRad * 0.5);
-        float sr = (float)Math.Sin(rollRad * 0.5);
+        var cy = (float)Math.Cos(yawRad * 0.5);
+        var sy = (float)Math.Sin(yawRad * 0.5);
+        var cp = (float)Math.Cos(pitchRad * 0.5);
+        var sp = (float)Math.Sin(pitchRad * 0.5);
+        var cr = (float)Math.Cos(rollRad * 0.5);
+        var sr = (float)Math.Sin(rollRad * 0.5);
 
         var q = new Quaternion
         {
@@ -100,6 +100,8 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
 
         return q;
     }
+    
+    public EulerAngles Conjugate => Quaternion.Conjugate(ToQuaternion()).ToEulerAngle();
 }
 
 public static class QuaternionExt
@@ -109,25 +111,25 @@ public static class QuaternionExt
     {
         q = Quaternion.Normalize(q);
         
-        float x = q.X;
-        float y = q.Y;
-        float z = q.Z;
-        float w = q.W;
+        var x = q.X;
+        var y = q.Y;
+        var z = q.Z;
+        var w = q.W;
 
-        float sinr_cosp = 2 * (w * x + y * z);
-        float cosr_cosp = 1 - 2 * (x * x + y * y);
-        float roll = (float)Math.Atan2(sinr_cosp, cosr_cosp);
+        var sinr_cosp = 2 * (w * x + y * z);
+        var cosr_cosp = 1 - 2 * (x * x + y * y);
+        var roll = (float)Math.Atan2(sinr_cosp, cosr_cosp);
 
-        float sinp = 2 * (w * y - z * x);
+        var sinp = 2 * (w * y - z * x);
         float pitch;
         if (Math.Abs(sinp) >= 1)
             pitch = (float)Math.CopySign(Math.PI / 2, sinp);
         else
             pitch = (float)Math.Asin(sinp);
 
-        float siny_cosp = 2 * (w * z + x * y);
-        float cosy_cosp = 1 - 2 * (y * y + z * z);
-        float yaw = (float)Math.Atan2(siny_cosp, cosy_cosp);
+        var siny_cosp = 2 * (w * z + x * y);
+        var cosy_cosp = 1 - 2 * (y * y + z * z);
+        var yaw = (float)Math.Atan2(siny_cosp, cosy_cosp);
 
         if (float.IsNaN(pitch)) pitch = 0;
         if (float.IsNaN(yaw)) yaw = 0;

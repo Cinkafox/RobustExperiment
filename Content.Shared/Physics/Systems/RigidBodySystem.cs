@@ -1,8 +1,6 @@
 ﻿using Content.Shared.Debug;
 using Content.Shared.Physics.Components;
-using Content.Shared.Physics.Data;
-using Content.Shared.Transform;
-using Content.Shared.Utils;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Reflection;
 using Robust.Shared.Sandboxing;
 
@@ -13,6 +11,7 @@ public sealed partial class RigidBodySystem : EntitySystem
     [Dependency] private readonly DebugSystem _debugSystem = default!;
     [Dependency] private readonly ISandboxHelper _sandboxHelper = default!;
     [Dependency] private readonly IReflectionManager _reflectionManager = default!;
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     
     public override void Initialize()
     {
@@ -31,49 +30,23 @@ public sealed partial class RigidBodySystem : EntitySystem
         ent.Comp.AngularVelocity += force / ent.Comp.Mass;
     }
 
-    public void Solve(Entity<RigidBodyComponent> ent)
-    {
-        var query = EntityQueryEnumerator<RigidBodyComponent>();
-        while (query.MoveNext(out var uid, out var rigidBodyComponent))
-        {
-            ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0,-0.0025f,0) * rigidBodyComponent.Mass);
-            
-            if(ent.Owner == uid) 
-                continue;
-            
-            SolveCollide(ent, new Entity<RigidBodyComponent>(uid, rigidBodyComponent));
-        }
-    }
-
-    public void Simulate()
-    {
-        var query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
-        while (query.MoveNext(out var uid, out var rigidBodyComponent, out var transform3dComponent))
-        {
-            Solve(new Entity<RigidBodyComponent>(uid, rigidBodyComponent));
-        }
-        
-        query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
-        
-        while (query.MoveNext(out var uid, out var rigidBodyComponent, out var transform3dComponent))
-        {
-            if(rigidBodyComponent.PhysType == PhysType.Static) continue;
-            
-            transform3dComponent.LocalPosition += rigidBodyComponent.LinearVelocity;
-            //transform3dComponent.LocalRotation += new EulerAngles(rigidBodyComponent.LinearVelocity.X, rigidBodyComponent.LinearVelocity.Y, rigidBodyComponent.LinearVelocity.Z).ToQuaternion();
-        }
-    }
-
-    private int SkipDuration = 10;
-
     public override void Update(float frameTime)
     {
-        if(SkipDuration == 0 || true)
-        {
-            Simulate();
-            SkipDuration = 10;
-        }
+        SimulateStep(frameTime);
+    }
+
+    public FrictionData GetCombinedFriction(ProtoId<SurfacePrototype> surfaceA, ProtoId<SurfacePrototype> surfaceB)
+    {
+        if (!_prototypeManager.TryIndex(surfaceA, out var prototypeA) ||
+            !_prototypeManager.TryIndex(surfaceB, out var prototypeB))
+            return default;
         
-        SkipDuration--;
+        var aFriction = prototypeA.DefaultFriction;
+        var bFriction = prototypeB.DefaultFriction;
+        
+        return new FrictionData(
+            MathF.Sqrt(aFriction.StaticFriction * bFriction.StaticFriction),
+            MathF.Sqrt(aFriction.DynamicFriction * bFriction.DynamicFriction)
+        );
     }
 }

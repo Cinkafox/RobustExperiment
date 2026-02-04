@@ -56,25 +56,6 @@ public sealed class AlexandraAnimationSystem: EntitySystem
         }
     };
     
-    public Animation Animation3 = new Animation()
-    {
-        Length = TimeSpan.FromSeconds(5),
-        AnimationTracks =
-        {
-            new AnimationTrackComponentProperty()
-            {
-                ComponentType = typeof(Transform3dComponent),
-                InterpolationMode = AnimationInterpolationMode.Cubic,
-                Property = "LocalAngleAnim",
-                KeyFrames =
-                {
-                    new AnimationTrackProperty.KeyFrame(new Vector3(0,0,0), 0f),
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(359),0,0), 5f),
-                }
-            }
-        }
-    };
-    
     public override void Initialize()
     {
         base.Initialize();
@@ -92,13 +73,11 @@ public sealed class AlexandraAnimationSystem: EntitySystem
     {
         if(args.Key == "kadeem1") _animationPlayerSystem.Play(ent,Animation1 , "kadeem1");
         if(args.Key == "kadeem2") _animationPlayerSystem.Play(ent,Animation2 , "kadeem2");
-        if(args.Key == "aaa") _animationPlayerSystem.Play(ent,Animation3 , "aaa");
     }
 
     private void Play(EntityUid uid)
     {
         Log.Info($"PLAY ANIMATION FOR {uid}");
-        _animationPlayerSystem.Play(uid, Animation3, "aaa");
    
         var boneEnt = Comp<SkeletonComponent>(uid).Root;
         var boneChild = Comp<BoneComponent>(boneEnt).Childs;

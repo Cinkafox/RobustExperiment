@@ -1,4 +1,5 @@
-﻿using Robust.Shared.Serialization;
+﻿using Robust.Shared.Prototypes;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Physics.Components;
 
@@ -8,9 +9,15 @@ public sealed partial class RigidBodyComponent: Component
     [DataField] public Vector3 AngularVelocity = Vector3.Zero;
     [DataField] public Vector3 LinearVelocity = Vector3.Zero;
     [DataField] public float Density = 1f;
-    [DataField] public PhysType PhysType = PhysType.Kinematic;
+    [DataField] public PhysType PhysType = PhysType.Dynamic;
 
-    [DataField] public IPhysicShape Shape = new SphereShape();
+    [DataField] public Shapes.IPhysicShape Shape = new Shapes.SphereShape();
+    
+    [DataField] public float StaticFriction = 0.8f;
+    [DataField] public float DynamicFriction = 0.6f;
+    [DataField] public float RollingResistance = 0.005f;
+    [DataField] public ProtoId<SurfacePrototype> SurfaceMaterial = "default";
+    
     [ViewVariables(VVAccess.ReadOnly)] public float Mass => Shape.Area * Density;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 LinearForce => LinearVelocity * Mass;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 AngularForce => AngularVelocity * Mass;
@@ -19,26 +26,27 @@ public sealed partial class RigidBodyComponent: Component
 [Serializable, NetSerializable]
 public enum PhysType
 {
-    Kinematic, Static,
+    Dynamic, Static,
 }
 
-[ImplicitDataDefinitionForInheritors]
-public partial interface IPhysicShape
+[Prototype]
+public sealed partial class SurfacePrototype : IPrototype
 {
-    [ViewVariables(VVAccess.ReadOnly)] public float Area { get; }
-}
+    [IdDataField] public string ID { get; private set; } = default!;
 
-[DataDefinition]
-public sealed partial class SphereShape : IPhysicShape
-{
-    [DataField] public float Radius = 1f;
-    public float Area => 4 * float.Pi * Radius * Radius;
+    [DataField] public FrictionData DefaultFriction;
+    [DataField] public Dictionary<ProtoId<SurfacePrototype>, FrictionData> MaterialPairs = [];
 }
 
 [DataDefinition]
-public sealed partial class PlaneShape : IPhysicShape
+public partial struct FrictionData
 {
-    [DataField] public float Distance = 1f;
-    [DataField] public Vector3 Normal = Vector3.UnitY;
-    public float Area => 1f;
+    [DataField("static")] public float StaticFriction = 0.8f;
+    [DataField("dynamic")] public float DynamicFriction = 0.6f;
+
+    public FrictionData(float staticFriction, float dynamicFriction)
+    {
+        StaticFriction = staticFriction;
+        DynamicFriction = dynamicFriction;
+    }
 }

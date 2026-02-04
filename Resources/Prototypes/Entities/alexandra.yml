@@ -4,6 +4,10 @@
     - type: Model
       path: "/Models/alexandra/untitled_back.obj"
     - type: AlexandraAnimation
+    - type: RigidBody
+      shape:
+        !type:BoxShape
+        halfExtents: 0.4, 1.2, 0.4
     - type: Skeleton
       compound:
         position: 0,1.6,0

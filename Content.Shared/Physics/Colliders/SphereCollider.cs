@@ -1,58 +1,72 @@
 ﻿using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Data;
+using PlaneShape = Content.Shared.Physics.Shapes.PlaneShape;
+using SphereShape = Content.Shared.Physics.Shapes.SphereShape;
 
 namespace Content.Shared.Physics.Colliders;
 
 [ColliderRegister(typeof(SphereShape), typeof(SphereShape))]
 public sealed class SphereCollider : ICollider<SphereShape, SphereShape>
 {
-    public ManifoldPoints ProcessCollision(TransformedPhysicShape<SphereShape> a, TransformedPhysicShape<SphereShape> b)
+    private const float Epsilon = 0.0001f;
+    
+    public ManifoldPoints ProcessCollision(
+        TransformedPhysicShape<SphereShape> a, 
+        TransformedPhysicShape<SphereShape> b)
     {
         var aCenter = a.Position;
         var bCenter = b.Position;
-        
         var ab = bCenter - aCenter;
-
-        var aRadius = a.Scale.Y * a.Shape.Radius;
-        var bRadius = b.Scale.Y * b.Shape.Radius;
-
-        var distance = ab.Length();
-        
-        if (distance < 0.00001f
-                || distance > aRadius + bRadius)
-        {
+        var distanceSq = ab.LengthSquared();
+    
+        if (distanceSq < 1e-8f) 
             return ManifoldPoints.Empty;
-        }
+    
+        var distance = MathF.Sqrt(distanceSq);
+        var aRadius = a.Shape.Radius * MathF.Max(a.Scale.X, MathF.Max(a.Scale.Y, a.Scale.Z));
+        var bRadius = b.Shape.Radius * MathF.Max(b.Scale.X, MathF.Max(b.Scale.Y, b.Scale.Z));
+        var radiusSum = aRadius + bRadius;
         
-        var normal = Vector3.Normalize(ab);
+        if (distance > radiusSum)
+            return ManifoldPoints.Empty;
         
-        var aDeep = aCenter + normal * aRadius;
-        var bDeep = bCenter - normal * bRadius;
-
-        return new ManifoldPoints(aDeep, bDeep, normal, distance);
+        var penetrationDepth = radiusSum - distance;
+        
+        var normal = ab / distance;
+        
+        var pointA = aCenter + normal * aRadius;
+        var pointB = bCenter - normal * bRadius;
+    
+        return new ManifoldPoints(pointA, pointB, normal, penetrationDepth);
     }
 }
 
-[ColliderRegister(typeof(SphereShape), typeof(PlaneShape))]
-public sealed class SpherePlaneCollider : ICollider<SphereShape, PlaneShape>
+[ColliderRegister(typeof(PlaneShape), typeof(SphereShape))]
+public sealed class PlaneSphereCollider : ICollider<PlaneShape, SphereShape>
 {
-    public ManifoldPoints ProcessCollision(TransformedPhysicShape<SphereShape> a, TransformedPhysicShape<PlaneShape> b)
+    private const float Epsilon = 0.0001f;
+    
+    public ManifoldPoints ProcessCollision(
+        TransformedPhysicShape<PlaneShape> plane,
+        TransformedPhysicShape<SphereShape> sphere)
     {
-        var aCenter = a.Position;
-        var aRadius = a.Scale.Y * a.Shape.Radius;
-
-        var normal = b.Rotation.RotateVec(b.Shape.Normal);
-        var onPlane = normal * b.Shape.Distance + b.Position;
-
-        var distance = Vector3.Dot(aCenter - onPlane, normal); 
-
-        if (distance > aRadius) {
+        var normal = Vector3.Normalize(plane.Rotation.RotateVec(plane.Shape.Normal));
+        
+        var sphereToPlane = sphere.Position - plane.Position;
+        var distanceToPlane = Vector3.Dot(sphereToPlane, normal) - plane.Shape.Distance;
+        
+        var sphereRadius = sphere.Shape.Radius * MathF.Max(sphere.Scale.X, MathF.Max(sphere.Scale.Y, sphere.Scale.Z));
+        
+        if (distanceToPlane > sphereRadius)
             return ManifoldPoints.Empty;
-        }
-		
-        var aDeep = aCenter - normal * aRadius;
-        var bDeep = aCenter - normal * distance;
 
-        return new ManifoldPoints(aDeep, bDeep, normal, distance);
+        var penetrationDepth = sphereRadius - distanceToPlane;
+        
+        var collisionNormal = -normal; 
+        
+        var sphereContact = sphere.Position - collisionNormal * sphereRadius;
+        var planeContact = sphere.Position - collisionNormal * distanceToPlane;
+        
+        return new ManifoldPoints(planeContact, sphereContact, normal, penetrationDepth);
     }
 }

@@ -1,0 +1,5 @@
+﻿- type: Surface
+  id: default
+  defaultFriction:
+    static: 0.8
+    dynamic: 0.6

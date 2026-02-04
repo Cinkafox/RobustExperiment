@@ -1,7 +1,7 @@
-﻿using Content.Shared.Physics.Components;
-using Content.Shared.Transform;
+﻿using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Shared.Analyzers;
+using IPhysicShape = Content.Shared.Physics.Shapes.IPhysicShape;
 
 namespace Content.Shared.Physics.Data;
 
@@ -35,6 +35,7 @@ public class TransformedPhysicShape
         Scale = transformedPhysicShape.Scale;
     }
 }
+
 public sealed class TransformedPhysicShape<T>: TransformedPhysicShape where T : IPhysicShape
 {
     public new T Shape { get; }

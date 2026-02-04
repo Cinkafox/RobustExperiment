@@ -1,4 +1,5 @@
 ﻿using Content.Shared.Physics.Components;
+using IPhysicShape = Content.Shared.Physics.Shapes.IPhysicShape;
 
 namespace Content.Shared.Physics.Data;
 

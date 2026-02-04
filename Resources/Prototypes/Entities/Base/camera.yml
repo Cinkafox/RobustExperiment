@@ -3,3 +3,8 @@
   components:
     - type: Camera
       fov: 4
+    - type: RigidBody
+      physType: Static
+      shape:
+        !type:SphereShape
+        radius: 1

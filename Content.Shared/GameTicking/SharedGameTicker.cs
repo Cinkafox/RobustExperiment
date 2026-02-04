@@ -1,4 +1,6 @@
-﻿using Content.Shared.Transform;
+﻿using Content.Shared.Physics.Components;
+using Content.Shared.Physics.Shapes;
+using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Shared.Player;
 
@@ -16,13 +18,14 @@ public abstract class SharedGameTicker : EntitySystem
     {
         MapUid = _mapSystem.CreateMap(false);
         
-        Spawn("alexandra", new Vector3(0,-1,0), EulerAngles.CreateFromDegrees(0,0,0));
-        //Spawn("world", new Vector3(0,-47,0), EulerAngles.CreateFromDegrees(0,0,0));
+        Spawn("alexandra", new Vector3(0,5,0), EulerAngles.CreateFromDegrees(0,0,0));
+        Spawn("alexandra", new Vector3(0,15,0), EulerAngles.CreateFromDegrees(0,0,0));
+        Spawn("floor", new Vector3(0,-2,0), EulerAngles.CreateFromDegrees(0,0,0));
     }
 
     public void AttachSession(ICommonSession session)
     {
-        var camera = Spawn("camera", new Vector3(0,1,5), EulerAngles.CreateFromDegrees(0,180.0,0));
+        var camera = Spawn("camera", new Vector3(0,2,12), EulerAngles.CreateFromDegrees(0,180.0,0));
         PlayerManager.SetAttachedEntity(session, camera);
     }
     

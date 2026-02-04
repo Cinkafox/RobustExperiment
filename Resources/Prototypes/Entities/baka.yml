@@ -5,11 +5,11 @@
       path: "/Models/car/lowpoly car.obj"
     - type: RigidBody
       shape:
-         !type:SphereShape
-         radius: 1
+         !type:BoxShape
+         halfExtents: 1, 0.7, 0.9
          
 - type: entity
-  id: pol
+  id: floor
   components:
     - type: RigidBody
       physType: Static
