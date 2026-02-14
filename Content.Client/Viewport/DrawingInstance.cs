@@ -73,7 +73,7 @@ public sealed class DrawingInstance
         var currLength = TextureBuffer.Length;
         foreach (var material in materials)
         {
-            TextureBuffer.Add(material.MapKd ?? CreateBlankTexture(new Color(material.Kd.X, material.Kd.Y, material.Kd.Z)));
+            TextureBuffer.Add(material.MapKd?.Value ?? CreateBlankTexture(new Color(material.Kd.X, material.Kd.Y, material.Kd.Z)));
         }
 
         return currLength;

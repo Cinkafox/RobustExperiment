@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Content.Client.ConfigurationUI;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
 using Content.Shared.Camera;
-using Content.Shared.Debug;
+using Content.Shared.Physics;
+using Content.Shared.Physics.Components;
+using Content.Shared.Physics.Data;
 using Content.Shared.Transform;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
@@ -12,7 +15,6 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Profiling;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Threading;
 
 namespace Content.Client.Viewport;
 
@@ -26,8 +28,6 @@ public sealed class GameViewport : Control
     [Dependency] private readonly ConfigurationUIManager _configuration = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
-    
-    private DebugSystem _debug = default!;
 
     private readonly Label _info;
     private readonly ShaderInstance _skyInstance;
@@ -48,7 +48,6 @@ public sealed class GameViewport : Control
     private void UserInterfaceManagerOnOnScreenChanged((UIScreen? Old, UIScreen? New) obj)
     {
         obj.New?.AddChild(_info);
-        _debug = _entityManager.System<DebugSystem>();
     }
     
     private void DrawSkyBox(DrawingHandleScreen handle)
@@ -130,31 +129,39 @@ public sealed class GameViewport : Control
                 }
             }
         }
-
+        
         _info.Text = $"                  Triangles: {DrawingInstance.GetDrawnTriangles()}, Textures pool: {DrawingInstance.TextureBuffer.Length}";
-
+        
         using (_profManager.Group("Flush"))
         {
             drawHandle.Flush(_profManager);
         }
         
-        if(!_configuration.GetValue<bool>("transform_view_enabled"))
-            return;
-
-        using (_profManager.Group("DrawTransform"))
+        if(_configuration.GetValue<bool>("transform_view_enabled"))
         {
-            var q = _entityManager.EntityQueryEnumerator<Transform3dComponent>();
-            while (q.MoveNext(out var t))
+            using (_profManager.Group("DrawTransform"))
             {
-                drawHandle.DrawCircle(t.WorldPosition, 20f, Color.Aqua);
-                var d = t.WorldAngle.ToVec() * 0.2f + t.WorldPosition;
-                drawHandle.DrawCircle(d, 15f, Color.Blue);
-            }
-        }
+                var q = _entityManager.EntityQueryEnumerator<Transform3dComponent, RigidBodyComponent>();
+                while (q.MoveNext(out var transform3d, out var rigidBodyComponent))
+                {
+                    var transformedPhysics = new TransformedPhysicShape(transform3d, rigidBodyComponent.Shape);
+                    var debugHandler = new DebugDrawingHandle();
+                    rigidBodyComponent.Shape.DrawShape(debugHandler, transformedPhysics);
+                
+                    foreach (var (radius, position) in debugHandler.SphereBuffer)
+                    {
+                        drawHandle.DrawCircle(position, radius, Color.Aqua);
+                    }
 
-        while (_debug.DrawQueue.TryDequeue(out var p))
-        {
-            drawHandle.DrawCircle(p.Position, p.Radius, p.Color);
+                    foreach (var vertexes in debugHandler.VertexBuffer)
+                    {
+                        foreach (var pos in vertexes)
+                        {
+                            drawHandle.DrawCircle(pos, 15f, Color.Aqua);
+                        }
+                    }
+                }
+            }
         }
     }
     

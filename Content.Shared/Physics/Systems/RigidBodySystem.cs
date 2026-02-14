@@ -1,5 +1,4 @@
-﻿using Content.Shared.Debug;
-using Content.Shared.Physics.Components;
+﻿using Content.Shared.Physics.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Reflection;
 using Robust.Shared.Sandboxing;
@@ -8,7 +7,6 @@ namespace Content.Shared.Physics.Systems;
 
 public sealed partial class RigidBodySystem : EntitySystem
 {
-    [Dependency] private readonly DebugSystem _debugSystem = default!;
     [Dependency] private readonly ISandboxHelper _sandboxHelper = default!;
     [Dependency] private readonly IReflectionManager _reflectionManager = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;

@@ -9,9 +9,13 @@ public sealed class Objparser
 {
     public List<BaseContent> Contents = new();
     public ResPath Path;
+    
+    private readonly IDependencyCollection _dependencyCollection;
 
-    public Objparser(TextReader textReader,ResPath path)
+    public Objparser(IDependencyCollection dependencyCollection, TextReader textReader, ResPath path)
     {
+        _dependencyCollection = dependencyCollection;
+        
         Path = path;
         var line = textReader.ReadLine();
         var linecol = 0;
@@ -53,7 +57,7 @@ public sealed class Objparser
                 Contents.Add(new NormalContent(splited, argContent));
                 break;
             case "mtllib":
-                Contents.Add(new MtlLoadContent(splited, argContent, Path));
+                Contents.Add(new MtlLoadContent(_dependencyCollection, splited, argContent, Path));
                 break;
             case "usemtl":
                 Contents.Add(new MaterialContent(splited, argContent));

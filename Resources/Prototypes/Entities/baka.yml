@@ -2,7 +2,7 @@
   id: car
   components:
     - type: Model
-      path: "/Models/car/lowpoly car.obj"
+      currentMesh: "/Models/car/lowpoly car.obj"
     - type: RigidBody
       shape:
          !type:BoxShape
@@ -21,22 +21,22 @@
   id: tnew
   components:
     - type: Model
-      path: "/Models/tnew/tardis_2010.obj"
+      currentMesh: "/Models/tnew/tardis_2010.obj"
       
 - type: entity
   id: world
   components:
     - type: Model
-      path: "/Models/world2/world.obj"
+      currentMesh: "/Models/world2/world.obj"
       
 - type: entity
   id: nyash
   components:
     - type: Model
-      path: "/Models/nyash/nyash.obj"
+      currentMesh: "/Models/nyash/nyash.obj"
       
 - type: entity
   id: femboy
   components:
     - type: Model
-      path: "/Models/femboy/femboy.obj"
+      currentMesh: "/Models/femboy/femboy.obj"

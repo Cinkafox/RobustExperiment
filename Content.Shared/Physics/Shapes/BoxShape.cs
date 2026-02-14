@@ -9,6 +9,23 @@ public sealed partial class BoxShape : IPhysicShape
     [DataField] public Vector3 HalfExtents = new(0.5f, 0.5f, 0.5f);
     public float Area => HalfExtents.X * 2f * HalfExtents.Y * 2f * HalfExtents.Z * 2f;
     
+    public void DrawShape(DebugDrawingHandle handle, TransformedPhysicShape transformedPhysicShape)
+    {
+        var vertices = GetBoxVertices(transformedPhysicShape);
+        handle.DrawVertex(new []
+        {
+            vertices[0],
+            vertices[1],
+            vertices[2],
+            vertices[3],
+            
+            vertices[4],
+            vertices[5],
+            vertices[6],
+            vertices[7],
+        });
+    }
+
     public Vector3[] GetBoxVertices(TransformedPhysicShape transformedPhysicShape)
     {
         // Apply non-uniform scale to half-extents

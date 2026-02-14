@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.IO;
+using Content.Shared.Utils;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.ContentPack;
@@ -10,28 +11,32 @@ namespace Content.Client.DimensionEnv.ObjRes.MTL;
 public sealed class MaterialResource : BaseResource
 {
     public Dictionary<string,Material> Materials = new();
+    
     public override void Load(IDependencyCollection dependencies, ResPath path)
     {
         var manager = dependencies.Resolve<IResourceManager>();
 
-        using var stream = manager.ContentFileRead(path);
-        using (var reader = new StreamReader(stream, EncodingHelpers.UTF8))
-        {
-            var mp = new MaterialParser(reader, path);
-            Materials = mp.Materials;
-        }
+        using var reader = manager.ContentFileReadText(path);
+        Materials = MaterialParser.Parse(dependencies, reader, path);
     }
 }
-
-
 
 public sealed class MaterialParser
 {
     public Dictionary<string,Material> Materials = new();
     public ResPath Path;
+    
+    private readonly IDependencyCollection _collection;
 
-    public MaterialParser(TextReader textReader,ResPath path)
+    public static Dictionary<string,Material> Parse(IDependencyCollection collection, TextReader textReader, ResPath path)
     {
+        var pasres = new MaterialParser(collection, textReader, path);
+        return pasres.Materials;
+    }
+
+    public MaterialParser(IDependencyCollection collection, TextReader textReader, ResPath path)
+    {
+        _collection = collection;
         Path = path;
         
         var line = textReader.ReadLine();
@@ -104,7 +109,7 @@ public sealed class MaterialParser
                 {
                     localPath += " " + splited[i];
                 }
-                curr.MapKd = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / localPath);
+                curr.MapKd = new RobustLazy<Texture>(()=> _collection.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / localPath));
                 break;
             case "map_Ka":
                 var localPath1 = splited[argContent];
@@ -112,7 +117,7 @@ public sealed class MaterialParser
                 {
                     localPath1 += " " + splited[i];
                 }
-                curr.MapKa = IoCManager.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / localPath1);
+                curr.MapKa = new RobustLazy<Texture>(() => _collection.Resolve<IResourceCache>().GetResource<TextureResource>(Path.Directory / localPath1));
                 break;
           
         }
@@ -129,16 +134,25 @@ public sealed class MaterialParser
 public sealed class MtlLoadContent : BaseContent
 {
 
-    public Dictionary<string, Material> Materials;
+    public Dictionary<string, Material> Materials = default!;
     
-    public MtlLoadContent(string[] args, int count, ResPath path)
+    public MtlLoadContent(IDependencyCollection collection, string[] args, int count, ResPath path)
     {
         var localPath = args[count];
         for (int i = count + 1; i < args.Length; i++)
         {
             localPath += " " + args[i];
         }
-        
-        Materials = IoCManager.Resolve<IResourceCache>().GetResource<MaterialResource>(path / localPath).Materials;
+
+        Load(collection, path / localPath);
+        //Materials = collection.Resolve<IResourceCache>().GetResource<MaterialResource>(path / localPath).Materials;
+    }
+    
+    private void Load(IDependencyCollection dependencies, ResPath path)
+    {
+        var manager = dependencies.Resolve<IResourceManager>();
+
+        using var reader = manager.ContentFileReadText(path);
+        Materials = MaterialParser.Parse(dependencies, reader, path);
     }
 }

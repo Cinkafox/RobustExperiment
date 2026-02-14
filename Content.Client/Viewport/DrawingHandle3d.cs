@@ -43,26 +43,36 @@ public sealed class DrawingHandle3d : IDisposable
         
         return new Vector3(screenX, screenY, ndcZ);
     }
+    
+    private Vector3 ToScreenVec(Vector3 vertex)
+    {
+        var vertex2D = new Vector2(vertex.X / vertex.Z, vertex.Y / vertex.Z);
+        
+        var screenX = (vertex2D.X + 1.0f) * 0.5f * _width;
+        var screenY = (vertex2D.Y + 1.0f) * 0.5f * _height; 
+        
+        return new Vector3(screenX, screenY, vertex.Z);
+    }
 
     public void DrawCircle(Vector3 position, float radius, Color color, bool filled = true)
     {
         var camPos = _cameraProperties.Position;
+
         var diff = camPos - position;
         var distance = diff.Length();
-        
-        if (distance < 0.1f) return;
-        
+
         radius /= distance;
         
-        var clipPos = Vector4.Transform(new Vector4(position, 1.0f), ViewProjectionMatrix);
+        position = Vector3.Transform(position, ViewMatrix * ProjectionMatrix);
         
-        if (clipPos.Z < -clipPos.W || clipPos.Z > clipPos.W || 
-            clipPos.X < -clipPos.W || clipPos.X > clipPos.W ||
-            clipPos.Y < -clipPos.W || clipPos.Y > clipPos.W)
+        if (position.Z > 0)
+        {
             return;
-            
-        var screenPos = ToScreenVec(clipPos);
-        _handleBase.DrawCircle(new Vector2(screenPos.X, screenPos.Y), radius, color, filled);
+        }
+        
+        position = ToScreenVec(position);
+        
+        _handleBase.DrawCircle(new Vector2(position.X, position.Y), radius, color, filled);
     }
     
     public void DrawPolygon(TexturedTriangle triangle)

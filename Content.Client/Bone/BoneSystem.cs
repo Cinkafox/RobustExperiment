@@ -32,14 +32,14 @@ public sealed class BoneSystem : EntitySystem
             return;
         }
         
-        ent.Comp.Root = CreateBone(ent.Comp.Compound, ent.Owner);
+        ent.Comp.Root = CreateBone(ent.Comp.Compound, ent.Owner, ent.Comp.Offset);
     }
 
-    private EntityUid CreateBone(Shared.Bone.BoneCompound boneCompound, EntityUid parent)
+    private EntityUid CreateBone(Shared.Bone.BoneCompound boneCompound, EntityUid parent, Vector3 offset)
     {
         var bone = Spawn();
         _transform.SetParent(bone, parent);
-        _transform.SetWorldPosition(bone, boneCompound.Position);
+        _transform.SetWorldPosition(bone, boneCompound.Position + offset);
         _transform.SetWorldRotation(bone, boneCompound.Rotation);
         var boneComp = AddComp<Shared.Bone.BoneComponent>(bone);
         
@@ -51,7 +51,7 @@ public sealed class BoneSystem : EntitySystem
         
         foreach (var child in boneCompound.Child)
         {
-            boneComp.Childs.Add(CreateBone(child, bone));
+            boneComp.Childs.Add(CreateBone(child, bone, offset));
         }
 
         return bone;

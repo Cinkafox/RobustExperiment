@@ -2,13 +2,16 @@
   id: alexandra
   components:
     - type: Model
-      path: "/Models/alexandra/untitled_back.obj"
+      currentMesh:
+        path: "/Models/alexandra/untitled_back.obj"
+        offset: 0,-1,0
     - type: AlexandraAnimation
     - type: RigidBody
       shape:
         !type:BoxShape
         halfExtents: 0.4, 1.2, 0.4
     - type: Skeleton
+      offset: 0,-1,0
       compound:
         position: 0,1.6,0
         rotation: 0,0,0
@@ -413,7 +416,3 @@
                       - boneIndices: 717
                         boneWeights: 1
         
-        
-        
-
-                  
