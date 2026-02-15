@@ -12,18 +12,47 @@ public sealed partial class BoxShape : IPhysicShape
     public void DrawShape(DebugDrawingHandle handle, TransformedPhysicShape transformedPhysicShape)
     {
         var vertices = GetBoxVertices(transformedPhysicShape);
-        handle.DrawVertex(new []
-        {
+        handle.DrawVertex([
             vertices[0],
             vertices[1],
             vertices[2],
-            vertices[3],
-            
+            vertices[3]
+        ]);
+        
+        handle.DrawVertex([
             vertices[4],
             vertices[5],
             vertices[6],
-            vertices[7],
-        });
+            vertices[7]
+        ]);
+        
+        handle.DrawVertex([
+            vertices[0],
+            vertices[1],
+            vertices[4],
+            vertices[5]
+        ]);
+        
+        handle.DrawVertex([
+            vertices[3],
+            vertices[2],
+            vertices[6],
+            vertices[7]
+        ]);
+        
+        handle.DrawVertex([
+            vertices[0],
+            vertices[3],
+            vertices[4],
+            vertices[7]
+        ]);
+        
+        handle.DrawVertex([
+            vertices[1],
+            vertices[2],
+            vertices[5],
+            vertices[6]
+        ]);
     }
 
     public Vector3[] GetBoxVertices(TransformedPhysicShape transformedPhysicShape)

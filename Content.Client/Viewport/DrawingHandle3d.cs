@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 using Content.Client.Utils;
 using Content.Shared.Camera;
 using Content.Shared.Transform;
@@ -54,6 +55,51 @@ public sealed class DrawingHandle3d : IDisposable
         return new Vector3(screenX, screenY, vertex.Z);
     }
 
+    public void DrawDebugFace(List<Vector4> vertices)
+    {
+        for (int i = 1; i < vertices.Count - 1; i++)
+        {
+            var triangle = DrawingInstance.DebugTriangleBuffer.Take();
+            triangle.p1 = vertices[0];
+            triangle.p2 = vertices[i];
+            triangle.p3 = vertices[i+1];
+
+            DrawDebugTriangle(triangle);
+        }
+    }
+
+    public void DrawDebugTriangle(Triangle triangle)
+    {
+        var normal = Vector3.Normalize(triangle.Normal());
+        var vCameraRay = Vector3.Normalize(triangle.GetP1() - _cameraProperties.Position);
+        
+        if (Vector3.Dot(normal, vCameraRay) >= 0f)
+            return;
+        
+        triangle.Transform(ViewMatrix);
+        
+        ClippingInstance.ClipAgainstClip(
+            new Vector3(0.0f, 0.0f, 0.1f), 
+            new Vector3(0.0f, 0.0f, 1.0f), 
+            triangle, 
+            DrawingInstance);
+        
+        foreach (var clippedTriangle in ClippingInstance.DebugClipping)
+        {
+            clippedTriangle.Transform(ProjectionMatrix);
+            
+            clippedTriangle.SetP1(ToScreenVec(clippedTriangle.p1));
+            clippedTriangle.SetP2(ToScreenVec(clippedTriangle.p2));
+            clippedTriangle.SetP3(ToScreenVec(clippedTriangle.p3));
+            
+            SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[0], triangle.p1.X, triangle.p1.Y);
+            SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[1], triangle.p2.X, triangle.p2.Y);
+            SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[2], triangle.p3.X, triangle.p3.Y);
+            
+            _handleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop, DrawingInstance.DrawVertexUntexturedBuffer, Color.White);
+        }
+    }
+
     public void DrawCircle(Vector3 position, float radius, Color color, bool filled = true)
     {
         var camPos = _cameraProperties.Position;
@@ -63,7 +109,7 @@ public sealed class DrawingHandle3d : IDisposable
 
         radius /= distance;
         
-        position = Vector3.Transform(position, ViewMatrix * ProjectionMatrix);
+        position = Vector3.Transform(position, ViewProjectionMatrix);
         
         if (position.Z > 0)
         {

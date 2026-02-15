@@ -155,10 +155,7 @@ public sealed class GameViewport : Control
 
                     foreach (var vertexes in debugHandler.VertexBuffer)
                     {
-                        foreach (var pos in vertexes)
-                        {
-                            drawHandle.DrawCircle(pos, 15f, Color.Aqua);
-                        }
+                        drawHandle.DrawDebugFace(vertexes);
                     }
                 }
             }

@@ -24,6 +24,7 @@ public sealed class DrawingInstance
     public readonly ShaderInstance ShaderInstance;
 
     public readonly SimplePool<TexturedTriangle> TriangleBuffer = new(8192*128, () => new TexturedTriangle());
+    public readonly SimplePool<Triangle> DebugTriangleBuffer = new(8192*32, () => new Triangle());
     public readonly SimpleBuffer<Texture> TextureBuffer = new(64*32);
     
     private readonly SimpleBuffer<TexturedTriangle> _drawnBuffer = new(8192*128);
@@ -89,6 +90,7 @@ public sealed class DrawingInstance
     public void Flush()
     {
         TriangleBuffer.Clear();
+        DebugTriangleBuffer.Clear();
         _drawnBuffer.Clear();
         ShadersPool.Clear();
     }

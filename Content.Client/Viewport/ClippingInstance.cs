@@ -10,6 +10,7 @@ public sealed class ClippingInstance
     public readonly SimpleBuffer<Vector2> InsideTex = new(3);
     public readonly SimpleBuffer<Vector2> OutsideTex = new(3);
     public readonly SimpleBuffer<TexturedTriangle> Clipping = new(2);
+    public readonly SimpleBuffer<Triangle> DebugClipping = new(2);
 
     public void Clear()
     {
@@ -18,6 +19,67 @@ public sealed class ClippingInstance
         InsideTex.Clear();
         OutsideTex.Clear();
         Clipping.Clear();
+        DebugClipping.Clear();
+    }
+    
+    public void ClipAgainstClip(Vector3 planeP, Vector3 planeN, Triangle inTri, DrawingInstance drawingInstance)
+    {
+        planeN = Vector3.Normalize(planeN);
+        
+        Clear();
+
+        float dist(Vector3 p)
+        {
+            return Vector3.Dot(planeN, p - planeP);
+        }
+        
+        var d0 = dist(inTri.GetP1());
+        var d1 = dist(inTri.GetP2());
+        var d2 = dist(inTri.GetP3());
+        
+        if (d0 >= 0) { InsidePoints.Add(inTri.p1);}
+        else { OutsidePoints.Add(inTri.p1);}
+        if (d1 >= 0) { InsidePoints.Add(inTri.p2);}
+        else { OutsidePoints.Add(inTri.p2); }
+        if (d2 >= 0) { InsidePoints.Add(inTri.p3);}
+        else { OutsidePoints.Add(inTri.p3);}
+        
+        if (InsidePoints.Length == 3)
+        {
+            DebugClipping.Add(inTri);
+            return;
+        }
+        
+        if (InsidePoints.Length == 1 && OutsidePoints.Length == 2)
+        {
+            var outTri1 = drawingInstance.DebugTriangleBuffer.Take();
+            outTri1.p1 = InsidePoints[0];
+            
+            outTri1.p2 = IntersectPlane(planeP, planeN, InsidePoints[0],
+                OutsidePoints[0], out var t);
+            
+            outTri1.p3 = IntersectPlane(planeP, planeN, InsidePoints[0],
+                OutsidePoints[1], out t);
+            DebugClipping.Add(outTri1);
+            return;
+        }
+
+        if (InsidePoints.Length == 2 && OutsidePoints.Length == 1)
+        {
+            var outTri1 = drawingInstance.DebugTriangleBuffer.Take();
+            var outTri2 = drawingInstance.DebugTriangleBuffer.Take();
+            
+            outTri1.p1 = InsidePoints[0];
+            outTri1.p2 = InsidePoints[1];
+            outTri1.p3 = IntersectPlane(planeP, planeN, InsidePoints[0], OutsidePoints[0], out var t);
+            
+            outTri2.p1 = InsidePoints[1];
+            outTri2.p2 = outTri1.p3;
+            outTri2.p3 = IntersectPlane(planeP, planeN, InsidePoints[1], OutsidePoints[0], out t);
+            
+            DebugClipping.Add(outTri1);
+            DebugClipping.Add(outTri2);
+        }
     }
     
     public void ClipAgainstClip(Vector3 planeP, Vector3 planeN, TexturedTriangle inTri, DrawingInstance drawingInstance)
