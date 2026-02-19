@@ -11,10 +11,3 @@ public sealed partial class BoneComponent : Component
     [DataField] public Vector4 OriginalPosition;
     [DataField] public EulerAngles OriginalRotation;
 }
-
-[DataDefinition]
-public sealed partial class BoneVertexData
-{
-    [DataField(required: true)] public int BoneIndices;
-    [DataField(required:true)] public float BoneWeights;
-}

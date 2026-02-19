@@ -1,0 +1,13 @@
+﻿- type: location
+  id: default
+  playerSpawn: 
+    entity: camera
+    position: 0,2,12
+    rotation: 0,180,0
+  entities:
+    - entity: floor
+      position: 0,-2,0
+    - entity: alexandra
+      position: 0,5,0
+    - entity: alexandra
+      position: 0,15,0

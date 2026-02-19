@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using Content.Client.Utils;
 using Content.Shared.Camera;
 using Content.Shared.Transform;

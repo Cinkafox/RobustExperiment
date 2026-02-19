@@ -1,5 +1,6 @@
 ﻿using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
+using Content.Shared.Bone;
 using Content.Shared.Transform;
 
 namespace Content.Client.Bone;
@@ -10,38 +11,57 @@ public sealed class BoneSystem : EntitySystem
     
     public override void Initialize()
     {
-        SubscribeLocalEvent<Shared.Bone.SkeletonComponent, ComponentInit>(OnComponentInit);
-        SubscribeLocalEvent<Shared.Bone.BoneComponent, ComponentInit>(OnBoneInit);
+        SubscribeLocalEvent<BoneCompoundComponent, ComponentInit>(OnComponentInit);
+        SubscribeLocalEvent<BoneComponent, ComponentInit>(OnBoneInit);
     }
 
-    private void OnBoneInit(Entity<Shared.Bone.BoneComponent> ent, ref ComponentInit args)
+    private void OnBoneInit(Entity<BoneComponent> ent, ref ComponentInit args)
     {
         var transform = Comp<Transform3dComponent>(ent);
         ent.Comp.OriginalPosition = new Vector4(transform.WorldPosition, 1f);
         ent.Comp.OriginalRotation = transform.WorldAngle;
     }
 
-    private void OnComponentInit(Entity<Shared.Bone.SkeletonComponent> ent, ref ComponentInit args)
+    private void OnComponentInit(Entity<BoneCompoundComponent> ent, ref ComponentInit args)
     {
-        if (ent.Comp.Root.Valid)
+        if(!TryComp<SkeletonComponent>(ent, out var skeletonComponent) || 
+           skeletonComponent.Root.Valid) return;
+
+        var compound = GetCompoundRecursive(ent);
+
+        if (compound == null)
             return;
         
-        if(ent.Comp.Compound is null)
-        {
-            RemComp(ent, ent.Comp);
-            return;
-        }
-        
-        ent.Comp.Root = CreateBone(ent.Comp.Compound, ent.Owner, ent.Comp.Offset);
+        skeletonComponent.Root = CreateBone(compound, ent.Owner, ent.Comp.Offset);
     }
 
-    private EntityUid CreateBone(Shared.Bone.BoneCompound boneCompound, EntityUid parent, Vector3 offset)
+    public BoneCompound? GetCompoundRecursive(EntityUid uid)
+    {
+        if (!TryComp<BoneCompoundComponent>(uid, out var bone)) 
+            return null;
+
+        if (bone.Compound != null)
+            return bone.Compound;
+        
+        if (bone.CompoundEnt.HasValue)
+            return GetCompoundRecursive(bone.CompoundEnt.Value);
+
+        if (!bone.CompoundEntId.HasValue)
+            return null;
+
+        var spawnedThink = Spawn(bone.CompoundEntId.Value);
+        bone.CompoundEnt = spawnedThink;
+        
+        return GetCompoundRecursive(spawnedThink);
+    }
+
+    private EntityUid CreateBone(BoneCompound boneCompound, EntityUid parent, Vector3 offset)
     {
         var bone = Spawn();
         _transform.SetParent(bone, parent);
         _transform.SetWorldPosition(bone, boneCompound.Position + offset);
         _transform.SetWorldRotation(bone, boneCompound.Rotation);
-        var boneComp = AddComp<Shared.Bone.BoneComponent>(bone);
+        var boneComp = AddComp<BoneComponent>(bone);
         
         if(boneCompound.Data is not null)
          boneComp.BoneVertexDatum = boneCompound.Data;
@@ -57,7 +77,7 @@ public sealed class BoneSystem : EntitySystem
         return bone;
     }
     
-    private void ProceedBone(Entity<Shared.Bone.BoneComponent?> entity, MeshRender mesh, Transform3dComponent? parentTransform)
+    private void ProceedBone(Entity<BoneComponent?> entity, MeshRender mesh, Transform3dComponent? parentTransform)
     {
         if(!Resolve(entity, ref entity.Comp))
             return;
@@ -87,7 +107,7 @@ public sealed class BoneSystem : EntitySystem
     
     public override void FrameUpdate(float frameTime)
     {
-        var query = EntityQueryEnumerator<Shared.Bone.SkeletonComponent, ModelComponent>();
+        var query = EntityQueryEnumerator<SkeletonComponent, ModelComponent>();
         while (query.MoveNext(out var uid, out var skeleton, out var model))
         {
             if(!model.MeshRenderInitialized) return;

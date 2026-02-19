@@ -1,0 +1,408 @@
+﻿- type: entity
+  id: alexandraSkeleton
+  components:
+    - type: BoneCompound
+      compound:
+        position: 0,1.6,0
+        rotation: 0,0,0
+        child:
+          - position: 0.2,1.6,0
+            rotation: 0,0,0
+            data:
+              - boneIndices: 222
+                boneWeights: 1
+              - boneIndices: 224
+                boneWeights: 1
+              - boneIndices: 230
+                boneWeights: 1
+              - boneIndices: 232
+                boneWeights: 1
+              - boneIndices: 235
+                boneWeights: 1
+              - boneIndices: 236
+                boneWeights: 1
+              - boneIndices: 237
+                boneWeights: 1
+              - boneIndices: 239
+                boneWeights: 1
+              - boneIndices: 241
+                boneWeights: 1
+              - boneIndices: 316
+                boneWeights: 1
+              - boneIndices: 317
+                boneWeights: 1
+              - boneIndices: 318
+                boneWeights: 1
+              - boneIndices: 319
+                boneWeights: 1
+              - boneIndices: 320
+                boneWeights: 1
+              - boneIndices: 321
+                boneWeights: 1
+            child:
+              - position: 0.5,1.6,0
+                rotation: 0,0,0
+                data:
+                  - boneIndices: 261
+                    boneWeights: 1
+                  - boneIndices: 262
+                    boneWeights: 1
+                  - boneIndices: 263
+                    boneWeights: 1
+                  - boneIndices: 264
+                    boneWeights: 1
+                  - boneIndices: 265
+                    boneWeights: 1
+                  - boneIndices: 266
+                    boneWeights: 1
+                  - boneIndices: 267
+                    boneWeights: 1
+                  - boneIndices: 268
+                    boneWeights: 1
+                  - boneIndices: 269
+                    boneWeights: 1
+                  - boneIndices: 270
+                    boneWeights: 1
+                  - boneIndices: 271
+                    boneWeights: 1
+                  - boneIndices: 272
+                    boneWeights: 1
+                  - boneIndices: 273
+                    boneWeights: 1
+                  - boneIndices: 274
+                    boneWeights: 1
+                  - boneIndices: 275
+                    boneWeights: 1
+                  - boneIndices: 276
+                    boneWeights: 1
+                  - boneIndices: 277
+                    boneWeights: 1
+                  - boneIndices: 278
+                    boneWeights: 1
+                  - boneIndices: 322
+                    boneWeights: 1
+                  - boneIndices: 323
+                    boneWeights: 1
+                  - boneIndices: 324
+                    boneWeights: 1
+                  - boneIndices: 325
+                    boneWeights: 1
+                  - boneIndices: 326
+                    boneWeights: 1
+                  - boneIndices: 327
+                    boneWeights: 1
+                  - boneIndices: 328
+                    boneWeights: 1
+                  - boneIndices: 329
+                    boneWeights: 1
+                  - boneIndices: 330
+                    boneWeights: 1
+                  - boneIndices: 331
+                    boneWeights: 1
+                child:
+                  - position: 0.8,1.6,0
+                    rotation: 0,0,0
+                    data:
+                      - boneIndices: 242
+                        boneWeights: 1
+                      - boneIndices: 243
+                        boneWeights: 1
+                      - boneIndices: 244
+                        boneWeights: 1
+                      - boneIndices: 245
+                        boneWeights: 1
+                      - boneIndices: 246
+                        boneWeights: 1
+                      - boneIndices: 247
+                        boneWeights: 1
+                      - boneIndices: 279
+                        boneWeights: 1
+                      - boneIndices: 280
+                        boneWeights: 1
+                      - boneIndices: 281
+                        boneWeights: 1
+                      - boneIndices: 282
+                        boneWeights: 1
+                      - boneIndices: 283
+                        boneWeights: 1
+                      - boneIndices: 284
+                        boneWeights: 1
+                      - boneIndices: 285
+                        boneWeights: 1
+                      - boneIndices: 286
+                        boneWeights: 1
+                      - boneIndices: 287
+                        boneWeights: 1
+                      - boneIndices: 288
+                        boneWeights: 1
+                      - boneIndices: 289
+                        boneWeights: 1
+                      - boneIndices: 290
+                        boneWeights: 1
+                      - boneIndices: 291
+                        boneWeights: 1
+                      - boneIndices: 292
+                        boneWeights: 1
+                      - boneIndices: 293
+                        boneWeights: 1
+                      - boneIndices: 294
+                        boneWeights: 1
+                      - boneIndices: 295
+                        boneWeights: 1
+                      - boneIndices: 296
+                        boneWeights: 1
+                      - boneIndices: 297
+                        boneWeights: 1
+                      - boneIndices: 298
+                        boneWeights: 1
+                      - boneIndices: 299
+                        boneWeights: 1
+                      - boneIndices: 300
+                        boneWeights: 1
+                      - boneIndices: 301
+                        boneWeights: 1
+                      - boneIndices: 302
+                        boneWeights: 1
+                      - boneIndices: 303
+                        boneWeights: 1
+                      - boneIndices: 304
+                        boneWeights: 1
+                      - boneIndices: 305
+                        boneWeights: 1
+                      - boneIndices: 306
+                        boneWeights: 1
+                      - boneIndices: 307
+                        boneWeights: 1
+                      - boneIndices: 308
+                        boneWeights: 1
+                      - boneIndices: 309
+                        boneWeights: 1
+                      - boneIndices: 310
+                        boneWeights: 1
+                      - boneIndices: 311
+                        boneWeights: 1
+                      - boneIndices: 312
+                        boneWeights: 1
+                      - boneIndices: 313
+                        boneWeights: 1
+                      - boneIndices: 314
+                        boneWeights: 1
+                      - boneIndices: 315
+                        boneWeights: 1
+                      - boneIndices: 459
+                        boneWeights: 1
+                      - boneIndices: 460
+                        boneWeights: 1
+                      - boneIndices: 461
+                        boneWeights: 1
+                      - boneIndices: 462
+                        boneWeights: 1
+                      - boneIndices: 463
+                        boneWeights: 1
+                      - boneIndices: 464
+                        boneWeights: 1
+                      - boneIndices: 465
+                        boneWeights: 1
+                      - boneIndices: 466
+                        boneWeights: 1
+
+          - position: -0.2,1.6,0
+            rotation: 0,180,0
+            data:
+              - boneIndices: 500
+                boneWeights: 1
+              - boneIndices: 502
+                boneWeights: 1
+              - boneIndices: 504
+                boneWeights: 1
+              - boneIndices: 506
+                boneWeights: 1
+              - boneIndices: 507
+                boneWeights: 1
+              - boneIndices: 508
+                boneWeights: 1
+              - boneIndices: 509
+                boneWeights: 1
+              - boneIndices: 511
+                boneWeights: 1
+              - boneIndices: 513
+                boneWeights: 1
+              - boneIndices: 582
+                boneWeights: 1
+              - boneIndices: 583
+                boneWeights: 1
+              - boneIndices: 584
+                boneWeights: 1
+              - boneIndices: 585
+                boneWeights: 1
+              - boneIndices: 586
+                boneWeights: 1
+              - boneIndices: 587
+                boneWeights: 1
+            child:
+              - position: -0.5,1.6,0
+                rotation: 0,180,0
+                data:
+                  - boneIndices: 539
+                    boneWeights: 1
+                  - boneIndices: 540
+                    boneWeights: 1
+                  - boneIndices: 541
+                    boneWeights: 1
+                  - boneIndices: 542
+                    boneWeights: 1
+                  - boneIndices: 543
+                    boneWeights: 1
+                  - boneIndices: 544
+                    boneWeights: 1
+                  - boneIndices: 588
+                    boneWeights: 1
+                  - boneIndices: 589
+                    boneWeights: 1
+                  - boneIndices: 590
+                    boneWeights: 1
+                  - boneIndices: 591
+                    boneWeights: 1
+                  - boneIndices: 592
+                    boneWeights: 1
+                  - boneIndices: 593
+                    boneWeights: 1
+                  - boneIndices: 594
+                    boneWeights: 1
+                  - boneIndices: 595
+                    boneWeights: 1
+                  - boneIndices: 596
+                    boneWeights: 1
+                  - boneIndices: 597
+                    boneWeights: 1
+                child:
+                  - position: -0.8,1.6,0
+                    rotation: 0,180,0
+                    data:
+                      - boneIndices: 514
+                        boneWeights: 1
+                      - boneIndices: 515
+                        boneWeights: 1
+                      - boneIndices: 516
+                        boneWeights: 1
+                      - boneIndices: 517
+                        boneWeights: 1
+                      - boneIndices: 518
+                        boneWeights: 1
+                      - boneIndices: 519
+                        boneWeights: 1
+                      - boneIndices: 527
+                        boneWeights: 1
+                      - boneIndices: 528
+                        boneWeights: 1
+                      - boneIndices: 529
+                        boneWeights: 1
+                      - boneIndices: 530
+                        boneWeights: 1
+                      - boneIndices: 531
+                        boneWeights: 1
+                      - boneIndices: 532
+                        boneWeights: 1
+                      - boneIndices: 533
+                        boneWeights: 1
+                      - boneIndices: 534
+                        boneWeights: 1
+                      - boneIndices: 535
+                        boneWeights: 1
+                      - boneIndices: 536
+                        boneWeights: 1
+                      - boneIndices: 537
+                        boneWeights: 1
+                      - boneIndices: 538
+                        boneWeights: 1
+                      - boneIndices: 545
+                        boneWeights: 1
+                      - boneIndices: 546
+                        boneWeights: 1
+                      - boneIndices: 547
+                        boneWeights: 1
+                      - boneIndices: 548
+                        boneWeights: 1
+                      - boneIndices: 549
+                        boneWeights: 1
+                      - boneIndices: 550
+                        boneWeights: 1
+                      - boneIndices: 551
+                        boneWeights: 1
+                      - boneIndices: 552
+                        boneWeights: 1
+                      - boneIndices: 553
+                        boneWeights: 1
+                      - boneIndices: 554
+                        boneWeights: 1
+                      - boneIndices: 555
+                        boneWeights: 1
+                      - boneIndices: 556
+                        boneWeights: 1
+                      - boneIndices: 557
+                        boneWeights: 1
+                      - boneIndices: 558
+                        boneWeights: 1
+                      - boneIndices: 559
+                        boneWeights: 1
+                      - boneIndices: 560
+                        boneWeights: 1
+                      - boneIndices: 561
+                        boneWeights: 1
+                      - boneIndices: 562
+                        boneWeights: 1
+                      - boneIndices: 563
+                        boneWeights: 1
+                      - boneIndices: 564
+                        boneWeights: 1
+                      - boneIndices: 565
+                        boneWeights: 1
+                      - boneIndices: 566
+                        boneWeights: 1
+                      - boneIndices: 567
+                        boneWeights: 1
+                      - boneIndices: 568
+                        boneWeights: 1
+                      - boneIndices: 569
+                        boneWeights: 1
+                      - boneIndices: 570
+                        boneWeights: 1
+                      - boneIndices: 571
+                        boneWeights: 1
+                      - boneIndices: 572
+                        boneWeights: 1
+                      - boneIndices: 573
+                        boneWeights: 1
+                      - boneIndices: 574
+                        boneWeights: 1
+                      - boneIndices: 575
+                        boneWeights: 1
+                      - boneIndices: 576
+                        boneWeights: 1
+                      - boneIndices: 577
+                        boneWeights: 1
+                      - boneIndices: 578
+                        boneWeights: 1
+                      - boneIndices: 579
+                        boneWeights: 1
+                      - boneIndices: 580
+                        boneWeights: 1
+                      - boneIndices: 581
+                        boneWeights: 1
+                      - boneIndices: 710
+                        boneWeights: 1
+                      - boneIndices: 711
+                        boneWeights: 1
+                      - boneIndices: 712
+                        boneWeights: 1
+                      - boneIndices: 713
+                        boneWeights: 1
+                      - boneIndices: 714
+                        boneWeights: 1
+                      - boneIndices: 715
+                        boneWeights: 1
+                      - boneIndices: 716
+                        boneWeights: 1
+                      - boneIndices: 717
+                        boneWeights: 1
+

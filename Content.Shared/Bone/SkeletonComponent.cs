@@ -1,21 +1,18 @@
-﻿using System.Numerics;
-using Content.Shared.Utils;
+﻿using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Bone;
 
 [RegisterComponent]
 public sealed partial class SkeletonComponent : Component
 {
-    [DataField] public BoneCompound? Compound;
-    [DataField] public EntityUid Root;
-    [DataField] public Vector3 Offset = Vector3.Zero;
+    [ViewVariables] public EntityUid Root;
 }
 
-[DataDefinition]
-public sealed partial class BoneCompound
+[RegisterComponent]
+public sealed partial class BoneCompoundComponent : Component
 {
-    [DataField(required:true)] public Vector3 Position;
-    [DataField(required:true)] public EulerAngles Rotation;
-    [DataField] public HashSet<BoneVertexData>? Data;
-    [DataField] public HashSet<BoneCompound>? Child;
+    [ViewVariables] public EntityUid? CompoundEnt;
+    [DataField] public EntProtoId<BoneCompoundComponent>? CompoundEntId;
+    [DataField] public BoneCompound? Compound;
+    [DataField] public Vector3 Offset = Vector3.Zero;
 }

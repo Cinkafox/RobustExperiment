@@ -1,43 +1,20 @@
-﻿using Content.Shared.Physics.Components;
-using Content.Shared.Physics.Shapes;
-using Content.Shared.Transform;
-using Content.Shared.Utils;
+﻿using Content.Shared.Location;
 using Robust.Shared.Player;
 
 namespace Content.Shared.GameTicking;
 
 public abstract class SharedGameTicker : EntitySystem
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
     [Dependency] protected readonly ISharedPlayerManager PlayerManager = default!;
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-    
-    public EntityUid MapUid;
+    [Dependency] private readonly LocationSystem _locationSystem = default!;
     
     public void InitializeGame()
     {
-        MapUid = _mapSystem.CreateMap(false);
-        
-        Spawn("alexandra", new Vector3(0,5,0), EulerAngles.CreateFromDegrees(0,0,0));
-        Spawn("alexandra", new Vector3(0,15,0), EulerAngles.CreateFromDegrees(0,0,0));
-        Spawn("floor", new Vector3(0,-2,0), EulerAngles.CreateFromDegrees(0,0,0));
+        _locationSystem.LoadLocation("default");
     }
 
     public void AttachSession(ICommonSession session)
     {
-        var camera = Spawn("camera", new Vector3(0,2,12), EulerAngles.CreateFromDegrees(0,180.0,0));
-        PlayerManager.SetAttachedEntity(session, camera);
-    }
-    
-    private EntityUid Spawn(string protoId, Vector3 position, EulerAngles rotation)
-    {
-        var transform = _entityManager.System<Transform3dSystem>();
-        
-        var ent = _entityManager.Spawn(protoId);
-        transform.SetParent(ent, MapUid);
-        transform.SetWorldPosition(ent, position);
-        transform.SetWorldRotation(ent, rotation);
-
-        return ent;
+        _locationSystem.AttachSession(session);
     }
 }

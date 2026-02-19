@@ -2,7 +2,7 @@
 
 namespace Content.Client.Utils;
 
-public class TexturedTriangle
+public sealed class TexturedTriangle
 {
     public readonly Triangle Triangle = new();
     public Vector2 TexturePoint1;
