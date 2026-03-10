@@ -28,7 +28,7 @@ public sealed partial class RigidBodySystem
             }
             catch (Exception ex)
             {
-                Logger.Error($"Failed to initialize collider {type.Name}: {ex.Message}");
+                Log.Error($"Failed to initialize collider {type.Name}: {ex.Message}");
             }
         }
     }
@@ -38,11 +38,11 @@ public sealed partial class RigidBodySystem
         var key = (a, b);
         if (_colliderRegistry.ContainsKey(key))
         {
-            Logger.Warning($"Duplicate collider registration for ({a.Name}, {b.Name})");
+            Log.Warning($"Duplicate collider registration for ({a.Name}, {b.Name})");
             return;
         }
         _colliderRegistry[key] = collider;
-        Logger.Debug($"Registered collider for ({a.Name}, {b.Name})");
+        Log.Debug($"Registered collider for ({a.Name}, {b.Name})");
     }
     
     private void ResolveCollisions(float deltaTime)
@@ -82,7 +82,10 @@ public sealed partial class RigidBodySystem
             new TransformedPhysicShape(xformA, bodyA.Shape),
             new TransformedPhysicShape(xformB, bodyB.Shape));
 
-        if (!contact.HasContact) return;
+        bodyB.ResolvingPoints = contact;
+        
+        if (!contact.HasContact)
+            return;
         
         ResolveContact(uidA, bodyA, xformA, uidB, bodyB, xformB, contact, deltaTime);
     }
@@ -143,8 +146,6 @@ public sealed partial class RigidBodySystem
         
         if (bodyB.PhysType == PhysType.Dynamic)
             xformB.LocalPosition += correction * invMassB;
-
-        // Logger.DebugS("physics", $"Collision: {ToPrettyString(uidA)} <-> {ToPrettyString(uidB)} | Depth: {contact.Depth:F3}");
     }
 }
 

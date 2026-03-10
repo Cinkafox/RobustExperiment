@@ -1,10 +1,13 @@
 ﻿- type: entity
   id: camera
   components:
+    - type: InputMover
+    - type: Input
+      context: human
     - type: Camera
       fov: 4
     - type: RigidBody
-      physType: Static
+      
       shape:
         !type:SphereShape
         radius: 1

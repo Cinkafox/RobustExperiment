@@ -280,3 +280,6 @@ binds:
     type: State
     key: Escape
     mod1: Shift
+  - function: PlayerJumpAction
+    type: State
+    key: Space

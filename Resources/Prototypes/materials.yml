@@ -1,5 +1,5 @@
 ﻿- type: surface
   id: default
   defaultFriction:
-    static: 0.8
-    dynamic: 0.6
+    static: 1.0
+    dynamic: 0.8

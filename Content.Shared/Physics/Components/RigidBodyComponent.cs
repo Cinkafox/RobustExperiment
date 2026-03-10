@@ -1,4 +1,5 @@
-﻿using Robust.Shared.Prototypes;
+﻿using Content.Shared.Physics.Data;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.Physics.Components;
@@ -13,14 +14,15 @@ public sealed partial class RigidBodyComponent: Component
 
     [DataField] public Shapes.IPhysicShape Shape = new Shapes.SphereShape();
     
-    [DataField] public float StaticFriction = 0.8f;
-    [DataField] public float DynamicFriction = 0.6f;
-    [DataField] public float RollingResistance = 0.005f;
+    [DataField] public float StaticFriction = 1.0f;
+    [DataField] public float DynamicFriction = 0.8f;
+    [DataField] public float RollingResistance = 0.015f;
     [DataField] public ProtoId<SurfacePrototype> SurfaceMaterial = "default";
     
     [ViewVariables(VVAccess.ReadOnly)] public float Mass => Shape.Area * Density;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 LinearForce => LinearVelocity * Mass;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 AngularForce => AngularVelocity * Mass;
+    [ViewVariables(VVAccess.ReadOnly)] public ManifoldPoints ResolvingPoints = default!;
 }
 
 [Serializable, NetSerializable]
