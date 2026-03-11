@@ -1,4 +1,6 @@
 ﻿
+using Content.Shared.Physics.Components;
+
 namespace Content.Shared.Physics.Data;
 
 [DataDefinition]
@@ -62,5 +64,20 @@ public sealed partial class ManifoldPoints
         var normalLenSq = Normal.LengthSquared();
         if (normalLenSq < 0.95f || normalLenSq > 1.05f)
             Logger.Warning($"Non-unit normal (length²={normalLenSq}) {context}");
+    }
+}
+
+[DataDefinition]
+public sealed partial class ContactManifold
+{
+    [DataField] public ManifoldPoints Points;
+    [ViewVariables] public Entity<RigidBodyComponent> BodyA;
+    [ViewVariables] public Entity<RigidBodyComponent> BodyB;
+
+    public ContactManifold(ManifoldPoints points, Entity<RigidBodyComponent> bodyA, Entity<RigidBodyComponent> bodyB)
+    {
+        Points = points;
+        BodyA = bodyA;
+        BodyB = bodyB;
     }
 }

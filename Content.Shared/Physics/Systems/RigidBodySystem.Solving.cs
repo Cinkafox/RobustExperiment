@@ -1,4 +1,5 @@
 ﻿using Content.Shared.Physics.Components;
+using Content.Shared.Physics.Data;
 using Content.Shared.Transform;
 
 namespace Content.Shared.Physics.Systems;
@@ -27,10 +28,10 @@ public sealed partial class RigidBodySystem
             // ===== LINEAR DAMPING =====
             // Air/fluid resistance (quadratic drag at high speeds, linear at low speeds)
             var linearSpeed = body.LinearVelocity.Length();
-            if (linearSpeed > 0.01f)
+            if (linearSpeed > 0.001f)
             {
-                const float linearDrag = 0.05f;   // Low-speed damping
-                const float quadraticDrag = 0.002f; // High-speed damping
+                const float linearDrag = 0.2f;   // Low-speed damping
+                const float quadraticDrag = 0.02f; // High-speed damping
             
                 var dragForce = body.LinearVelocity * linearDrag + 
                                 (body.LinearVelocity * linearSpeed) * quadraticDrag;
@@ -79,12 +80,50 @@ public sealed partial class RigidBodySystem
             }
         }
     }
+    
+    private void UpdateGroundStates(float deltaTime)
+    {
+        const float UP_THRESHOLD = 0.7f;
+        const float VELOCITY_THRESHOLD = 0.5f;
+        
+        var query = AllEntityQuery<RigidBodyComponent>();
+        while (query.MoveNext(out var uid, out var body))
+        {
+            body.ResetGroundState();
+        }
+        
+        foreach (var manifold in _contacts)
+        {
+            var contact = manifold.Points;
+            
+            var bodyA = manifold.BodyA.Comp;
+            var bodyB = manifold.BodyB.Comp;
+        
+            var normalDotUpA = Vector3.Dot(contact.Normal, Vector3.UnitY);
+            var normalDotUpB = Vector3.Dot(contact.Normal, Vector3.UnitY);
+            
+            if (bodyA.PhysType == PhysType.Dynamic && normalDotUpA > UP_THRESHOLD)
+            {
+                var relVel = Vector3.Dot(bodyA.LinearVelocity, contact.Normal);
+                if (relVel <= VELOCITY_THRESHOLD)
+                    bodyA.AddGroundContact(normalDotUpA);
+            }
+        
+            if (bodyB.PhysType == PhysType.Dynamic && normalDotUpB > UP_THRESHOLD)
+            {
+                var relVel = Vector3.Dot(bodyB.LinearVelocity, -contact.Normal);
+                if (relVel <= VELOCITY_THRESHOLD)
+                    bodyB.AddGroundContact(normalDotUpB);
+            }
+        }
+    }
 
     private void SimulateStep(float deltaTime)
     {
         ApplyGlobalForces(deltaTime);
         IntegrateVelocities(deltaTime);
         ResolveCollisions(deltaTime);
+        UpdateGroundStates(deltaTime);
         IntegratePositions(deltaTime);
     }
 }

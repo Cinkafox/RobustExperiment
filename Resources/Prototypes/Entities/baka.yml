@@ -9,6 +9,19 @@
          halfExtents: 1, 0.7, 0.9
          
 - type: entity
+  id: machine
+  components:
+    - type: Model
+      currentMesh:
+        path: "/Models/machine/machine.obj"
+        offset: 0,-2.2,0
+    - type: RigidBody
+      physType: Static
+      shape:
+        !type:BoxShape
+        halfExtents: 1.2, 0.7, 0.9        
+         
+- type: entity
   id: floor
   components:
     - type: RigidBody
@@ -16,18 +29,6 @@
       shape:
         !type:PlaneShape
         distance: 1
-      
-- type: entity
-  id: tnew
-  components:
-    - type: Model
-      currentMesh: "/Models/tnew/tardis_2010.obj"
-      
-- type: entity
-  id: world
-  components:
-    - type: Model
-      currentMesh: "/Models/world2/world.obj"
       
 - type: entity
   id: nyash

@@ -16,8 +16,8 @@ public sealed class InputMoverSystem : EntitySystem
     {
         base.Initialize();
         CommandBinds.Builder
-            .Bind(EngineKeyFunctions.MoveUp, new ApplyMovementHandler(new Vector3(0, 0, -2)))
-            .Bind(EngineKeyFunctions.MoveDown, new ApplyMovementHandler(new Vector3(0, 0, 2)))
+            .Bind(EngineKeyFunctions.MoveUp, new ApplyMovementHandler(new Vector3(0, 0, -1)))
+            .Bind(EngineKeyFunctions.MoveDown, new ApplyMovementHandler(new Vector3(0, 0, 1)))
             .Bind(EngineKeyFunctions.MoveLeft, new ApplyRotationMovementHandler(new EulerAngles(0, Angle.FromDegrees(-100),0)))
             .Bind(EngineKeyFunctions.MoveRight, new ApplyRotationMovementHandler(new EulerAngles(0, Angle.FromDegrees(100),0)))
             .Bind(ContentKeyFunctions.PlayerJumpAction, new ApplyJumpHandler())
@@ -34,18 +34,18 @@ public sealed class InputMoverSystem : EntitySystem
         {
             transform3dComponent.LocalAngle -= inputMover.RotationMovement * frameTime;
 
+            if (!rigidBodyComponent.IsGrounded) continue;
+            
             var shift = 
                 Vector3.Transform(inputMover.PositionMovement, 
                     Matrix4Helpers.CreateRotationY(transform3dComponent.WorldAngle.Yaw));
             
             _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), shift * rigidBodyComponent.Mass);
-            
-            if (inputMover.IsJumping)
-            {
-                Log.Debug(rigidBodyComponent.ResolvingPoints.HasContact.ToString());
-                if(!rigidBodyComponent.ResolvingPoints.HasContact) return;
-                _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0, 2, 0) * rigidBodyComponent.Mass);
-            }
+                
+            if(!inputMover.IsJumping) 
+                continue;
+                
+            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0, 2, 0) * rigidBodyComponent.Mass);
         }
     }
 }

@@ -14,15 +14,31 @@ public sealed partial class RigidBodyComponent: Component
 
     [DataField] public Shapes.IPhysicShape Shape = new Shapes.SphereShape();
     
-    [DataField] public float StaticFriction = 1.0f;
-    [DataField] public float DynamicFriction = 0.8f;
+    [DataField] public float Friction = 0.8f;
+    [DataField] public float Restitution = 0.3f;
     [DataField] public float RollingResistance = 0.015f;
-    [DataField] public ProtoId<SurfacePrototype> SurfaceMaterial = "default";
     
     [ViewVariables(VVAccess.ReadOnly)] public float Mass => Shape.Area * Density;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 LinearForce => LinearVelocity * Mass;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 AngularForce => AngularVelocity * Mass;
-    [ViewVariables(VVAccess.ReadOnly)] public ManifoldPoints ResolvingPoints = default!;
+    
+    [ViewVariables(VVAccess.ReadOnly)] public bool IsGrounded { get; private set; }
+    [ViewVariables(VVAccess.ReadOnly)] public int GroundContactCount { get; private set; }
+    [ViewVariables(VVAccess.ReadOnly)] public float GroundNormalY { get; private set; }
+    
+    public void ResetGroundState()
+    {
+        IsGrounded = false;
+        GroundContactCount = 0;
+        GroundNormalY = 0f;
+    }
+    
+    public void AddGroundContact(float normalY)
+    {
+        GroundContactCount++;
+        GroundNormalY = MathF.Max(GroundNormalY, normalY);
+        IsGrounded = true;
+    }
 }
 
 [Serializable, NetSerializable]
