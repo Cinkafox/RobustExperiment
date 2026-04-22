@@ -9,7 +9,6 @@ public sealed partial class RigidBodySystem : EntitySystem
 {
     [Dependency] private readonly ISandboxHelper _sandboxHelper = default!;
     [Dependency] private readonly IReflectionManager _reflectionManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     
     public override void Initialize()
     {
@@ -28,23 +27,8 @@ public sealed partial class RigidBodySystem : EntitySystem
         ent.Comp.AngularVelocity += force / ent.Comp.Mass;
     }
 
-    public override void Update(float frameTime)
+    public override void FrameUpdate(float frameTime)
     {
         SimulateStep(frameTime);
-    }
-
-    public (float, float ) GetCombinedFriction(ProtoId<SurfacePrototype> surfaceA, ProtoId<SurfacePrototype> surfaceB)
-    {
-        if (!_prototypeManager.TryIndex(surfaceA, out var prototypeA) ||
-            !_prototypeManager.TryIndex(surfaceB, out var prototypeB))
-            return default;
-        
-        var aFriction = prototypeA.DefaultFriction;
-        var bFriction = prototypeB.DefaultFriction;
-        
-        return (
-            MathF.Sqrt(aFriction.StaticFriction * bFriction.StaticFriction),
-            MathF.Sqrt(aFriction.DynamicFriction * bFriction.DynamicFriction)
-        );
     }
 }

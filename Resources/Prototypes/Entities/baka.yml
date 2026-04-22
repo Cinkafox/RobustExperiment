@@ -35,6 +35,14 @@
   components:
     - type: Model
       currentMesh: "/Models/nyash/nyash.obj"
+
+- type: entity
+  id: mambo
+  components:
+    - type: Model
+      currentMesh: 
+        path: "/Models/mambo/Mambo.obj"
+        scale: 0.02,0.02,0.02
       
 - type: entity
   id: femboy

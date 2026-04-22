@@ -45,7 +45,8 @@ public sealed class InputMoverSystem : EntitySystem
             if(!inputMover.IsJumping) 
                 continue;
                 
-            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0, 2, 0) * rigidBodyComponent.Mass);
+            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0, 10, 0) * rigidBodyComponent.Mass);
+            inputMover.IsJumping = false;
         }
     }
 }

@@ -17,3 +17,5 @@
       rotation: -45,0,0
     - entity: alexandra
       position: 5,15,5
+    #- entity: mambo
+    #  position: 3,0,8

@@ -101,7 +101,6 @@ public sealed class MeshSerializer : ITypeReader<Mesh, ValueDataNode>, ITypeRead
         return new ValidatedMappingNode(new Dictionary<ValidationNode, ValidationNode>()
         {
             { new ValidatedValueNode(new ValueDataNode("path")), serializationManager.ValidateNode<ResPath>(node.Get("path"), context) },
-            { new ValidatedValueNode(new ValueDataNode("offset")), serializationManager.ValidateNode<Vector3>(node.Get("offset"), context) }
         });
     }
 
@@ -109,9 +108,16 @@ public sealed class MeshSerializer : ITypeReader<Mesh, ValueDataNode>, ITypeRead
         SerializationHookContext hookCtx, ISerializationContext? context = null, ISerializationManager.InstantiationDelegate<Mesh>? instanceProvider = null)
     {
         var path = serializationManager.Read<ResPath>(node.Get("path"), hookCtx, context);
-        var offset = serializationManager.Read<Vector3>(node.Get("offset"), hookCtx, context);
+        var offset = Vector3.Zero;
+        var scale = Vector3.One;
         
-        var matrix = Matrix4Helpers.CreateTranslation(offset);
+        if(node.Has("offset"))
+            offset = serializationManager.Read<Vector3>(node.Get("offset"), hookCtx, context);
+        
+        if (node.Has("scale"))
+            scale = serializationManager.Read<Vector3>(node.Get("scale"), hookCtx, context);
+        
+        var matrix = Matrix4Helpers.CreateTransform(offset, Quaternion.Identity, scale);
         var manager = dependencies.Resolve<IResourceManager>();
 
         using var reader = manager.ContentFileReadText(path);
