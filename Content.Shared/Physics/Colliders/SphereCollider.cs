@@ -49,7 +49,7 @@ public sealed class PlaneSphereCollider : ICollider<PlaneShape, SphereShape>
         TransformedPhysicShape<PlaneShape> plane,
         TransformedPhysicShape<SphereShape> sphere)
     {
-        var normal = Vector3.Normalize(plane.Rotation.RotateVec(plane.Shape.Normal));
+        var normal = Vector3.Normalize(plane.RotateVector(plane.Shape.Normal));
         
         var sphereToPlane = sphere.Position - plane.Position;
         var distanceToPlane = Vector3.Dot(sphereToPlane, normal) - plane.Shape.Distance;

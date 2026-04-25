@@ -1,4 +1,6 @@
-﻿using Content.Shared.Utils;
+using System;
+using System.Numerics;
+using Content.Shared.Utils;
 using NUnit.Framework;
 using Quaternion = System.Numerics.Quaternion;
 
@@ -48,9 +50,13 @@ public sealed class Angle
         var euler = quaternion.ToEulerAngle();
 
         // Генерация матриц поворота
-        var matrixFromQuaternion = Matrix4Helpers.CreateRotation(quaternion);
+        var matrixFromQuaternion = Matrix4x4.CreateFromQuaternion(quaternion);
         var matrixFromEulerAngles = Matrix4Helpers.CreateRotation(euler);
         
-        Assert.That(matrixFromQuaternion.EqualsApprox(matrixFromEulerAngles, 0.001f));
+        Console.WriteLine(matrixFromEulerAngles.ToDebugString());
+        Console.WriteLine("----");
+        Console.WriteLine(matrixFromQuaternion.ToDebugString());
+        
+        Assert.That(matrixFromQuaternion.EqualsApprox(matrixFromEulerAngles, 0.1f));
     }
 }

@@ -32,7 +32,7 @@ public sealed class BoxSphereCollider : ICollider<BoxShape, SphereShape>
             // Use box normal facing sphere (approximate)
             var boxAxes = box.Shape.GetBoxAxes(box);
             var boxExtents = box.Shape.GetBoxHalfExtents(box);
-            var localSphere = box.Rotation.Conjugate.RotateVec(sphere.Position - box.Position);
+            var localSphere = box.RotateConjugate(sphere.Position - box.Position);
             
             // Find dominant axis
             var absLocal = new Vector3(
@@ -80,7 +80,7 @@ public sealed class BoxPlaneCollider : ICollider<BoxShape, PlaneShape>
         TransformedPhysicShape<PlaneShape> plane)
     {
         // Transform plane normal to world space
-        var planeNormal = Vector3.Normalize(plane.Rotation.RotateVec(plane.Shape.Normal));
+        var planeNormal = Vector3.Normalize(plane.RotateVector(plane.Shape.Normal));
         
         // Get all box vertices
         var vertices = box.Shape.GetBoxVertices(box);
@@ -248,7 +248,7 @@ public sealed class BoxBoxCollider : ICollider<BoxShape, BoxShape>
     private Vector3 FindBoxSupportPoint(TransformedPhysicShape<BoxShape> box, Vector3 direction)
     {
         // Transform direction to box-local space
-        var localDir = box.Rotation.Conjugate.RotateVec(direction);
+        var localDir = box.RotateConjugate(direction);
         var extents = box.GetBoxHalfExtents();
         
         // Find vertex most in direction
@@ -259,7 +259,7 @@ public sealed class BoxBoxCollider : ICollider<BoxShape, BoxShape>
         );
         
         // Transform to world space
-        return box.Position + box.Rotation.RotateVec(localPoint);
+        return box.Position + box.RotateVector(localPoint);
     }
 }
 

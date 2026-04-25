@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Content.Shared.Utils;
@@ -35,31 +35,33 @@ public static class Matrix4Helpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix4x4 CreateTransform(float posX, float posY, float posZ, float x, float y, float z, float w, float scaleX = 1, float scaleY = 1, float scaleZ = 1)
     {
-        float xx = x * x;
-        float yy = y * y;
-        float zz = z * z;
-
-        float xy = x * y;
-        float wz = z * w;
-        float xz = z * x;
-        float wy = y * w;
-        float yz = y * z;
-        float wx = x * w;
+        var xx = x * x;
+        var yy = y * y;
+        var zz = z * z;
+        var xy = x * y;
+        var wz = z * w;
+        var xz = z * x;
+        var wy = y * w;
+        var yz = y * z;
+        var wx = x * w;
         
         return new Matrix4x4
         {
             M11 = (1.0f - 2.0f * (yy + zz)) * scaleX,
             M12 = 2.0f * (xy + wz) * scaleX,
-            M13 = 2.0f * (xz - wy),
+            M13 = 2.0f * (xz - wy) * scaleX,  
             M14 = 0,
+            
             M21 = 2.0f * (xy - wz) * scaleY,
             M22 = (1.0f - 2.0f * (zz + xx)) * scaleY,
             M23 = 2.0f * (yz + wx) * scaleY,
             M24 = 0,
+            
             M31 = 2.0f * (xz + wy) * scaleZ,
             M32 = 2.0f * (yz - wx) * scaleZ,
             M33 = (1.0f - 2.0f * (yy + xx)) * scaleZ,
             M34 = 0,
+            
             M41 = posX,
             M42 = posY,
             M43 = posZ,
@@ -70,61 +72,56 @@ public static class Matrix4Helpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix4x4 CreateInverseTransform(float posX, float posY, float posZ, float x, float y, float z, float w, float scaleX = 1, float scaleY = 1, float scaleZ = 1)
     {
-        // Invert the scale
-        float invScaleX = 1.0f / scaleX;
-        float invScaleY = 1.0f / scaleY;
-        float invScaleZ = 1.0f / scaleZ;
+        const float epsilon = 1e-8f;
+        var invScaleX = Math.Abs(scaleX) > epsilon ? 1.0f / scaleX : 0f;
+        var invScaleY = Math.Abs(scaleY) > epsilon ? 1.0f / scaleY : 0f;
+        var invScaleZ = Math.Abs(scaleZ) > epsilon ? 1.0f / scaleZ : 0f;
 
-        // Conjugate the quaternion for inverse rotation
-        float invX = -x;
-        float invY = -y;
-        float invZ = -z;
-        float invW = w;
+        var invX = -x;
+        var invY = -y;
+        var invZ = -z;
+        var invW = w;
 
-        float xx = invX * invX;
-        float yy = invY * invY;
-        float zz = invZ * invZ;
+        var xx = invX * invX;
+        var yy = invY * invY;
+        var zz = invZ * invZ;
+        var xy = invX * invY;
+        var wz = invZ * invW;
+        var xz = invZ * invX;
+        var wy = invY * invW;
+        var yz = invY * invZ;
+        var wx = invX * invW;
 
-        float xy = invX * invY;
-        float wz = invZ * invW;
-        float xz = invZ * invX;
-        float wy = invY * invW;
-        float yz = invY * invZ;
-        float wx = invX * invW;
-
-        // Construct the inverse rotation matrix scaled by the inverse of the scale factors
         var rotationInv = new Matrix4x4
         {
             M11 = (1.0f - 2.0f * (yy + zz)) * invScaleX,
             M12 = 2.0f * (xy - wz) * invScaleX,
-            M13 = 2.0f * (xz + wy) * invScaleX,
+            M13 = 2.0f * (xz + wy) * invScaleX, 
             M14 = 0,
+            
             M21 = 2.0f * (xy + wz) * invScaleY,
             M22 = (1.0f - 2.0f * (zz + xx)) * invScaleY,
             M23 = 2.0f * (yz - wx) * invScaleY,
             M24 = 0,
+            
             M31 = 2.0f * (xz - wy) * invScaleZ,
             M32 = 2.0f * (yz + wx) * invScaleZ,
             M33 = (1.0f - 2.0f * (yy + xx)) * invScaleZ,
             M34 = 0,
-            M41 = 0,
-            M42 = 0,
-            M43 = 0,
-            M44 = 1
+            M41 = 0, M42 = 0, M43 = 0, M44 = 1
         };
 
-        // Calculate the inverse translation
-        float invPosX = -posX;
-        float invPosY = -posY;
-        float invPosZ = -posZ;
-
-        // Apply inverse translation to the rotation matrix
+        var invPosX = -posX;
+        var invPosY = -posY;
+        var invPosZ = -posZ;
+        
         rotationInv.M41 = invPosX * rotationInv.M11 + invPosY * rotationInv.M21 + invPosZ * rotationInv.M31;
         rotationInv.M42 = invPosX * rotationInv.M12 + invPosY * rotationInv.M22 + invPosZ * rotationInv.M32;
         rotationInv.M43 = invPosX * rotationInv.M13 + invPosY * rotationInv.M23 + invPosZ * rotationInv.M33;
 
         return rotationInv;
     }
+
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix4x4 CreateTransform(Vector3 pos, Quaternion quaternion, Vector3 scale)
@@ -278,46 +275,22 @@ public static class Matrix4Helpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix4x4 CreateRotation(Quaternion quaternion)
     {
-        quaternion = Quaternion.Normalize(quaternion);
-        
-        float x = quaternion.X;
-        float y = quaternion.Y;
-        float z = quaternion.Z;
-        float w = quaternion.W;
-        
-        float xx = x * x;
-        float yy = y * y;
-        float zz = z * z;
-        float xy = x * y;
-        float xz = x * z;
-        float yz = y * z;
-        float wx = w * x;
-        float wy = w * y;
-        float wz = w * z;
-
-        return new Matrix4x4(
-            1.0f - 2.0f * (yy + zz), 2.0f * (xy - wz), 2.0f * (xz + wy), 0.0f,
-            2.0f * (xy + wz), 1.0f - 2.0f * (xx + zz), 2.0f * (yz - wx), 0.0f,
-            2.0f * (xz - wy), 2.0f * (yz + wx), 1.0f - 2.0f * (xx + yy), 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
-        );
+        return Matrix4x4.CreateFromQuaternion(quaternion);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix4x4 CreateRotation(EulerAngles rotation)
     {
-        return CreateRotation(rotation.ToQuaternion());
-        
         var pitchRad = rotation.Pitch.Theta;
         var yawRad = rotation.Yaw.Theta;
         var rollRad = rotation.Roll.Theta;
         
-        float sinPitch = (float)Math.Sin(pitchRad);
-        float cosPitch = (float)Math.Cos(pitchRad);
-        float sinYaw = (float)Math.Sin(yawRad);
-        float cosYaw = (float)Math.Cos(yawRad);
-        float sinRoll = (float)Math.Sin(rollRad);
-        float cosRoll = (float)Math.Cos(rollRad);
+        var sinPitch = (float)Math.Sin(pitchRad);
+        var cosPitch = (float)Math.Cos(pitchRad);
+        var sinYaw = (float)Math.Sin(yawRad);
+        var cosYaw = (float)Math.Cos(yawRad);
+        var sinRoll = (float)Math.Sin(rollRad);
+        var cosRoll = (float)Math.Cos(rollRad);
         
         return new Matrix4x4(
             cosYaw * cosRoll, cosYaw * sinRoll * sinPitch - sinYaw * cosPitch, cosYaw * sinRoll * cosPitch + sinYaw * sinPitch, 0.0f,
@@ -325,5 +298,10 @@ public static class Matrix4Helpers
             -sinRoll, cosRoll * sinPitch, cosRoll * cosPitch, 0.0f,
             0.0f, 0.0f, 0.0f, 1.0f
         );
+    }
+    
+    public static string ToDebugString(this Matrix4x4 m)
+    {
+        return $" {{ {m.M11,12:F8} {m.M12,12:F8} {m.M13,12:F8} {m.M14,12:F8} }} \n {{ {m.M21,12:F8} {m.M22,12:F8} {m.M23,12:F8} {m.M24,12:F8} }} \n {{ {m.M31,12:F8} {m.M32,12:F8} {m.M33,12:F8} {m.M34,12:F8} }} \n {{ {m.M41,12:F8} {m.M42,12:F8} {m.M43,12:F8} {m.M44,12:F8} }}";
     }
 }

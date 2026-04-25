@@ -11,8 +11,8 @@ public sealed class PlanePlaneCollider : ICollider<PlaneShape, PlaneShape>
         TransformedPhysicShape<PlaneShape> a, 
         TransformedPhysicShape<PlaneShape> b)
     {
-        var normalA = Vector3.Normalize(a.Rotation.RotateVec(a.Shape.Normal));
-        var normalB = Vector3.Normalize(b.Rotation.RotateVec(b.Shape.Normal));
+        var normalA = Vector3.Normalize(a.RotateVector(a.Shape.Normal));
+        var normalB = Vector3.Normalize(b.RotateVector(b.Shape.Normal));
         
         var dot = MathF.Abs(Vector3.Dot(normalA, normalB));
         if (dot < 0.999f) // Not parallel enough

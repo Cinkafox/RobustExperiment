@@ -80,7 +80,7 @@ public sealed partial class BoxShape : IPhysicShape
         // Transform to world space
         var worldVertices = new Vector3[8];
         for (var i = 0; i < 8; i++)
-            worldVertices[i] = transformedPhysicShape.Position + transformedPhysicShape.Rotation.RotateVec(localVertices[i]);
+            worldVertices[i] = transformedPhysicShape.Position + transformedPhysicShape.RotateVector(localVertices[i]);
         
         return worldVertices;
     }
@@ -89,9 +89,9 @@ public sealed partial class BoxShape : IPhysicShape
     {
         return new[]
         {
-            Vector3.Normalize(transformedPhysicShape.Rotation.RotateVec(new Vector3(1, 0, 0))),
-            Vector3.Normalize(transformedPhysicShape.Rotation.RotateVec(new Vector3(0, 1, 0))),
-            Vector3.Normalize(transformedPhysicShape.Rotation.RotateVec(new Vector3(0, 0, 1)))
+            Vector3.Normalize(transformedPhysicShape.RotateVector(new Vector3(1, 0, 0))),
+            Vector3.Normalize(transformedPhysicShape.RotateVector(new Vector3(0, 1, 0))),
+            Vector3.Normalize(transformedPhysicShape.RotateVector(new Vector3(0, 0, 1)))
         };
     }
     
@@ -107,7 +107,8 @@ public sealed partial class BoxShape : IPhysicShape
     public Vector3 GetClosestPointOnBox(TransformedPhysicShape transformedPhysicShape, Vector3 point)
     {
         // Transform point to box-local space
-        var localPoint =transformedPhysicShape.Rotation.Conjugate.RotateVec(point - transformedPhysicShape.Position);
+    
+        var localPoint = transformedPhysicShape.RotateConjugate(point - transformedPhysicShape.Position);
         var scaledExtents = GetBoxHalfExtents(transformedPhysicShape);
         
         // Clamp to box surface in local space
@@ -118,6 +119,6 @@ public sealed partial class BoxShape : IPhysicShape
         );
         
         // Transform back to world space
-        return transformedPhysicShape.Position + transformedPhysicShape.Rotation.RotateVec(localClosest);
+        return transformedPhysicShape.Position + transformedPhysicShape.RotateVector(localClosest);
     }
 }

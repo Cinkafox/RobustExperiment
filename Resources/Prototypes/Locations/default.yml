@@ -2,7 +2,7 @@
   id: default
   playerSpawn: 
     entity: camera
-    position: 0,3,12
+    position: 0,6,12
     rotation: 0,180,0
   entities:
     - entity: floor

@@ -1,4 +1,4 @@
-﻿using Content.Shared.Physics.Components;
+using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Data;
 using Content.Shared.Transform;
 using Robust.Shared.Utility;
@@ -154,9 +154,16 @@ public sealed partial class RigidBodySystem
                 bodyB.LinearVelocity += frictionVector * invMassB;
         }
         
-        const float percent = 0.2f;
+        var correctionPercent = 0.2f;
         const float slop = 0.01f;
-        var correction = MathF.Max(contact.Depth - slop, 0f) / invMassSum * percent * contact.Normal;
+        
+        // Reduce correction when bodies are grounded to prevent shaking
+        if (bodyA.IsGrounded || bodyB.IsGrounded)
+        {
+            correctionPercent = 0.05f; // Much gentler correction when grounded
+        }
+        
+        var correction = MathF.Max(contact.Depth - slop, 0f) / invMassSum * correctionPercent * contact.Normal;
         
         if (bodyA.PhysType == PhysType.Dynamic)
             xformA.LocalPosition -= correction * invMassA;

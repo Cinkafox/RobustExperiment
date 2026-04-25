@@ -1,4 +1,4 @@
-﻿using Content.Shared.Physics.Components;
+using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Data;
 using Content.Shared.Transform;
 
@@ -25,39 +25,46 @@ public sealed partial class RigidBodySystem
         {
             if (body.PhysType == PhysType.Static) continue;
         
-            // ===== LINEAR DAMPING =====
-            // Air/fluid resistance (quadratic drag at high speeds, linear at low speeds)
             var linearSpeed = body.LinearVelocity.Length();
-            if (linearSpeed > 0.001f)
+            
+            // ===== GROUNDED DAMPING =====
+            // Apply stronger damping when grounded to prevent shaking
+            if (body.IsGrounded)
             {
-                const float linearDrag = 0.2f;   // Low-speed damping
-                const float quadraticDrag = 0.02f; // High-speed damping
-            
-                var dragForce = body.LinearVelocity * linearDrag + 
-                                (body.LinearVelocity * linearSpeed) * quadraticDrag;
-            
-                body.LinearVelocity -= dragForce * deltaTime;
+                // Strong damping on X/Z when grounded to prevent sliding jitter
+                var groundDamping = MathF.Pow(0.1f, deltaTime); // Very strong damping
+                body.LinearVelocity.X *= groundDamping;
+                body.LinearVelocity.Z *= groundDamping;
+                
+                // Dampen small Y movements when grounded
+                if (MathF.Abs(body.LinearVelocity.Y) < 0.5f)
+                {
+                    body.LinearVelocity.Y *= MathF.Pow(0.3f, deltaTime);
+                }
+            }
+            else
+            {
+                // ===== LINEAR DAMPING (airborne) =====
+                if (linearSpeed > 0.001f)
+                {
+                    const float linearDrag = 0.2f;
+                    const float quadraticDrag = 0.02f;
+                
+                    var dragForce = body.LinearVelocity * linearDrag + 
+                                    (body.LinearVelocity * linearSpeed) * quadraticDrag;
+                
+                    body.LinearVelocity -= dragForce * deltaTime;
+                }
             }
         
             // ===== ANGULAR DAMPING =====
-            // Rotational resistance (typically stronger than linear damping)
             var angularSpeed = body.AngularVelocity.Length();
             if (angularSpeed > 0.01f)
             {
-                const float angularDrag = 0.15f; // Higher damping for rotation
-            
+                // Stronger angular damping when grounded
+                var angularDrag = body.IsGrounded ? 0.5f : 0.15f;
                 var dragTorque = body.AngularVelocity * angularDrag;
                 body.AngularVelocity -= dragTorque * deltaTime;
-            }
-        
-            // ===== SURFACE FRICTION WHEN NOT COLLIDING =====
-            // Simulate ground friction when object is near rest on a surface
-            // (Requires raycast to detect ground - simplified here)
-            if (linearSpeed < 0.1f && MathF.Abs(body.LinearVelocity.Y) < 0.01f)
-            {
-                // Apply extra damping to X/Z when near ground
-                body.LinearVelocity.X *= MathF.Pow(0.85f, deltaTime);
-                body.LinearVelocity.Z *= MathF.Pow(0.85f, deltaTime);
             }
         }
     }
@@ -118,12 +125,15 @@ public sealed partial class RigidBodySystem
         }
     }
 
-    private void SimulateStep(float deltaTime)
+    private void SimulateStep(float deltaTime, int perf = 1)
     {
-        ApplyGlobalForces(deltaTime);
-        IntegrateVelocities(deltaTime);
-        ResolveCollisions(deltaTime);
-        UpdateGroundStates(deltaTime);
-        IntegratePositions(deltaTime);
+        for (int i = 0; i < perf; i++)
+        {
+            ApplyGlobalForces(deltaTime / perf);
+            IntegrateVelocities(deltaTime / perf);
+            ResolveCollisions(deltaTime / perf);
+            UpdateGroundStates(deltaTime / perf);
+            IntegratePositions(deltaTime / perf);
+        }
     }
 }

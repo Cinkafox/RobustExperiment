@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 namespace Content.Shared.Utils;
 
@@ -9,11 +9,9 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
     public readonly Angle Roll = Angle.Zero;
     public Matrix4x4 Matrix => Matrix4Helpers.CreateRotation(this);
     
-    public static EulerAngles Zero = new EulerAngles();
+    public static readonly EulerAngles Zero = new EulerAngles();
 
-    public EulerAngles()
-    {
-    }
+    public EulerAngles() { }
 
     public static EulerAngles CreateFromDegrees(double pitch, double yaw, double roll)
     {
@@ -41,6 +39,11 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
     {
         return new EulerAngles(one.Pitch * two, one.Yaw * two, one.Roll * two);
     }
+    
+    public bool Equals(EulerAngles other)
+    {
+        return Pitch.Equals(other.Pitch) && Yaw.Equals(other.Yaw) && Roll.Equals(other.Roll);
+    }
 
     public bool EqualsApprox(EulerAngles other)
     {
@@ -49,22 +52,18 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
 
     public bool EqualsApprox(EulerAngles other, double tolerance)
     {
-        return Pitch.EqualsApprox(other.Pitch,tolerance) && Yaw.EqualsApprox(other.Yaw,tolerance) && Roll.EqualsApprox(other.Roll,tolerance);
+        return Pitch.EqualsApprox(other.Pitch, tolerance) && Yaw.EqualsApprox(other.Yaw, tolerance) && Roll.EqualsApprox(other.Roll, tolerance);
     }
+    
+    public override bool Equals(object? obj) => obj is EulerAngles other && Equals(other);
+    public override int GetHashCode() => HashCode.Combine(Pitch, Yaw, Roll);
 
-    public bool Equals(EulerAngles other)
-    {
-        return Pitch.Equals(other.Pitch) && Yaw.Equals(other.Yaw) && Roll.Equals(other.Roll);
-    }
+    public static bool operator ==(EulerAngles left, EulerAngles right) => left.Equals(right);
+    public static bool operator !=(EulerAngles left, EulerAngles right) => !(left == right);
 
     public override string ToString()
     {
-        return $"PITCH:{Pitch.Degrees} YAW:{Yaw.Degrees} ROLL:{Roll.Degrees}";
-    }
-
-    public Vector3 ToVec()
-    {
-        return RotateVec(Vector3.UnitX);
+        return $"PITCH:{Pitch.Degrees:F2} YAW:{Yaw.Degrees:F2} ROLL:{Roll.Degrees:F2}";
     }
 
     public Vector3 RotateVec(Vector3 pos)
@@ -100,13 +99,10 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
 
         return q;
     }
-    
-    public EulerAngles Conjugate => Quaternion.Conjugate(ToQuaternion()).ToEulerAngle();
 }
 
 public static class QuaternionExt
 {
-    
     public static EulerAngles ToEulerAngle(this Quaternion q)
     {
         q = Quaternion.Normalize(q);

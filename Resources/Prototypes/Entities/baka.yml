@@ -17,6 +17,7 @@
         offset: 0,-2.2,0
     - type: RigidBody
       physType: Static
+      restitution: 0
       shape:
         !type:BoxShape
         halfExtents: 1.2, 0.7, 0.9        
@@ -26,6 +27,7 @@
   components:
     - type: RigidBody
       physType: Static
+      restitution: 0
       shape:
         !type:PlaneShape
         distance: 1
@@ -34,7 +36,7 @@
   id: nyash
   components:
     - type: Model
-      currentMesh: "/Models/nyash/nyash.obj"
+      currentMesh: "/Models/nyash/Nyash.obj"
 
 - type: entity
   id: mambo

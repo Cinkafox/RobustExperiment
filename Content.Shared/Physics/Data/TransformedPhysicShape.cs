@@ -1,5 +1,4 @@
 ﻿using Content.Shared.Transform;
-using Content.Shared.Utils;
 using Robust.Shared.Analyzers;
 using IPhysicShape = Content.Shared.Physics.Shapes.IPhysicShape;
 
@@ -9,17 +8,18 @@ namespace Content.Shared.Physics.Data;
 public class TransformedPhysicShape
 {
     public Vector3 Position = Vector3.Zero;
-    public EulerAngles Rotation = EulerAngles.Zero;
+    public Quaternion Rotation = Quaternion.Identity;
     public Vector3 Scale = Vector3.One;
+    public Quaternion Conjugate => Quaternion.Conjugate(Rotation);
     
     public IPhysicShape Shape { get; }
     public TransformedPhysicShape(Transform3dComponent aTransform, IPhysicShape shape)
     {
         Shape = shape;
 
-        Position = aTransform.LocalPosition;
-        Rotation = aTransform.LocalRotation.ToEulerAngle();
-        Scale = aTransform.LocalScale;
+        Position = aTransform.WorldPosition;
+        Rotation = aTransform.WorldRotation;
+        Scale = aTransform.WorldScale;
     }
     
     public TransformedPhysicShape(IPhysicShape shape)
@@ -34,6 +34,16 @@ public class TransformedPhysicShape
         Rotation = transformedPhysicShape.Rotation;
         Scale = transformedPhysicShape.Scale;
     }
+
+    public Vector3 RotateVector(Vector3 vector)
+    {
+        return Vector3.Transform(vector, Rotation);
+    }
+
+    public Vector3 RotateConjugate(Vector3 vector)
+    {
+        return Vector3.Transform(vector, Conjugate);
+    }
 }
 
 public sealed class TransformedPhysicShape<T>: TransformedPhysicShape where T : IPhysicShape
@@ -44,9 +54,9 @@ public sealed class TransformedPhysicShape<T>: TransformedPhysicShape where T : 
     {
         Shape = shape;
 
-        Position = aTransform.LocalPosition;
-        Rotation = aTransform.LocalRotation.ToEulerAngle();
-        Scale = aTransform.LocalScale;
+        Position = aTransform.WorldPosition;
+        Rotation = aTransform.WorldRotation;
+        Scale = aTransform.WorldScale;
     }
     
     public TransformedPhysicShape(T shape) : base(shape)

@@ -55,7 +55,9 @@ public sealed class GameViewport : Control
         if(!TryGetCamera(out var camera)) 
             return;
 
-        _skyInstance.SetParameter("cameraDir", camera.Value.Comp2.WorldAngle.ToVec());
+        var angle = Vector3.Transform(Vector3.UnitX, camera.Value.Comp2.WorldRotation);
+
+        _skyInstance.SetParameter("cameraDir", angle);
         
         handle.UseShader(_skyInstance);
         handle.DrawRect(PixelRect, Color.White);
@@ -89,7 +91,6 @@ public sealed class GameViewport : Control
         if(!TryGetCamera(out var camera))
            return;
         
-        
         if(_configuration.GetValue<bool>("render_shitty_skybox"))
         {
             using (_profManager.Group("DrawSkyBox"))
@@ -98,7 +99,10 @@ public sealed class GameViewport : Control
             }
         }
         
-        var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, camera.Value, DrawingInstance);
+        var translate = camera.Value.Comp2.WorldAngle.RotateVec(camera.Value.Comp1.Shift);
+        var cameraProperties = new CameraProperties(camera.Value.Comp2.WorldPosition + translate, camera.Value.Comp2.WorldAngle, camera.Value.Comp1.FoV);
+        
+        var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, cameraProperties, DrawingInstance);
         
         if (_configuration.GetValue<bool>("render_debug"))
             drawHandle.DrawDebug = true;
@@ -111,9 +115,6 @@ public sealed class GameViewport : Control
             var query = _entityManager.EntityQueryEnumerator<Transform3dComponent, ModelComponent>();
             while (query.MoveNext(out var uid, out var transform3dComponent, out var modelComponent))
             {
-                if(camera.Value.Owner == uid) 
-                    continue;
-            
                 if (!modelComponent.MeshRenderInitialized)
                 {
                     modelComponent.MeshRender = new MeshRender(modelComponent.CurrentMesh,
@@ -130,7 +131,7 @@ public sealed class GameViewport : Control
             }
         }
         
-        _info.Text = $"                  Triangles: {DrawingInstance.GetDrawnTriangles()}, Textures pool: {DrawingInstance.TextureBuffer.Length}";
+        _info.Text = $"                  Triangles: {DrawingInstance.GetDrawnTriangles()}, Textures pool: {DrawingInstance.TextureBuffer.Length}, Camera position: {camera.Value.Comp2.WorldPosition}";
         
         using (_profManager.Group("Flush"))
         {
@@ -181,5 +182,4 @@ public sealed class GameViewport : Control
 
         _inputManager.ViewportKeyEvent(this, args);
     }
-    
 }

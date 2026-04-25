@@ -290,10 +290,10 @@ public sealed class DrawingHandle3d : IDisposable
     }
     
 
-    public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height, Entity<CameraComponent, Transform3dComponent> camera,
+    public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height, CameraProperties cameraProperties,
         DrawingInstance drawingInstance)
     {
-        _cameraProperties = new CameraProperties(camera.Comp2.WorldPosition, camera.Comp2.WorldAngle, camera.Comp1.FoV);
+        _cameraProperties = cameraProperties;
         DrawingInstance = drawingInstance;
         _handleBase = handleBase;
         _width = width;

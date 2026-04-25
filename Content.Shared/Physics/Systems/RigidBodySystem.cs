@@ -13,6 +13,7 @@ public sealed partial class RigidBodySystem : EntitySystem
     public override void Initialize()
     {
         InitializeColliders();
+        SimulateStep(10f, 2);
     }
 
     public void ApplyForce(Entity<RigidBodyComponent> ent, Vector3 force)
@@ -29,6 +30,6 @@ public sealed partial class RigidBodySystem : EntitySystem
 
     public override void FrameUpdate(float frameTime)
     {
-        SimulateStep(frameTime);
+        SimulateStep(frameTime, 4);
     }
 }

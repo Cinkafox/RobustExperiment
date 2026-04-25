@@ -6,9 +6,14 @@
       context: human
     - type: Camera
       fov: 4
+      shift: -5,1.8,0
+      rotation: 0,270,0
     - type: RigidBody
       friction: 3
+      restitution: 0.1
       density: 2
       shape:
-        !type:SphereShape
-        radius: 2
+        !type:BoxShape
+        halfExtents: 0.4, 1, 0.4
+    - type: Model
+      currentMesh: "/Models/nyash/Nyash.obj"
