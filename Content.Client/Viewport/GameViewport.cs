@@ -100,7 +100,7 @@ public sealed class GameViewport : Control
         }
         
         var translate = camera.Value.Comp2.WorldAngle.RotateVec(camera.Value.Comp1.Shift);
-        var cameraProperties = new CameraProperties(camera.Value.Comp2.WorldPosition + translate, camera.Value.Comp2.WorldAngle, camera.Value.Comp1.FoV);
+        var cameraProperties = new CameraProperties(camera.Value.Comp2.WorldPosition, camera.Value.Comp2.WorldAngle, camera.Value.Comp1.FoV);
         
         var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, cameraProperties, DrawingInstance);
         
@@ -131,7 +131,7 @@ public sealed class GameViewport : Control
             }
         }
         
-        _info.Text = $"                  Triangles: {DrawingInstance.GetDrawnTriangles()}, Textures pool: {DrawingInstance.TextureBuffer.Length}, Camera position: {camera.Value.Comp2.WorldPosition}";
+        _info.Text = $"                  Triangles: {DrawingInstance.GetDrawnTriangles()}, Textures pool: {DrawingInstance.TextureBuffer.Length}, Camera position: {camera.Value.Comp2.WorldPosition}, Camera angle {camera.Value.Comp2.WorldAngle}";
         
         using (_profManager.Group("Flush"))
         {

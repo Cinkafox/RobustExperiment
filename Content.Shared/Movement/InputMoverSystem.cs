@@ -32,7 +32,7 @@ public sealed class InputMoverSystem : EntitySystem
 
         while (query.MoveNext(out var uid, out var inputMover, out var transform3dComponent, out var rigidBodyComponent))
         {
-            transform3dComponent.LocalAngle -= inputMover.RotationMovement * frameTime;
+            transform3dComponent.LocalRotation *= (inputMover.RotationMovement * frameTime).ToQuaternion();
 
             if (!rigidBodyComponent.IsGrounded) continue;
             
