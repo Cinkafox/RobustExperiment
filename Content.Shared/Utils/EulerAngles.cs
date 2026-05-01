@@ -1,5 +1,3 @@
-using System.Numerics;
-
 namespace Content.Shared.Utils;
 
 public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<EulerAngles>
@@ -7,16 +5,10 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
     public readonly Angle Pitch = Angle.Zero;
     public readonly Angle Yaw = Angle.Zero;
     public readonly Angle Roll = Angle.Zero;
-    public Matrix4x4 Matrix => Matrix4Helpers.CreateRotation(this);
     
-    public static readonly EulerAngles Zero = new EulerAngles();
+    public static readonly EulerAngles Zero = new();
 
     public EulerAngles() { }
-
-    public static EulerAngles CreateFromDegrees(double pitch, double yaw, double roll)
-    {
-        return new EulerAngles(Angle.FromDegrees(pitch), Angle.FromDegrees(yaw), Angle.FromDegrees(roll));
-    }
     
     public EulerAngles(Angle pitch, Angle yaw, Angle roll)
     {
@@ -64,15 +56,5 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
     public override string ToString()
     {
         return $"PITCH:{Pitch.Degrees:F2} YAW:{Yaw.Degrees:F2} ROLL:{Roll.Degrees:F2}";
-    }
-
-    public Vector3 RotateVec(Vector3 pos)
-    {
-        return Vector3.Transform(pos, Matrix);
-    }
-    
-    public Vector4 RotateVec(Vector4 pos)
-    {
-        return Vector4.Transform(pos, Matrix);
     }
 }

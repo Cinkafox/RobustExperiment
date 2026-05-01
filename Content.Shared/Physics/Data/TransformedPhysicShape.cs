@@ -1,4 +1,5 @@
 ﻿using Content.Shared.Transform;
+using Content.Shared.Utils;
 using Robust.Shared.Analyzers;
 using IPhysicShape = Content.Shared.Physics.Shapes.IPhysicShape;
 
@@ -37,12 +38,12 @@ public class TransformedPhysicShape
 
     public Vector3 RotateVector(Vector3 vector)
     {
-        return Vector3.Transform(vector, Rotation);
+        return Matrix4Helpers.TransformVector(vector, Rotation);
     }
 
     public Vector3 RotateConjugate(Vector3 vector)
     {
-        return Vector3.Transform(vector, Conjugate);
+        return Matrix4Helpers.TransformVector(vector, Conjugate);
     }
 }
 

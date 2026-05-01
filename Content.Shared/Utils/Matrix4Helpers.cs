@@ -275,7 +275,18 @@ public static class Matrix4Helpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix4x4 CreateRotation(Quaternion quaternion)
     {
-        return Matrix4x4.CreateFromQuaternion(quaternion);
+        float x = quaternion.X, y = quaternion.Y, z = quaternion.Z, w = quaternion.W;
+        
+        float xx = x * x, yy = y * y, zz = z * z;
+        float xy = x * y, zw = z * w, xz = x * z;
+        float wy = y * w, yz = y * z, wx = x * w;
+
+        return new(
+            1.0f - 2.0f * (yy + zz),  2.0f * (xy + zw),  2.0f * (xz - wy),  0,
+            2.0f * (xy - zw),        1.0f - 2.0f * (xx + zz),  2.0f * (yz + wx),  0,
+            2.0f * (xz + wy),        2.0f * (yz - wx),  1.0f - 2.0f * (xx + yy),  0,
+            0, 0, 0, 1
+        );
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -300,8 +311,44 @@ public static class Matrix4Helpers
         );
     }
     
-    public static string ToDebugString(this Matrix4x4 m)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector3 TransformVector(Vector3 vector, Quaternion quaternion)
     {
-        return $" {{ {m.M11,12:F8} {m.M12,12:F8} {m.M13,12:F8} {m.M14,12:F8} }} \n {{ {m.M21,12:F8} {m.M22,12:F8} {m.M23,12:F8} {m.M24,12:F8} }} \n {{ {m.M31,12:F8} {m.M32,12:F8} {m.M33,12:F8} {m.M34,12:F8} }} \n {{ {m.M41,12:F8} {m.M42,12:F8} {m.M43,12:F8} {m.M44,12:F8} }}";
+        var qx = quaternion.X;
+        var qy = quaternion.Y;
+        var qz = quaternion.Z;
+        var qw = quaternion.W;
+
+        var x = vector.X;
+        var y = vector.Y;
+        var z = vector.Z;
+        
+        var tx = 2.0f * (qy * z - qz * y);
+        var ty = 2.0f * (qz * x - qx * z);
+        var tz = 2.0f * (qx * y - qy * x);
+        
+        return new Vector3(
+            x + qw * tx + qy * tz - qz * ty,
+            y + qw * ty + qz * tx - qx * tz,
+            z + qw * tz + qx * ty - qy * tx
+        );
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector3 TransformVector(Vector3 vector, EulerAngles rotation)
+    {
+        return Vector3.Transform(vector, CreateRotation(rotation));
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector4 TransformVector(Vector4 vector, EulerAngles rotation)
+    {
+        return Vector4.Transform(vector, CreateRotation(rotation));
+    }
+    
+    public static string ToDebugString(this Matrix4x4 m) =>
+        $" {{ {m.M11,12:F8} {m.M12,12:F8} {m.M13,12:F8} {m.M14,12:F8} }} \n" +
+        $" {{ {m.M21,12:F8} {m.M22,12:F8} {m.M23,12:F8} {m.M24,12:F8} }} \n" +
+        $" {{ {m.M31,12:F8} {m.M32,12:F8} {m.M33,12:F8} {m.M34,12:F8} }} \n" +
+        $" {{ {m.M41,12:F8} {m.M42,12:F8} {m.M43,12:F8} {m.M44,12:F8} }}";
 }

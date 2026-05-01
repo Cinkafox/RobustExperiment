@@ -45,18 +45,34 @@ public sealed class Angle
     [Test]
     public void TestRotationMatrixFromQuaternionAndEulerAngles()
     {
-        // Исходные кватернион и углы Эйлера
-        var quaternion = new Quaternion(0.0f, 0.0f, 0.7071f, 0.7071f);
-        var euler = quaternion.ToEulerAngle();
+        var eulerAngle = new EulerAngles(0, Robust.Shared.Maths.Angle.FromDegrees(90), 0);
+        var quaternion = eulerAngle.ToQuaternion();
+        
+        var eulerMatrix = Matrix4Helpers.CreateRotation(eulerAngle);
+        var quaternionMatrix = Matrix4Helpers.CreateRotation(quaternion);
 
-        // Генерация матриц поворота
-        var matrixFromQuaternion = Matrix4x4.CreateFromQuaternion(quaternion);
-        var matrixFromEulerAngles = Matrix4Helpers.CreateRotation(euler);
+        Console.WriteLine("QUATERNION MATRIX--");
+        Console.WriteLine(quaternionMatrix.ToDebugString());
+        Console.WriteLine("EULER MATRIX-------");
+        Console.WriteLine(eulerMatrix.ToDebugString());
         
-        Console.WriteLine(matrixFromEulerAngles.ToDebugString());
-        Console.WriteLine("----");
-        Console.WriteLine(matrixFromQuaternion.ToDebugString());
+        Assert.That(eulerMatrix.EqualsApprox(quaternionMatrix, 0.1f));
+    }
+
+    [Test]
+    public void TestVectorRotation()
+    {
+        var eulerAngle = new EulerAngles(-Robust.Shared.Maths.Angle.FromDegrees(25), Robust.Shared.Maths.Angle.FromDegrees(45), Robust.Shared.Maths.Angle.FromDegrees(35));
+        var quaternion = eulerAngle.ToQuaternion();
+
+        var vector = Vector3.UnitY;
+
+        var rotatedAngle = Matrix4Helpers.TransformVector(vector, eulerAngle);
+        var rotatedQuat = Matrix4Helpers.TransformVector(vector, quaternion);
         
-        Assert.That(matrixFromQuaternion.EqualsApprox(matrixFromEulerAngles, 0.1f));
+        Console.WriteLine("ANGLE ROTATION " + rotatedAngle);
+        Console.WriteLine("ANGLE QUATERNI " + rotatedQuat);
+        
+        Assert.That(rotatedAngle, Is.EqualTo(rotatedQuat));
     }
 }

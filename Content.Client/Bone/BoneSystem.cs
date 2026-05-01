@@ -2,6 +2,7 @@
 using Content.Client.DimensionEnv.ObjRes;
 using Content.Shared.Bone;
 using Content.Shared.Transform;
+using Content.Shared.Utils;
 
 namespace Content.Client.Bone;
 
@@ -90,8 +91,9 @@ public sealed class BoneSystem : EntitySystem
             mesh.TranslatedVertexes[data.BoneIndices] = mesh.Mesh.Vertexes[data.BoneIndices];
             
             mesh.TranslatedVertexes[data.BoneIndices] -= entity.Comp.OriginalPosition;
-            mesh.TranslatedVertexes[data.BoneIndices] =
-                (boneTransform.WorldAngle - entity.Comp.OriginalRotation).RotateVec(mesh.TranslatedVertexes[data.BoneIndices]);
+            mesh.TranslatedVertexes[data.BoneIndices] = Matrix4Helpers.TransformVector(
+                mesh.TranslatedVertexes[data.BoneIndices],
+                (boneTransform.WorldAngle - entity.Comp.OriginalRotation));
 
             mesh.TranslatedVertexes[data.BoneIndices] += entity.Comp.OriginalPosition;
             

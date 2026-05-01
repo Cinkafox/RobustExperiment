@@ -73,8 +73,6 @@ public sealed class BoxSphereCollider : ICollider<BoxShape, SphereShape>
 [ColliderRegister(typeof(BoxShape), typeof(PlaneShape))]
 public sealed class BoxPlaneCollider : ICollider<BoxShape, PlaneShape>
 {
-    private const float Epsilon = 1e-4f;
-    
     public ManifoldPoints ProcessCollision(
         TransformedPhysicShape<BoxShape> box,
         TransformedPhysicShape<PlaneShape> plane)
@@ -86,9 +84,9 @@ public sealed class BoxPlaneCollider : ICollider<BoxShape, PlaneShape>
         var vertices = box.Shape.GetBoxVertices(box);
         
         // Find most penetrating vertex (minimum signed distance to plane)
-        float minDistance = float.MaxValue;
-        Vector3 mostPenetratingVertex = Vector3.Zero;
-        bool anyBehind = false;
+        var minDistance = float.MaxValue;
+        var mostPenetratingVertex = Vector3.Zero;
+        var anyBehind = false;
         
         foreach (var vertex in vertices)
         {
@@ -150,9 +148,9 @@ public sealed class BoxBoxCollider : ICollider<BoxShape, BoxShape>
         var ab = bPos - aPos;
         
         // Test all 15 SAT axes
-        float minOverlap = float.MaxValue;
-        Vector3 collisionNormal = Vector3.Zero;
-        bool foundAxis = false;
+        var minOverlap = float.MaxValue;
+        var collisionNormal = Vector3.Zero;
+        var foundAxis = false;
         
         // Helper to test a single axis
         bool TestAxis(Vector3 axis, ref float minOverlap, ref Vector3 collisionNormal)

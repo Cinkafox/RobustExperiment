@@ -8,6 +8,7 @@ using Content.Shared.Physics;
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Data;
 using Content.Shared.Transform;
+using Content.Shared.Utils;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
@@ -55,7 +56,7 @@ public sealed class GameViewport : Control
         if(!TryGetCamera(out var camera)) 
             return;
 
-        var angle = Vector3.Transform(Vector3.UnitX, camera.Value.Comp2.WorldRotation);
+        var angle = Matrix4Helpers.TransformVector(Vector3.UnitX, camera.Value.Comp2.WorldRotation);
 
         _skyInstance.SetParameter("cameraDir", angle);
         
@@ -98,9 +99,9 @@ public sealed class GameViewport : Control
                 DrawSkyBox(handle);
             }
         }
-        
-        var translate = camera.Value.Comp2.WorldAngle.RotateVec(camera.Value.Comp1.Shift);
-        var cameraProperties = new CameraProperties(camera.Value.Comp2.WorldPosition, camera.Value.Comp2.WorldAngle, camera.Value.Comp1.FoV);
+
+        var translate  = Matrix4Helpers.TransformVector(Vector3.UnitX * 10, camera.Value.Comp2.WorldRotation);
+        var cameraProperties = new CameraProperties(camera.Value.Comp2.WorldPosition - translate, camera.Value.Comp2.WorldAngle, camera.Value.Comp1.FoV);
         
         var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, cameraProperties, DrawingInstance);
         
