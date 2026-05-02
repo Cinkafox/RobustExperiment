@@ -283,3 +283,6 @@ binds:
   - function: PlayerJumpAction
     type: State
     key: Space
+  - function: PlayerDropItemAction
+    type: State
+    key: Q

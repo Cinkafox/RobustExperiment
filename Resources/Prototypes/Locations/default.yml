@@ -19,3 +19,5 @@
       position: 5,15,5
     - entity: pistol
       position: 3,0,8
+    - entity: sword
+      position: 5,0,8

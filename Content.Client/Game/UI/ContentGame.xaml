@@ -17,6 +17,8 @@
                            <Label Text="S - назад" StyleClasses="menuPanel"/> 
                            <Label Text="A - поворот туды" StyleClasses="menuPanel"/>
                            <Label Text="D - поворот сюды" StyleClasses="menuPanel"/>
+                           <Label Text="SPACE - прыжок" StyleClasses="menuPanel"/>
+                           <Label Text="Q - выкинуть предмет с руки" StyleClasses="menuPanel"/>
                            <Label Text="Лагает? Похуй!" StyleClasses="menuPanel"/>
                            <Label Text="Артефакты? Поебать!" StyleClasses="menuPanel"/>
                            <BoxContainer Orientation="Vertical" Name="ConfContainer">

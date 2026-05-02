@@ -54,7 +54,7 @@ public partial class Transform3dComponent
             if(IsRooted)
                 return;
 
-            if (Quaternion.Dot(_localRotation, value) > 0.9999f)
+            if (value.Equals(_localRotation))
                 return;
             
             _localRotation = Quaternion.Normalize(value);

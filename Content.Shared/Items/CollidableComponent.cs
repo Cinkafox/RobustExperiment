@@ -10,8 +10,8 @@ public sealed partial class CollectibleComponent: Component
     [DataField] public Vector3 Scale = Vector3.One;
     
     [DataField] public EntityUid? TakenBy;
+    [DataField] public TimeSpan CollideDelay;
     [ViewVariables(VVAccess.ReadOnly)] public bool IsTaken => TakenBy != null;
-    
 }
 
 [RegisterComponent]
