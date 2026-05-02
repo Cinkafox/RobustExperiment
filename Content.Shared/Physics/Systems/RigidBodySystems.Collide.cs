@@ -68,8 +68,21 @@ public sealed partial class RigidBodySystem
                 var (uidB, bodyB, xformB) = dynamicBodies[j];
                 var contact = SolveCollision(uidA, bodyA, xformA, uidB, bodyB, xformB, deltaTime);
                 
-                if (contact is not null)
-                    _contacts.Add(contact);
+                if (contact is null)
+                    continue;
+
+                var evA = new CollideObjectEvent(contact.BodyB);
+                var evB = new CollideObjectEvent(contact.BodyA);
+                
+                RaiseLocalEvent(uidA, evA);
+                RaiseLocalEvent(uidB, evB);
+                
+                if(evA.Cancelled || evB.Cancelled) 
+                    continue;
+                
+                ResolveContact(uidA, bodyA, xformA, uidB, bodyB, xformB, contact.Points, deltaTime);
+                
+                _contacts.Add(contact);
             }
         }
     }
@@ -91,8 +104,6 @@ public sealed partial class RigidBodySystem
         
         if (!contact.HasContact)
             return null;
-        
-        ResolveContact(uidA, bodyA, xformA, uidB, bodyB, xformB, contact, deltaTime);
         
         return new ContactManifold(contact, 
             new Entity<RigidBodyComponent>(uidA, bodyA), 

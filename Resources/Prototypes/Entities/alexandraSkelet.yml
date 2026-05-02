@@ -102,6 +102,7 @@
                     boneWeights: 1
                 child:
                   - position: 0.8,1.6,0
+                    name: hand
                     rotation: 0,0,0
                     data:
                       - boneIndices: 242

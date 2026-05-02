@@ -10,4 +10,5 @@ public sealed partial class BoneComponent : Component
 
     [DataField] public Vector4 OriginalPosition;
     [DataField] public EulerAngles OriginalRotation;
+    [ViewVariables] public EntityUid Skeleton;
 }

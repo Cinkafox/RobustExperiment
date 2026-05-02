@@ -44,7 +44,7 @@ public sealed partial class RigidBodyComponent: Component
 [Serializable, NetSerializable]
 public enum PhysType
 {
-    Dynamic, Static,
+    Dynamic, Static
 }
 
 [Prototype]

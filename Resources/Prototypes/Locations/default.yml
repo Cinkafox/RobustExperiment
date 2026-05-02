@@ -17,5 +17,5 @@
       rotation: 0,-45,0
     - entity: alexandra
       position: 5,15,5
-    #- entity: mambo
-    #  position: 3,0,8
+    - entity: pistol
+      position: 3,0,8

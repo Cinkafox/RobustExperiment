@@ -1,0 +1,14 @@
+- type: entity
+  id: pistol
+  components:
+    - type: Model
+      currentMesh:
+        path: "/Models/pistol/Minecraft_Pistol.obj"
+        scale: 0.002,0.002,0.002
+    - type: Collectible
+      rotation: 0,270,270
+      position: 0.4,0,-0.2
+    - type: RigidBody
+      shape:
+        !type:SphereShape
+        radius: 1

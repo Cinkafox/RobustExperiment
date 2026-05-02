@@ -6,7 +6,7 @@
       context: human
     - type: Camera
       fov: 4
-      shift: 0,1.8,-5
+      shift: 1.2,1.2,-3
       rotation: 0,0,0
     - type: RigidBody
       friction: 3
@@ -19,6 +19,8 @@
       currentMesh:
         path: "/Models/alexandra/untitled_back.obj"
         offset: 0,-1.2,0
+    - type: ItemCollector
+      boneName: hand
     - type: AlexandraAnimation
     - type: Skeleton
     - type: BoneCompound
