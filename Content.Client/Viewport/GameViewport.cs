@@ -100,8 +100,8 @@ public sealed class GameViewport : Control
             }
         }
 
-        var translate  = Matrix4Helpers.TransformVector(Vector3.UnitX * 10, camera.Value.Comp2.WorldRotation);
-        var cameraProperties = new CameraProperties(camera.Value.Comp2.WorldPosition - translate, camera.Value.Comp2.WorldAngle, camera.Value.Comp1.FoV);
+        var translate  = Matrix4Helpers.TransformVector(camera.Value.Comp1.Shift, camera.Value.Comp2.WorldAngle - camera.Value.Comp1.Rotation);
+        var cameraProperties = new CameraProperties(camera.Value.Comp2.WorldPosition + translate, camera.Value.Comp2.WorldAngle, camera.Value.Comp1.FoV);
         
         var drawHandle = new DrawingHandle3d(handle, PixelSize.X, PixelSize.Y, cameraProperties, DrawingInstance);
         

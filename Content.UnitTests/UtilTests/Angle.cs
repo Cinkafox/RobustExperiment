@@ -62,7 +62,10 @@ public sealed class Angle
     [Test]
     public void TestVectorRotation()
     {
-        var eulerAngle = new EulerAngles(-Robust.Shared.Maths.Angle.FromDegrees(25), Robust.Shared.Maths.Angle.FromDegrees(45), Robust.Shared.Maths.Angle.FromDegrees(35));
+        var eulerAngle = new EulerAngles(
+            -Robust.Shared.Maths.Angle.FromDegrees(45), 
+            Robust.Shared.Maths.Angle.FromDegrees(45),
+            Robust.Shared.Maths.Angle.FromDegrees(45));
         var quaternion = eulerAngle.ToQuaternion();
 
         var vector = Vector3.UnitY;

@@ -32,9 +32,15 @@ public partial class Transform3dComponent
         
         set
         {
-            var current = WorldScale;
-            var diff = value - current;
-            LocalScale *= diff;
+            var parentScale = Vector3.One;
+
+            if (_parent.IsValid())
+            {
+                var parentXform = _entMan.GetComponent<Transform3dComponent>(_parent);
+                parentScale = parentXform.WorldScale;
+            }
+
+            LocalScale = value / parentScale;
         }
     }
     
@@ -62,17 +68,22 @@ public partial class Transform3dComponent
             while (parent.IsValid())
             {
                 var parentXform = xformQuery.GetComponent(parent);
-                rotation = Quaternion.Multiply(parentXform._localRotation, Quaternion.Inverse(rotation));
+                rotation = Quaternion.Multiply(parentXform._localRotation, rotation);
                 parent = parentXform.ParentUid;
             }
 
-            return rotation;
+            return Quaternion.Normalize(rotation);
         }
         set
         {
-            var current = WorldRotation;
-            var diff = value * Quaternion.Inverse(current);
-            LocalRotation = Quaternion.Multiply(diff, LocalRotation);
+            var parentRot = Quaternion.Identity;
+
+            if (_parent.IsValid())
+            {
+                var parentXform = _entMan.GetComponent<Transform3dComponent>(_parent);
+                parentRot = parentXform.WorldRotation;
+            }
+            LocalRotation = Quaternion.Multiply(Quaternion.Inverse(parentRot), value);
         }
     }
     

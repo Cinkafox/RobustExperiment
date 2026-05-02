@@ -11,10 +11,10 @@
       position: 0,5,0
     - entity: machine
       position: 1,2,3
-      rotation: 45,0,0
+      rotation: 0,45,0
     - entity: machine
       position: -1,0,6
-      rotation: -45,0,0
+      rotation: 0,-45,0
     - entity: alexandra
       position: 5,15,5
     #- entity: mambo

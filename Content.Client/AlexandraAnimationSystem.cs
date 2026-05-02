@@ -1,16 +1,16 @@
-﻿using Content.Shared.Bone;
+﻿using Content.Client.Bone;
+using Content.Shared.Bone;
 using Content.Shared.Transform;
 using Robust.Client.Animations;
 using Robust.Client.GameObjects;
 using Robust.Shared.Animations;
-using BoneComponent = Content.Shared.Bone.BoneComponent;
-using SkeletonComponent = Content.Shared.Bone.SkeletonComponent;
 
 namespace Content.Client;
 
 public sealed class AlexandraAnimationSystem: EntitySystem
 {
     [Dependency] private readonly AnimationPlayerSystem _animationPlayerSystem = default!;
+    [Dependency] private readonly BoneSystem _boneSystem = default!;
     
     public Animation Animation1 => new Animation()
     {
@@ -24,17 +24,17 @@ public sealed class AlexandraAnimationSystem: EntitySystem
                 Property = "LocalAngleAnim",
                 KeyFrames =
                 {
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0f),
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(180)), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(160),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(180),(float)Angle.FromDegrees(60), (float)Angle.FromDegrees(180)), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(210),(float)Angle.FromDegrees(80), (float)Angle.FromDegrees(180)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(40), (float)Angle.FromDegrees(-65)), 0f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(0), (float)Angle.FromDegrees(-55)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(-40), (float)Angle.FromDegrees(-65)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(0), (float)Angle.FromDegrees(-55)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(40), (float)Angle.FromDegrees(-65)), 0.5f),
                 }
             }
         }
     };
     
-    public Animation Animation2 = new Animation()
+    public Animation Animation2 => new Animation()
     {
         Length = TimeSpan.FromSeconds(2),
         AnimationTracks =
@@ -46,15 +46,16 @@ public sealed class AlexandraAnimationSystem: EntitySystem
                 Property = "LocalAngleAnim",
                 KeyFrames =
                 {
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(30),(float)Angle.FromDegrees(-80), 0), 0f),
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(-60), 0), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(-20),(float)Angle.FromDegrees(-80), 0), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(-60), 0), 0.5f),
-                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(30),(float)Angle.FromDegrees(-80), 0), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(180 + 40), (float)Angle.FromDegrees(-65)), 0f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(180 + 0), (float)Angle.FromDegrees(-55)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(180 - 40), (float)Angle.FromDegrees(-65)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(180 + 0), (float)Angle.FromDegrees(-55)), 0.5f),
+                    new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(180 + 40), (float)Angle.FromDegrees(-65)), 0.5f),
                 }
             }
         }
     };
+    
     
     public override void Initialize()
     {
@@ -78,22 +79,12 @@ public sealed class AlexandraAnimationSystem: EntitySystem
     private void Play(EntityUid uid)
     {
         Log.Info($"PLAY ANIMATION FOR {uid}");
-   
-        var boneEnt = Comp<SkeletonComponent>(uid).Root;
-        var boneChild = Comp<BoneComponent>(boneEnt).Childs;
-        var count = 0;
         
-        foreach (var child in boneChild)
-        {
-            if (count % 2 == 1)
-            {
-                _animationPlayerSystem.Play(child, Animation1, "kadeem1");
-            }
-            else
-            {
-                _animationPlayerSystem.Play(child, Animation2, "kadeem2");
-            }
-            count++;
-        }
+        if(!_boneSystem.TryGetBone(uid, "shoulder1", out var shoulder1) ||
+           !_boneSystem.TryGetBone(uid, "shoulder2", out var shoulder2))
+            return;
+        
+        _animationPlayerSystem.Play(shoulder1, Animation1, "kadeem1");
+        _animationPlayerSystem.Play(shoulder2, Animation2, "kadeem2");
     }
 }

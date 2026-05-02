@@ -6,51 +6,43 @@ using System.Runtime.CompilerServices;
 public static class QuaternionExt
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Quaternion ToQuaternion(this EulerAngles eulerAngles)
+    public static Quaternion ToQuaternion(this EulerAngles e)
     {
-        var roll  = (float)eulerAngles.Roll;
-        var pitch = (float)eulerAngles.Pitch;
-        var yaw   = (float)eulerAngles.Yaw;
+        var pitch = (float)e.Pitch; // X
+        var yaw   = (float)e.Yaw;   // Y
+        var roll  = (float)e.Roll;  // Z
 
-        var halfRoll  = roll * 0.5f;
-        var halfPitch = pitch * 0.5f;
-        var halfYaw   = yaw * 0.5f;
+        var qx = Quaternion.CreateFromAxisAngle(Vector3.UnitX, pitch);
+        var qy = Quaternion.CreateFromAxisAngle(Vector3.UnitY, yaw);
+        var qz = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, roll);
 
-        var sinR = MathF.Sin(halfRoll);
-        var cosR = MathF.Cos(halfRoll);
-        var sinP = MathF.Sin(halfPitch);
-        var cosP = MathF.Cos(halfPitch);
-        var sinY = MathF.Sin(halfYaw);
-        var cosY = MathF.Cos(halfYaw);
-        
-        var w = cosR * cosP * cosY + sinR * sinP * sinY;
-        var x = sinR * cosP * cosY - cosR * sinP * sinY;
-        var y = cosR * sinP * cosY + sinR * cosP * sinY;
-        var z = cosR * cosP * sinY - sinR * sinP * cosY;
-
-        return new Quaternion(x, y, z, w);
+        return Quaternion.Normalize(qy * qx * qz);
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static EulerAngles ToEulerAngle(this Quaternion q)
     {
-        var w = q.W;
-        var x = q.X;
-        var y = q.Y;
-        var z = q.Z;
-        
-        var sinRcosP = 2.0f * (w * x + y * z);
-        var cosRcosP = 1.0f - 2.0f * (x * x + y * y);
-        var roll = MathF.Atan2(sinRcosP, cosRcosP);
-        
-        var sinPitch = 2.0f * (w * y - z * x);
-        sinPitch = Math.Clamp(sinPitch, -1.0f, 1.0f);
-        var pitch = MathF.Asin(sinPitch);
-        
-        var sinYcosP = 2.0f * (w * z + x * y);
-        var cosYcosP = 1.0f - 2.0f * (y * y + z * z);
-        var yaw = MathF.Atan2(sinYcosP, cosYcosP);
-        
+        q = Quaternion.Normalize(q);
+
+        // Extract Pitch (X)
+        var sinp = 2f * (q.W * q.X - q.Y * q.Z);
+        float pitch;
+
+        if (MathF.Abs(sinp) >= 1f)
+            pitch = MathF.CopySign(MathF.PI / 2f, sinp); // gimbal lock
+        else
+            pitch = MathF.Asin(sinp);
+
+        // Extract Yaw (Y)
+        var siny = 2f * (q.W * q.Y + q.Z * q.X);
+        var cosy = 1f - 2f * (q.X * q.X + q.Y * q.Y);
+        var yaw = MathF.Atan2(siny, cosy);
+
+        // Extract Roll (Z)
+        var sinr = 2f * (q.W * q.Z + q.X * q.Y);
+        var cosr = 1f - 2f * (q.Z * q.Z + q.X * q.X);
+        var roll = MathF.Atan2(sinr, cosr);
+
         return new EulerAngles(pitch, yaw, roll);
     }
 }

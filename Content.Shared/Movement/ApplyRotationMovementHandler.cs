@@ -13,9 +13,9 @@ public sealed class ApplyRotationMovementHandler(EulerAngles to) : InputCmdHandl
             return true;
         
         if (message.State is BoundKeyState.Up)
-            inputMover.RotationMovement += to;
-        else
             inputMover.RotationMovement -= to;
+        else
+            inputMover.RotationMovement += to;
         
         return true;
     }

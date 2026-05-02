@@ -1,7 +1,5 @@
 ﻿using System.Numerics;
 using Content.Client.Utils;
-using Content.Shared.Camera;
-using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Client.Graphics;
 using Robust.Shared.Profiling;
@@ -42,16 +40,6 @@ public sealed class DrawingHandle3d : IDisposable
         var screenY = (ndcY + 1.0f) * 0.5f * _height; 
         
         return new Vector3(screenX, screenY, ndcZ);
-    }
-    
-    private Vector3 ToScreenVec(Vector3 vertex)
-    {
-        var vertex2D = new Vector2(vertex.X / vertex.Z, vertex.Y / vertex.Z);
-        
-        var screenX = (vertex2D.X + 1.0f) * 0.5f * _width;
-        var screenY = (vertex2D.Y + 1.0f) * 0.5f * _height; 
-        
-        return new Vector3(screenX, screenY, vertex.Z);
     }
 
     public void DrawDebugFace(List<Vector4> vertices)
@@ -115,7 +103,7 @@ public sealed class DrawingHandle3d : IDisposable
             return;
         }
         
-        position = ToScreenVec(position);
+        position = ToScreenVec(new Vector4(position, 1));
         
         _handleBase.DrawCircle(new Vector2(position.X, position.Y), radius, color, filled);
     }
@@ -299,14 +287,23 @@ public sealed class DrawingHandle3d : IDisposable
         _width = width;
         _height = height;
             
-        var cosPitch = float.Cos((float)_cameraProperties.Angle.Pitch);
-        var sinPitch = float.Sin((float)_cameraProperties.Angle.Pitch);
-        var cosYaw = float.Cos((float)_cameraProperties.Angle.Yaw);
-        var sinYaw = float.Sin((float)_cameraProperties.Angle.Yaw);
+        var cosPitch = MathF.Cos((float)_cameraProperties.Angle.Pitch);
+        var sinPitch = MathF.Sin((float)_cameraProperties.Angle.Pitch);
+        var cosYaw = MathF.Cos((float)_cameraProperties.Angle.Yaw);
+        var sinYaw = MathF.Sin((float)_cameraProperties.Angle.Yaw);
         
-        var xaxis = new Vector3(cosYaw, 0, -sinYaw);
-        var yaxis = new Vector3(sinPitch * sinPitch, cosPitch, cosYaw * sinPitch);
-        var zaxis = new Vector3(sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw);
+        var zaxis = new Vector3(
+            cosPitch * sinYaw,
+            -sinPitch,
+            cosPitch * cosYaw
+        );
+        
+        var xaxis = new Vector3(
+            cosYaw,
+            0,
+            -sinYaw
+        );
+        var yaxis = Vector3.Cross(zaxis, xaxis);
         
         ViewMatrix = new Matrix4x4(
             xaxis.X, yaxis.X, zaxis.X, 0,

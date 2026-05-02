@@ -8,6 +8,7 @@
         child:
           - position: 0.2,1.6,0
             rotation: 0,0,0
+            name: shoulder1
             data:
               - boneIndices: 222
                 boneWeights: 1
@@ -208,6 +209,7 @@
 
           - position: -0.2,1.6,0
             rotation: 0,180,0
+            name: shoulder2
             data:
               - boneIndices: 500
                 boneWeights: 1

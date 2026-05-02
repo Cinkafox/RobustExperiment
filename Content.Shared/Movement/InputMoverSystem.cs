@@ -18,8 +18,8 @@ public sealed class InputMoverSystem : EntitySystem
         CommandBinds.Builder
             .Bind(EngineKeyFunctions.MoveUp, new ApplyMovementHandler(new Vector3(0, 0, -1)))
             .Bind(EngineKeyFunctions.MoveDown, new ApplyMovementHandler(new Vector3(0, 0, 1)))
-            .Bind(EngineKeyFunctions.MoveLeft, new ApplyRotationMovementHandler(new EulerAngles(0, Angle.FromDegrees(-100),0)))
-            .Bind(EngineKeyFunctions.MoveRight, new ApplyRotationMovementHandler(new EulerAngles(0, Angle.FromDegrees(100),0)))
+            .Bind(EngineKeyFunctions.MoveLeft, new ApplyRotationMovementHandler(new EulerAngles(0, Angle.FromDegrees(100),0)))
+            .Bind(EngineKeyFunctions.MoveRight, new ApplyRotationMovementHandler(new EulerAngles(0, Angle.FromDegrees(-100),0)))
             .Bind(ContentKeyFunctions.PlayerJumpAction, new ApplyJumpHandler())
             .Register<InputMoverSystem>();
     }

@@ -45,18 +45,34 @@ public sealed partial class Transform3dComponent: Component
 
     internal bool IsRooted { get; private set; } = true;
 
+    private void MarkDirtyRecursive()
+    {
+        if (MatricesDirty)
+            return;
+
+        MatricesDirty = true;
+
+        foreach (var child in _children)
+        {
+            _entMan.GetComponent<Transform3dComponent>(child).MarkDirtyRecursive();
+        }
+    }
+
     public void RebuildMatrices()
     {
         MatricesDirty = false;
 
-        if (IsRooted) // Root Node
+        if (IsRooted)
         {
             _localMatrix = Matrix4x4.Identity;
             _invLocalMatrix = Matrix4x4.Identity;
+            return;
         }
-        
-        _localMatrix = Matrix4Helpers.CreateTransform(_localPosition, _localRotation, _localScale);
-        _invLocalMatrix = Matrix4Helpers.CreateInverseTransform(_localPosition, _localRotation, _localScale);
+
+        var rotation = Quaternion.Normalize(_localRotation);
+
+        _localMatrix = Matrix4Helpers.CreateTransform(_localPosition, rotation, _localScale);
+        _invLocalMatrix = Matrix4Helpers.CreateInverseTransform(_localPosition, rotation, _localScale);
     }
 }
 

@@ -25,12 +25,6 @@ public static class Matrix4Helpers
             Math.Abs(a.M43 - b.M43) <= tolerance &&
             Math.Abs(a.M44 - b.M44) <= tolerance;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool EqualsApprox(this Matrix4x4 a, Matrix4x4 b, double tolerance)
-    {
-        return a.EqualsApprox(b, (float)tolerance);
-    }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix4x4 CreateTransform(float posX, float posY, float posZ, float x, float y, float z, float w, float scaleX = 1, float scaleY = 1, float scaleZ = 1)
@@ -271,67 +265,36 @@ public static class Matrix4Helpers
             M44 = 1
         };
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Matrix4x4 CreateScale(Vector3 scale)
+    {
+        return CreateScale(scale.X, scale.Y, scale.Z);
+    }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix4x4 CreateRotation(Quaternion quaternion)
     {
-        float x = quaternion.X, y = quaternion.Y, z = quaternion.Z, w = quaternion.W;
-        
-        float xx = x * x, yy = y * y, zz = z * z;
-        float xy = x * y, zw = z * w, xz = x * z;
-        float wy = y * w, yz = y * z, wx = x * w;
-
-        return new(
-            1.0f - 2.0f * (yy + zz),  2.0f * (xy + zw),  2.0f * (xz - wy),  0,
-            2.0f * (xy - zw),        1.0f - 2.0f * (xx + zz),  2.0f * (yz + wx),  0,
-            2.0f * (xz + wy),        2.0f * (yz - wx),  1.0f - 2.0f * (xx + yy),  0,
-            0, 0, 0, 1
-        );
+        return Matrix4x4.CreateFromQuaternion(quaternion);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix4x4 CreateRotation(EulerAngles rotation)
+    public static Matrix4x4 CreateRotation(EulerAngles r)
     {
-        var pitchRad = rotation.Pitch.Theta;
-        var yawRad = rotation.Yaw.Theta;
-        var rollRad = rotation.Roll.Theta;
-        
-        var sinPitch = (float)Math.Sin(pitchRad);
-        var cosPitch = (float)Math.Cos(pitchRad);
-        var sinYaw = (float)Math.Sin(yawRad);
-        var cosYaw = (float)Math.Cos(yawRad);
-        var sinRoll = (float)Math.Sin(rollRad);
-        var cosRoll = (float)Math.Cos(rollRad);
-        
-        return new Matrix4x4(
-            cosYaw * cosRoll, cosYaw * sinRoll * sinPitch - sinYaw * cosPitch, cosYaw * sinRoll * cosPitch + sinYaw * sinPitch, 0.0f,
-            sinYaw * cosRoll, sinYaw * sinRoll * sinPitch + cosYaw * cosPitch, sinYaw * sinRoll * cosPitch - cosYaw * sinPitch, 0.0f,
-            -sinRoll, cosRoll * sinPitch, cosRoll * cosPitch, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
-        );
+        var q = r.ToQuaternion();
+        return CreateRotation(q);
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 TransformVector(Vector3 vector, Quaternion quaternion)
     {
-        var qx = quaternion.X;
-        var qy = quaternion.Y;
-        var qz = quaternion.Z;
-        var qw = quaternion.W;
-
-        var x = vector.X;
-        var y = vector.Y;
-        var z = vector.Z;
-        
-        var tx = 2.0f * (qy * z - qz * y);
-        var ty = 2.0f * (qz * x - qx * z);
-        var tz = 2.0f * (qx * y - qy * x);
-        
-        return new Vector3(
-            x + qw * tx + qy * tz - qz * ty,
-            y + qw * ty + qz * tx - qx * tz,
-            z + qw * tz + qx * ty - qy * tx
-        );
+        return Vector3.Transform(vector, quaternion);
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector4 TransformVector(Vector4 vector, Quaternion quaternion)
+    {
+        return Vector4.Transform(vector, quaternion);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

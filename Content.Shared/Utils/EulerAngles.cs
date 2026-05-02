@@ -27,6 +27,11 @@ public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<E
         return new EulerAngles(one.Pitch - two.Pitch, one.Yaw - two.Yaw, one.Roll - two.Roll);
     }
 
+    public static EulerAngles operator -(EulerAngles one)
+    {
+        return new EulerAngles(-one.Pitch, -one.Yaw, -one.Roll);
+    }
+
     public static EulerAngles operator *(EulerAngles one, float two)
     {
         return new EulerAngles(one.Pitch * two, one.Yaw * two, one.Roll * two);

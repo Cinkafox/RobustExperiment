@@ -36,11 +36,11 @@ public partial class Transform3dComponent
             if(IsRooted)
                 return;
             
-            if(_localScale.Equals(value))
+            if (Vector3.DistanceSquared(_localScale, value) < 1e-8f)
                 return;
 
             _localScale = value;
-            MatricesDirty = true;
+            MarkDirtyRecursive();
         }
     }
     
@@ -54,11 +54,11 @@ public partial class Transform3dComponent
             if(IsRooted)
                 return;
 
-            if (_localRotation.Equals(value))
+            if (Quaternion.Dot(_localRotation, value) > 0.9999f)
                 return;
             
-            _localRotation = value;
-            MatricesDirty = true;
+            _localRotation = Quaternion.Normalize(value);
+            MarkDirtyRecursive();
         }
     }
     
@@ -93,7 +93,7 @@ public partial class Transform3dComponent
                 return;
 
             _localPosition = value;
-            MatricesDirty = true;
+            MarkDirtyRecursive();
         }
     }
 }

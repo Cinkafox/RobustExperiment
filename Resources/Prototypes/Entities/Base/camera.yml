@@ -6,8 +6,8 @@
       context: human
     - type: Camera
       fov: 4
-      shift: -5,1.8,0
-      rotation: 0,270,0
+      shift: 0,1.8,-5
+      rotation: 0,0,0
     - type: RigidBody
       friction: 3
       restitution: 0.1
@@ -16,4 +16,11 @@
         !type:BoxShape
         halfExtents: 0.4, 1, 0.4
     - type: Model
-      currentMesh: "/Models/nyash/Nyash.obj"
+      currentMesh:
+        path: "/Models/alexandra/untitled_back.obj"
+        offset: 0,-1.2,0
+    - type: AlexandraAnimation
+    - type: Skeleton
+    - type: BoneCompound
+      compoundEntId: alexandraSkeleton
+      offset: 0,-1.2,0

@@ -5,12 +5,12 @@
       currentMesh:
         path: "/Models/alexandra/untitled_back.obj"
         offset: 0,-1.2,0
-    - type: AlexandraAnimation
     - type: RigidBody
       density: 4
       shape:
         !type:BoxShape
         halfExtents: 0.4, 1.2, 0.4
+    - type: AlexandraAnimation
     - type: Skeleton
     - type: BoneCompound
       compoundEntId: alexandraSkeleton

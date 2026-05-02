@@ -14,6 +14,12 @@ public sealed class BoneSystem : EntitySystem
     {
         SubscribeLocalEvent<BoneCompoundComponent, ComponentInit>(OnComponentInit);
         SubscribeLocalEvent<BoneComponent, ComponentInit>(OnBoneInit);
+        SubscribeLocalEvent<BoneComponent, ComponentRemove>(OnRemoved);
+    }
+
+    private void OnRemoved(Entity<BoneComponent> ent, ref ComponentRemove args)
+    {
+        
     }
 
     private void OnBoneInit(Entity<BoneComponent> ent, ref ComponentInit args)
@@ -33,7 +39,7 @@ public sealed class BoneSystem : EntitySystem
         if (compound == null)
             return;
         
-        skeletonComponent.Root = CreateBone(compound, ent.Owner, ent.Comp.Offset);
+        skeletonComponent.Root = CreateBone(compound, ent.Owner, ent.Comp.Offset, skeletonComponent);
     }
 
     public BoneCompound? GetCompoundRecursive(EntityUid uid)
@@ -56,7 +62,13 @@ public sealed class BoneSystem : EntitySystem
         return GetCompoundRecursive(spawnedThink);
     }
 
-    private EntityUid CreateBone(BoneCompound boneCompound, EntityUid parent, Vector3 offset)
+    public bool TryGetBone(Entity<SkeletonComponent?> entity, string boneName, out EntityUid bone)
+    {
+        bone = default;
+        return Resolve(entity, ref entity.Comp) && entity.Comp.BonesDictionary.TryGetValue(boneName, out bone);
+    }
+
+    private EntityUid CreateBone(BoneCompound boneCompound, EntityUid parent, Vector3 offset, SkeletonComponent rootComponent)
     {
         var bone = Spawn();
         _transform.SetParent(bone, parent);
@@ -65,43 +77,59 @@ public sealed class BoneSystem : EntitySystem
         var boneComp = AddComp<BoneComponent>(bone);
         
         if(boneCompound.Data is not null)
-         boneComp.BoneVertexDatum = boneCompound.Data;
+            boneComp.BoneVertexDatum = boneCompound.Data;
+
+        if (!string.IsNullOrEmpty(boneCompound.Name))
+            rootComponent.BonesDictionary[boneCompound.Name] = bone;
 
         if (boneCompound.Child is null) 
             return bone;
         
         foreach (var child in boneCompound.Child)
         {
-            boneComp.Childs.Add(CreateBone(child, bone, offset));
+            boneComp.Children.Add(CreateBone(child, bone, offset, rootComponent));
         }
 
         return bone;
     }
     
-    private void ProceedBone(Entity<BoneComponent?> entity, MeshRender mesh, Transform3dComponent? parentTransform)
+    private void ProceedBone(Entity<BoneComponent?> entity, MeshRender mesh, Transform3dComponent parentTransform)
     {
-        if(!Resolve(entity, ref entity.Comp))
+        if (!Resolve(entity, ref entity.Comp))
             return;
 
         var boneTransform = Comp<Transform3dComponent>(entity);
         
+        var originalQ = entity.Comp.OriginalRotation.ToQuaternion();
+        var invOriginalQ = Quaternion.Inverse(originalQ);
+        var currentQ = boneTransform.WorldRotation;
+        var invCurrentQ = Quaternion.Inverse(currentQ);
+        var deltaRotation = Quaternion.Normalize(currentQ * invOriginalQ);
+
+        var originalPos = new Vector3(
+            entity.Comp.OriginalPosition.X,
+            entity.Comp.OriginalPosition.Y,
+            entity.Comp.OriginalPosition.Z
+        );
+
+        var currentPos = boneTransform.WorldPosition;
+        var deltaPos = currentPos - originalPos;
 
         foreach (var data in entity.Comp.BoneVertexDatum)
         {
-            mesh.TranslatedVertexes[data.BoneIndices] = mesh.Mesh.Vertexes[data.BoneIndices];
+            var index = data.BoneIndices;
+            var v = mesh.Mesh.Vertexes[index];
+            var pos = new Vector3(v.X, v.Y, v.Z);
             
-            mesh.TranslatedVertexes[data.BoneIndices] -= entity.Comp.OriginalPosition;
-            mesh.TranslatedVertexes[data.BoneIndices] = Matrix4Helpers.TransformVector(
-                mesh.TranslatedVertexes[data.BoneIndices],
-                (boneTransform.WorldAngle - entity.Comp.OriginalRotation));
-
-            mesh.TranslatedVertexes[data.BoneIndices] += entity.Comp.OriginalPosition;
+            pos -= originalPos;
+            pos = Matrix4Helpers.TransformVector(pos, deltaRotation);
+            pos += originalPos;
             
-            mesh.TranslatedVertexes[data.BoneIndices] +=
-                (new Vector4(boneTransform.WorldPosition, 1f) - entity.Comp.OriginalPosition) * data.BoneWeights;
+            pos += deltaPos * data.BoneWeights;
+            mesh.TranslatedVertexes[index] = new Vector4(pos, 1f);
         }
-
-        foreach (var child in entity.Comp.Childs)
+        
+        foreach (var child in entity.Comp.Children)
         {
             ProceedBone(child, mesh, boneTransform);
         }
@@ -109,12 +137,12 @@ public sealed class BoneSystem : EntitySystem
     
     public override void FrameUpdate(float frameTime)
     {
-        var query = EntityQueryEnumerator<SkeletonComponent, ModelComponent>();
-        while (query.MoveNext(out var uid, out var skeleton, out var model))
+        var query = EntityQueryEnumerator<SkeletonComponent, ModelComponent, Transform3dComponent>();
+        while (query.MoveNext(out var uid, out var skeleton, out var model, out var transform))
         {
-            if(!model.MeshRenderInitialized) return;
+            if(!model.MeshRenderInitialized) continue;
             
-            ProceedBone(skeleton.Root, model.MeshRender, null);
+            ProceedBone(skeleton.Root, model.MeshRender, transform);
         }
     }
 }

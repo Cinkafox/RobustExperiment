@@ -6,6 +6,7 @@ namespace Content.Shared.Bone;
 public sealed partial class SkeletonComponent : Component
 {
     [ViewVariables] public EntityUid Root;
+    [ViewVariables] public readonly Dictionary<string, EntityUid> BonesDictionary = [];
 }
 
 [RegisterComponent]
