@@ -8,6 +8,7 @@ namespace Content.Shared.Physics.Systems;
 public sealed partial class RigidBodySystem
 {
     private readonly Dictionary<(Type, Type), ICollider> _colliderRegistry = new();
+    private readonly List<(EntityUid, RigidBodyComponent, Transform3dComponent)> _dynamicBodies = new();
     
     private readonly List<ContactManifold> _contacts = new();
 
@@ -49,23 +50,22 @@ public sealed partial class RigidBodySystem
     
     private void ResolveCollisions(float deltaTime)
     {
-        var dynamicBodies = new List<(EntityUid, RigidBodyComponent, Transform3dComponent)>();
         var query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
-        
+        _dynamicBodies.Clear();
         _contacts.Clear();
         
         while (query.MoveNext(out var uid, out var body, out var xform))
         {
-            dynamicBodies.Add((uid, body, xform));
+            _dynamicBodies.Add((uid, body, xform));
         }
 
         // O(n^2) broadphase (replace with spatial partitioning in production)
-        for (var i = 0; i < dynamicBodies.Count; i++)
+        for (var i = 0; i < _dynamicBodies.Count; i++)
         {
-            var (uidA, bodyA, xformA) = dynamicBodies[i];
-            for (var j = i + 1; j < dynamicBodies.Count; j++)
+            var (uidA, bodyA, xformA) = _dynamicBodies[i];
+            for (var j = i + 1; j < _dynamicBodies.Count; j++)
             {
-                var (uidB, bodyB, xformB) = dynamicBodies[j];
+                var (uidB, bodyB, xformB) = _dynamicBodies[j];
                 var contact = SolveCollision(uidA, bodyA, xformA, uidB, bodyB, xformB, deltaTime);
                 
                 if (contact is null)
@@ -126,9 +126,7 @@ public sealed partial class RigidBodySystem
         var restitution = float.Max(bodyA.Restitution, bodyB.Restitution);
         var friction = float.Max(bodyA.Friction, bodyB.Friction);
         
-        var invMassA = (bodyA.PhysType == PhysType.Dynamic) ? 1f / bodyA.Mass : 0f;
-        var invMassB = (bodyB.PhysType == PhysType.Dynamic) ? 1f / bodyB.Mass : 0f;
-        var invMassSum = invMassA + invMassB;
+        var invMassSum = bodyA.InvMass + bodyB.InvMass;
         
         var impulseMagnitude = -(1f + restitution) * velocityAlongNormal;
         impulseMagnitude /= invMassSum;
@@ -137,10 +135,10 @@ public sealed partial class RigidBodySystem
         var impulse = contact.Normal * impulseMagnitude;
         
         if (bodyA.PhysType == PhysType.Dynamic)
-            bodyA.LinearVelocity -= impulse * invMassA;
+            bodyA.LinearVelocity -= impulse * bodyA.InvMass;
         
         if (bodyB.PhysType == PhysType.Dynamic)
-            bodyB.LinearVelocity += impulse * invMassB;
+            bodyB.LinearVelocity += impulse * bodyB.InvMass;
         
         var tangent = relativeVelocity - contact.Normal * velocityAlongNormal;
         
@@ -159,10 +157,10 @@ public sealed partial class RigidBodySystem
             var frictionVector = tangent * frictionImpulse;
             
             if (bodyA.PhysType == PhysType.Dynamic)
-                bodyA.LinearVelocity -= frictionVector * invMassA;
+                bodyA.LinearVelocity -= frictionVector * bodyA.InvMass;
             
             if (bodyB.PhysType == PhysType.Dynamic)
-                bodyB.LinearVelocity += frictionVector * invMassB;
+                bodyB.LinearVelocity += frictionVector * bodyB.InvMass;
         }
         
         var correctionPercent = 0.2f;
@@ -177,10 +175,10 @@ public sealed partial class RigidBodySystem
         var correction = MathF.Max(contact.Depth - slop, 0f) / invMassSum * correctionPercent * contact.Normal;
         
         if (bodyA.PhysType == PhysType.Dynamic)
-            xformA.LocalPosition -= correction * invMassA;
+            xformA.LocalPosition -= correction * bodyA.InvMass;
         
         if (bodyB.PhysType == PhysType.Dynamic)
-            xformB.LocalPosition += correction * invMassB;
+            xformB.LocalPosition += correction * bodyB.InvMass;
     }
 }
 

@@ -17,6 +17,7 @@ public sealed partial class RigidBodyComponent: Component
     [DataField] public float RollingResistance = 0.015f;
     
     [ViewVariables(VVAccess.ReadOnly)] public float Mass => Shape.Area * Density;
+    [ViewVariables(VVAccess.ReadOnly)] public float InvMass => (PhysType == PhysType.Dynamic) ? 1f / Mass : 0f;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 LinearForce => LinearVelocity * Mass;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 AngularForce => AngularVelocity * Mass;
     

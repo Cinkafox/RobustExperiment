@@ -1,5 +1,4 @@
 using Content.Shared.Physics.Components;
-using Content.Shared.Physics.Data;
 using Content.Shared.Transform;
 
 namespace Content.Shared.Physics.Systems;
@@ -78,11 +77,16 @@ public sealed partial class RigidBodySystem
             
             xform.LocalPosition += body.LinearVelocity * deltaTime;
             
-            if (body.AngularVelocity.Length() > 0.001f)
+            var angVel = body.AngularVelocity;
+            var angVelSq = angVel.LengthSquared();
+
+            if (angVelSq > 1e-6f)
             {
-                var rotationAxis = Vector3.Normalize(body.AngularVelocity);
-                var rotationAngle = body.AngularVelocity.Length() * deltaTime;
-                var deltaRotation = Quaternion.CreateFromAxisAngle(rotationAxis, rotationAngle);
+                var angVelLen = MathF.Sqrt(angVelSq);
+                var axis = angVel / angVelLen;
+                var angle = angVelLen * deltaTime;
+                
+                var deltaRotation = Quaternion.CreateFromAxisAngle(axis, angle);
                 xform.LocalRotation = deltaRotation * xform.LocalRotation;
             }
         }
@@ -125,15 +129,16 @@ public sealed partial class RigidBodySystem
         }
     }
 
-    private void SimulateStep(float deltaTime, int perf = 1)
+    private void SimulateStep(float deltaTime, int steps = 1)
     {
-        for (int i = 0; i < perf; i++)
+        var stepDt = deltaTime / steps;
+        for (int i = 0; i < steps; i++)
         {
-            ApplyGlobalForces(deltaTime / perf);
-            IntegrateVelocities(deltaTime / perf);
-            ResolveCollisions(deltaTime / perf);
-            UpdateGroundStates(deltaTime / perf);
-            IntegratePositions(deltaTime / perf);
+            ApplyGlobalForces(stepDt);
+            IntegrateVelocities(stepDt);
+            ResolveCollisions(stepDt);
+            UpdateGroundStates(stepDt);
+            IntegratePositions(stepDt);
         }
     }
 }
