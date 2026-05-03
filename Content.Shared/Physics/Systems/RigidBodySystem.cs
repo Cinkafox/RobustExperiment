@@ -1,5 +1,4 @@
 ﻿using Content.Shared.Physics.Components;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Reflection;
 using Robust.Shared.Sandboxing;
 

@@ -34,7 +34,7 @@ public sealed class InputMoverSystem : EntitySystem
         {
             transform3dComponent.LocalRotation *= (inputMover.RotationMovement * frameTime).ToQuaternion();
 
-            var airFactor = rigidBodyComponent.IsGrounded ? 1f : 0.1f;
+            var airFactor = rigidBodyComponent.IsGrounded ? 1f : 0.05f;
             
             var shift = 
                 Vector3.Transform(inputMover.PositionMovement * airFactor, 

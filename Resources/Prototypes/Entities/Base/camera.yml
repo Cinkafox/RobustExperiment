@@ -1,5 +1,5 @@
 ﻿- type: entity
-  id: camera
+  id: baseControlable
   components:
     - type: InputMover
     - type: Input
@@ -15,14 +15,3 @@
       shape:
         !type:BoxShape
         halfExtents: 0.4, 1, 0.4
-    - type: Model
-      currentMesh:
-        path: "/Models/alexandra/untitled_back.obj"
-        offset: 0,-1.2,0
-    - type: ItemCollector
-      boneName: hand
-    - type: AlexandraAnimation
-    - type: Skeleton
-    - type: BoneCompound
-      compoundEntId: alexandraSkeleton
-      offset: 0,-1.2,0

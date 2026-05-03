@@ -2,7 +2,6 @@ using Content.Shared.Bone;
 using Content.Shared.Input;
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Data;
-using Content.Shared.Physics.Shapes;
 using Content.Shared.Physics.Systems;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
@@ -60,7 +59,11 @@ public sealed class ItemsSystem : EntitySystem
         transform.LocalAngle = ent.Comp.Rotation;
         transform.LocalScale = ent.Comp.Scale;
 
-        RemComp<RigidBodyComponent>(ent);
+        if (TryComp<RigidBodyComponent>(ent, out var rigidBody))
+        {
+            ent.Comp.TakenProperties = rigidBody.Properties;
+            RemComp<RigidBodyComponent>(ent);
+        }
         
         collector.Comp.CurrentItem = ent;
         Log.Debug($"{ent.Owner} was taken by {collector.Owner}");
@@ -75,24 +78,24 @@ public sealed class ItemsSystem : EntitySystem
         var itemToDrop = collector.Comp.CurrentItem.Value;
 
         var collectorTransform = Comp<Transform3dComponent>(collector);
-        _transform3dSystem.SetParent(itemToDrop, collectorTransform.ParentUid);
         var transform = Comp<Transform3dComponent>(itemToDrop);
+        var itemComp = Comp<CollectibleComponent>(itemToDrop);
+        
+        _transform3dSystem.SetParent(itemToDrop, collectorTransform.ParentUid);
 
         var translate = Matrix4Helpers.TransformVector(new Vector3(0, 1, 2), collectorTransform.LocalRotation);
         
         transform.LocalPosition = collectorTransform.LocalPosition + translate;
         transform.LocalRotation = collectorTransform.LocalRotation;
-        
-        var rigidBody = AddComp<RigidBodyComponent>(itemToDrop);
-        rigidBody.Shape = new SphereShape()
-        {
-            Radius = 0.5f
-        };
 
-        _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(itemToDrop, rigidBody), translate * rigidBody.Mass * 2);
+        if (itemComp.TakenProperties is not null)
+        {
+            var rigidBody = AddComp<RigidBodyComponent>(itemToDrop);
+            rigidBody.Properties = itemComp.TakenProperties.Value;
+            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(itemToDrop, rigidBody), translate * rigidBody.Mass * 2);
+        }
         
         collector.Comp.CurrentItem = null;
-        var itemComp = Comp<CollectibleComponent>(itemToDrop);
         itemComp.TakenBy = null;
         itemComp.CollideDelay = _gameTiming.CurTime + TimeSpan.FromSeconds(0.5);
     }

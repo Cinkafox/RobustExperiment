@@ -1,3 +1,4 @@
+using Content.Shared.Physics.Components;
 using Content.Shared.Utils;
 
 namespace Content.Shared.Items;
@@ -12,6 +13,8 @@ public sealed partial class CollectibleComponent: Component
     [DataField] public EntityUid? TakenBy;
     [DataField] public TimeSpan CollideDelay;
     [ViewVariables(VVAccess.ReadOnly)] public bool IsTaken => TakenBy != null;
+
+    [ViewVariables] public PhysicsProperty? TakenProperties;
 }
 
 [RegisterComponent]

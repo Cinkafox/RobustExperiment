@@ -1,18 +1,23 @@
 ﻿- type: entity
+  parent: [baseControlable]
   id: alexandra
   components:
-    - type: Model
-      currentMesh:
-        path: "/Models/alexandra/untitled_back.obj"
-        offset: 0,-1.2,0
-    - type: RigidBody
-      density: 4
-      shape:
-        !type:BoxShape
-        halfExtents: 0.4, 1.2, 0.4
-    - type: AlexandraAnimation
-    - type: Skeleton
-    - type: BoneCompound
-      compoundEntId: alexandraSkeleton
+  - type: RigidBody
+    friction: 3
+    restitution: 0.1
+    density: 2
+    shape:
+      !type:BoxShape
+      halfExtents: 0.4, 1, 0.4
+  - type: Model
+    currentMesh:
+      path: "/Models/alexandra/untitled_back.obj"
       offset: 0,-1.2,0
+  - type: ItemCollector
+    boneName: hand
+  - type: AlexandraAnimation
+  - type: Skeleton
+  - type: BoneCompound
+    compoundEntId: alexandraSkeleton
+    offset: 0,-1.2,0
       

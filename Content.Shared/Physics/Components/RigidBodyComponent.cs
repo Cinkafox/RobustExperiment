@@ -1,5 +1,4 @@
-﻿using Content.Shared.Physics.Data;
-using Robust.Shared.Prototypes;
+﻿using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.Physics.Components;
@@ -9,11 +8,10 @@ public sealed partial class RigidBodyComponent: Component
 {
     [DataField] public Vector3 AngularVelocity = Vector3.Zero;
     [DataField] public Vector3 LinearVelocity = Vector3.Zero;
-    [DataField] public float Density = 1f;
     [DataField] public PhysType PhysType = PhysType.Dynamic;
 
     [DataField] public Shapes.IPhysicShape Shape = new Shapes.SphereShape();
-    
+    [DataField] public float Density = 1f;
     [DataField] public float Friction = 0.8f;
     [DataField] public float Restitution = 0.3f;
     [DataField] public float RollingResistance = 0.015f;
@@ -25,6 +23,27 @@ public sealed partial class RigidBodyComponent: Component
     [ViewVariables(VVAccess.ReadOnly)] public bool IsGrounded { get; private set; }
     [ViewVariables(VVAccess.ReadOnly)] public int GroundContactCount { get; private set; }
     [ViewVariables(VVAccess.ReadOnly)] public float GroundNormalY { get; private set; }
+
+    [ViewVariables]
+    public PhysicsProperty Properties
+    {
+        get => new()
+        {
+            Friction = Friction,
+            Restitution = Restitution,
+            Density = Density,
+            RollingResistance = RollingResistance,
+            Shape = Shape
+        };
+        set
+        {
+            Friction = value.Friction;
+            Restitution = value.Restitution;
+            Density = value.Density;
+            RollingResistance = value.RollingResistance;
+            Shape = value.Shape;
+        }
+    }
     
     public void ResetGroundState()
     {
@@ -45,6 +64,16 @@ public sealed partial class RigidBodyComponent: Component
 public enum PhysType
 {
     Dynamic, Static
+}
+
+[DataDefinition]
+public partial struct PhysicsProperty
+{
+    [DataField] public Shapes.IPhysicShape Shape = new Shapes.SphereShape();
+    [DataField] public float Density = 1f;
+    [DataField] public float Friction = 0.8f;
+    [DataField] public float Restitution = 0.3f;
+    [DataField] public float RollingResistance = 0.015f;
 }
 
 [Prototype]
