@@ -8,6 +8,7 @@ using Content.Shared.Utils;
 using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Player;
+using Robust.Shared.Serialization;
 using Robust.Shared.Timing;
 
 namespace Content.Shared.Items;
@@ -25,6 +26,7 @@ public sealed class ItemsSystem : EntitySystem
         
         CommandBinds.Builder
             .Bind(ContentKeyFunctions.PlayerDropItemAction, new ItemDropKeyHandler(this))
+            .Bind(EngineKeyFunctions.Use, new UseItemHandler(this))
             .Register<ItemsSystem>();
     }
 
@@ -66,7 +68,8 @@ public sealed class ItemsSystem : EntitySystem
         }
         
         collector.Comp.CurrentItem = ent;
-        Log.Debug($"{ent.Owner} was taken by {collector.Owner}");
+        
+        RaiseLocalEvent(ent, new ItemPickupEvent(collector));
     }
 
     public void Drop(Entity<ItemCollectorComponent?> collector)
@@ -98,7 +101,37 @@ public sealed class ItemsSystem : EntitySystem
         collector.Comp.CurrentItem = null;
         itemComp.TakenBy = null;
         itemComp.CollideDelay = _gameTiming.CurTime + TimeSpan.FromSeconds(0.5);
+        
+        RaiseLocalEvent(itemToDrop, new ItemDropEvent(collector));
     }
+
+    public void UseCurrentItem(Entity<ItemCollectorComponent?> collector)
+    {
+        if(!Resolve(collector, ref collector.Comp) || 
+           collector.Comp.CurrentItem is null)
+            return;
+
+        var ev = new ItemUseEvent(collector);
+        RaiseLocalEvent(collector.Comp.CurrentItem.Value, ev);
+    }
+}
+
+[Serializable]
+public sealed class ItemUseEvent(EntityUid usedBy) : EntityEventArgs
+{
+    public EntityUid UsedBy = usedBy;
+}
+
+[Serializable]
+public sealed class ItemPickupEvent(EntityUid pickedBy) : EntityEventArgs
+{
+    public EntityUid PickedBy = pickedBy;
+}
+
+[Serializable]
+public sealed class ItemDropEvent(EntityUid droppedBy) : EntityEventArgs
+{
+    public EntityUid DroppedBy = droppedBy;
 }
 
 public sealed class ItemDropKeyHandler(ItemsSystem itemsSystem) : InputCmdHandler
@@ -107,6 +140,16 @@ public sealed class ItemDropKeyHandler(ItemsSystem itemsSystem) : InputCmdHandle
     {
         if (message.State is BoundKeyState.Down && session is { AttachedEntity: not null }) 
             itemsSystem.Drop(session.AttachedEntity.Value);
+        return true;
+    }
+}
+
+public sealed class UseItemHandler(ItemsSystem itemsSystem) : InputCmdHandler
+{
+    public override bool HandleCmdMessage(IEntityManager entManager, ICommonSession? session, IFullInputCmdMessage message)
+    {
+        if (message.State is BoundKeyState.Down && session is { AttachedEntity: not null }) 
+            itemsSystem.UseCurrentItem(session.AttachedEntity.Value);
         return true;
     }
 }

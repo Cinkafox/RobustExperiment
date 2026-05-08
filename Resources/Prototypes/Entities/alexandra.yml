@@ -2,6 +2,9 @@
   parent: [baseControlable]
   id: alexandra
   components:
+  - type: Health
+    maxHealth: 100
+  - type: RotateOnDead
   - type: RigidBody
     friction: 3
     restitution: 0.1

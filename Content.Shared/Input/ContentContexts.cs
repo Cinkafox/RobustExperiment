@@ -18,5 +18,7 @@ public sealed class ContentContexts
         viewer.AddFunction(EngineKeyFunctions.Walk);
         viewer.AddFunction(ContentKeyFunctions.PlayerJumpAction);
         viewer.AddFunction(ContentKeyFunctions.PlayerDropItemAction);
+        viewer.AddFunction(EngineKeyFunctions.Use);
+        viewer.AddFunction(EngineKeyFunctions.UseSecondary);
     }
-}
+} 

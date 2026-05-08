@@ -87,25 +87,25 @@ public sealed class DrawingHandle3d : IDisposable
         }
     }
 
-    public void DrawCircle(Vector3 position, float radius, Color color, bool filled = true)
+    public void DrawCircle(Vector3 worldPosition, float worldRadius)
     {
-        var camPos = _cameraProperties.Position;
+        var clipPos = Vector4.Transform(new Vector4(worldPosition, 1.0f), ViewProjectionMatrix);
+        
+        if (MathF.Abs(clipPos.W) < 1e-5f) return;
+    
+        var ndcX = clipPos.X / clipPos.W;
+        var ndcY = clipPos.Y / clipPos.W;
+        
+        if (MathF.Abs(ndcX) > 1.0f || MathF.Abs(ndcY) > 1.0f) return;
+        
+        var screenX = (ndcX + 1.0f) * 0.5f * _width;
+        var screenY = (ndcY + 1.0f) * 0.5f * _height; 
 
-        var diff = camPos - position;
-        var distance = diff.Length();
-
-        radius /= distance;
-        
-        position = Vector3.Transform(position, ViewProjectionMatrix);
-        
-        if (position.Z > 0)
-        {
-            return;
-        }
-        
-        position = ToScreenVec(new Vector4(position, 1));
-        
-        _handleBase.DrawCircle(new Vector2(position.X, position.Y), radius, color, filled);
+        var radiusPixels = worldRadius * ProjectionMatrix.M22 / MathF.Abs(clipPos.W) * (_height * 0.5f);
+    
+        if (radiusPixels < 0.5f) return;
+    
+        _handleBase.DrawCircle(new Vector2(screenX, screenY), radiusPixels, Color.White, false);
     }
     
     public void DrawPolygon(TexturedTriangle triangle)

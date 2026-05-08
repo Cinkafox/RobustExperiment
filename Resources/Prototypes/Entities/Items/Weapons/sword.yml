@@ -8,7 +8,25 @@
     - type: Collectible
       rotation: 0,270,270
       position: 0.15,0,-0.2
+    - type: Weapon
+      damageAreaId: swordDamageArea
+      translation: 0,0,3
     - type: RigidBody
       shape:
         !type:SphereShape
         radius: 0.5
+    - type: DoAnimateOnActivate
+      animationName: whoosh
+
+- type: entity
+  id: swordDamageArea
+  components:
+    - type: ActiveDamageArea
+      damage: 15
+    - type: RigidBody
+      physType: Static
+      shape:
+        !type:BoxShape
+        halfExtents: 1,0.1,1
+    - type: TimedDespawn
+      lifetime: 0.5

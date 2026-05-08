@@ -12,3 +12,25 @@
       shape:
         !type:SphereShape
         radius: 0.5
+    - type: Weapon
+      damageAreaId: pistolDamageArea
+      translation: 0,0,3
+      impulse: 0,0,500
+    - type: DoAnimateWhileHold
+      animationName: pistolhold
+    - type: DoAnimateOnActivate
+      animationName: pistolfire
+      
+- type: entity
+  id: pistolDamageArea
+  components:
+    - type: ActiveDamageArea
+      damage: 15
+    - type: RigidBody
+      density: 0.5
+      shape:
+        !type:SphereShape
+        radius: 0.5
+    - type: TimedDespawn
+      lifetime: 5
+    - type: DeleteOnCollide

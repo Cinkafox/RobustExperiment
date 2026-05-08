@@ -152,7 +152,7 @@ public sealed class GameViewport : Control
                 
                     foreach (var (radius, position) in debugHandler.SphereBuffer)
                     {
-                        drawHandle.DrawCircle(position, radius, Color.Aqua);
+                        drawHandle.DrawCircle(position, radius);
                     }
 
                     foreach (var vertexes in debugHandler.VertexBuffer)
