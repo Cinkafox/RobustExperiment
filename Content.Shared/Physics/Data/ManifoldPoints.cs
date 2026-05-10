@@ -20,6 +20,9 @@ public sealed partial class ManifoldPoints
     /// </summary>
     [ViewVariables]
     public bool HasContact => Depth > 1e-4f;
+    
+    [ViewVariables] public float NormalImpulse;
+    [ViewVariables] public Vector3 TangentImpulse;
 
     public ManifoldPoints() {}
 
@@ -81,3 +84,14 @@ public sealed partial class ContactManifold
         BodyB = bodyB;
     }
 }
+
+public readonly record struct ContactKey(
+    EntityUid A,
+    EntityUid B);
+    
+public struct CachedContact
+{
+    public float NormalImpulse;
+    public Vector3 TangentImpulse;
+    public int FramesAlive;
+}   

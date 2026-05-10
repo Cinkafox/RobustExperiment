@@ -50,6 +50,7 @@ public sealed partial class RigidBodySystem
     
     private void ResolveCollisions(float deltaTime)
     {
+        var activeKeys = new HashSet<ContactKey>();
         var query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
         _dynamicBodies.Clear();
         _contacts.Clear();
@@ -118,27 +119,84 @@ public sealed partial class RigidBodySystem
         if (bodyA.PhysType == PhysType.Static && bodyB.PhysType == PhysType.Static)
             return;
         
-        var relativeVelocity = bodyB.LinearVelocity - bodyA.LinearVelocity;
-        var velocityAlongNormal = Vector3.Dot(relativeVelocity, contact.Normal);
+        var ra = contact.A - xformA.LocalPosition;
+        var rb = contact.B - xformB.LocalPosition;
         
-        if (velocityAlongNormal > 0f) return;
         
         var restitution = float.Max(bodyA.Restitution, bodyB.Restitution);
         var friction = float.Max(bodyA.Friction, bodyB.Friction);
         
-        var invMassSum = bodyA.InvMass + bodyB.InvMass;
+        var warmImpulse = contact.Normal * contact.NormalImpulse;
+
+        if (bodyA.PhysType == PhysType.Dynamic)
+        {
+            bodyA.LinearVelocity -= warmImpulse * bodyA.InvMass;
+
+            if (bodyA.EnableAngularVelocity)
+            {
+                bodyA.AngularVelocity -=
+                    Vector3.Cross(ra, warmImpulse) *
+                    bodyA.InvInertia;
+            }
+        }
+
+        if (bodyB.PhysType == PhysType.Dynamic)
+        {
+            bodyB.LinearVelocity += warmImpulse * bodyB.InvMass;
+
+            if (bodyB.EnableAngularVelocity)
+            {
+                bodyB.AngularVelocity +=
+                    Vector3.Cross(rb, warmImpulse) *
+                    bodyB.InvInertia;
+            }
+        }
+        
+        var warmTangent = contact.TangentImpulse;
+
+        if (bodyA.PhysType == PhysType.Dynamic)
+        {
+            bodyA.LinearVelocity -= warmTangent * bodyA.InvMass;
+        }
+
+        if (bodyB.PhysType == PhysType.Dynamic)
+        {
+            bodyB.LinearVelocity += warmTangent * bodyB.InvMass;
+        }
+        
+        var velA =
+            bodyA.LinearVelocity +
+            Vector3.Cross(bodyA.AngularVelocity, ra);
+
+        var velB =
+            bodyB.LinearVelocity +
+            Vector3.Cross(bodyB.AngularVelocity, rb);
+
+        var relativeVelocity = velB - velA;
+        
+        var velocityAlongNormal = Vector3.Dot(relativeVelocity, contact.Normal);
+        
+        if (velocityAlongNormal > 0f) return;
+        
+        var raCrossN = Vector3.Cross(ra, contact.Normal);
+        var rbCrossN = Vector3.Cross(rb, contact.Normal);
+
+        var angularFactor =
+            Vector3.Dot(raCrossN, raCrossN) * bodyA.InvInertia +
+            Vector3.Dot(rbCrossN, rbCrossN) * bodyB.InvInertia;
+
+        var impulseDenom =
+            bodyA.InvMass +
+            bodyB.InvMass +
+            angularFactor;
+        
+        const float maxImpulse = 50f;
         
         var impulseMagnitude = -(1f + restitution) * velocityAlongNormal;
-        impulseMagnitude /= invMassSum;
-        impulseMagnitude = MathF.Max(0f, impulseMagnitude);
+        impulseMagnitude /= impulseDenom;
+        impulseMagnitude = Math.Clamp(impulseMagnitude, 0f, maxImpulse);
         
         var impulse = contact.Normal * impulseMagnitude;
-        
-        if (bodyA.PhysType == PhysType.Dynamic)
-            bodyA.LinearVelocity -= impulse * bodyA.InvMass;
-        
-        if (bodyB.PhysType == PhysType.Dynamic)
-            bodyB.LinearVelocity += impulse * bodyB.InvMass;
         
         var tangent = relativeVelocity - contact.Normal * velocityAlongNormal;
         
@@ -146,10 +204,19 @@ public sealed partial class RigidBodySystem
         {
             tangent = Vector3.Normalize(tangent);
             
-      
+            var raCrossT = Vector3.Cross(ra, tangent);
+            var rbCrossT = Vector3.Cross(rb, tangent);
+
+            var frictionDenom =
+                bodyA.InvMass +
+                bodyB.InvMass +
+                Vector3.Dot(raCrossT, raCrossT) * bodyA.InvInertia +
+                Vector3.Dot(rbCrossT, rbCrossT) * bodyB.InvInertia;
+
+            
             var jt = -Vector3.Dot(relativeVelocity, tangent);
             
-            var frictionImpulse = jt / invMassSum;
+            var frictionImpulse = jt / frictionDenom;
             
             var maxFriction = friction * impulseMagnitude;
             frictionImpulse = Math.Clamp(frictionImpulse, -maxFriction, maxFriction);
@@ -161,10 +228,44 @@ public sealed partial class RigidBodySystem
             
             if (bodyB.PhysType == PhysType.Dynamic)
                 bodyB.LinearVelocity += frictionVector * bodyB.InvMass;
+            
+            contact.TangentImpulse += frictionVector;
+            contact.TangentImpulse = Vector3.Clamp(
+                contact.TangentImpulse,
+                new Vector3(-maxFriction),
+                new Vector3(maxFriction));
         }
         
-        var correctionPercent = 0.2f;
-        const float slop = 0.01f;
+        contact.NormalImpulse += impulseMagnitude;
+        contact.NormalImpulse =
+            MathF.Max(0f, contact.NormalImpulse);
+        
+        if (bodyA.PhysType == PhysType.Dynamic)
+        {
+            bodyA.LinearVelocity -= impulse * bodyA.InvMass;
+
+            if (bodyA.EnableAngularVelocity)
+            {
+                bodyA.AngularVelocity -=
+                    Vector3.Cross(ra, impulse) *
+                    bodyA.InvInertia;
+            }
+        }
+
+        if (bodyB.PhysType == PhysType.Dynamic)
+        {
+            bodyB.LinearVelocity += impulse * bodyB.InvMass;
+
+            if (bodyB.EnableAngularVelocity)
+            {
+                bodyB.AngularVelocity +=
+                    Vector3.Cross(rb, impulse) *
+                    bodyB.InvInertia;
+            }
+        }
+        
+        var correctionPercent = 0.05f;
+        const float slop = 0.03f;
         
         // Reduce correction when bodies are grounded to prevent shaking
         if (bodyA.IsGrounded || bodyB.IsGrounded)
@@ -172,11 +273,13 @@ public sealed partial class RigidBodySystem
             correctionPercent = 0.05f; // Much gentler correction when grounded
         }
         
+        var invMassSum = bodyA.InvMass + bodyB.InvMass;
+        
         var correction = MathF.Max(contact.Depth - slop, 0f) / invMassSum * correctionPercent * contact.Normal;
         
         if (bodyA.PhysType == PhysType.Dynamic)
             xformA.LocalPosition -= correction * bodyA.InvMass;
-        
+
         if (bodyB.PhysType == PhysType.Dynamic)
             xformB.LocalPosition += correction * bodyB.InvMass;
     }

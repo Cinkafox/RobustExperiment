@@ -6,7 +6,6 @@ namespace Content.Shared.Physics.Components;
 [RegisterComponent]
 public sealed partial class RigidBodyComponent: Component
 {
-    [DataField] public Vector3 AngularVelocity = Vector3.Zero;
     [DataField] public Vector3 LinearVelocity = Vector3.Zero;
     [DataField] public PhysType PhysType = PhysType.Dynamic;
 
@@ -19,7 +18,6 @@ public sealed partial class RigidBodyComponent: Component
     [ViewVariables(VVAccess.ReadOnly)] public float Mass => Shape.Area * Density;
     [ViewVariables(VVAccess.ReadOnly)] public float InvMass => (PhysType == PhysType.Dynamic) ? 1f / Mass : 0f;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 LinearForce => LinearVelocity * Mass;
-    [ViewVariables(VVAccess.ReadOnly)] public Vector3 AngularForce => AngularVelocity * Mass;
     
     [ViewVariables(VVAccess.ReadOnly)] public bool IsGrounded { get; private set; }
     [ViewVariables(VVAccess.ReadOnly)] public int GroundContactCount { get; private set; }

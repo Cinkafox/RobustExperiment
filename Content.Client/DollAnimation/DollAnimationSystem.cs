@@ -79,8 +79,18 @@ public sealed class DollAnimationSystem : EntitySystem
            !entity.Comp.RegisteredAnimations.TryGetValue(animationName, out var property) ||
            !_boneSystem.TryGetBone(entity.Owner, property.BoneName, out var boneUid))
             return;
+
+        if (property.Looped)
+        {
+            entity.Comp.CurrentBoneLoopedAnimations.Remove(property.BoneName);
+            RemComp<BoneOnLoopAnimationComponent>(boneUid);
+        }
+        else
+        {
+            entity.Comp.CurrentBoneAnimations.Remove(property.BoneName);
+            RemComp<BoneOnAnimationComponent>(boneUid);
+        }
         
-        entity.Comp.CurrentBoneAnimations.Remove(property.BoneName);
         _animationPlayer.Stop(boneUid, animationName);
     }
 }

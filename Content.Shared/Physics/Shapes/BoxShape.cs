@@ -7,6 +7,8 @@ namespace Content.Shared.Physics.Shapes;
 public sealed partial class BoxShape : IPhysicShape
 {
     [DataField] public Vector3 HalfExtents = new(0.5f, 0.5f, 0.5f);
+    [ViewVariables] public Vector3 Size => HalfExtents * 2f;
+    
     public float Area => HalfExtents.X * 2f * HalfExtents.Y * 2f * HalfExtents.Z * 2f;
     
     public void DrawShape(DebugDrawingHandle handle, TransformedPhysicShape transformedPhysicShape)

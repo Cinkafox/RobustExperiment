@@ -5,16 +5,20 @@
       currentMesh:
         path: "/Models/sword/Weapon_Minecraft__220.obj"
         scale: 0.005,0.005,0.005
+        offset: 0,-0.5,0
     - type: Collectible
       rotation: 0,270,270
-      position: 0.15,0,-0.2
+      position: 0.15,0,0.4
     - type: Weapon
       damageAreaId: swordDamageArea
       translation: 0,0,3
     - type: RigidBody
+      friction: 3
+      restitution: 0.1
+      density: 2
       shape:
-        !type:SphereShape
-        radius: 0.5
+        !type:BoxShape
+        halfExtents: 0.25,0.7,0.25
     - type: DoAnimateOnActivate
       animationName: whoosh
 

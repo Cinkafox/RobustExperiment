@@ -9,9 +9,12 @@
       rotation: 0,270,270
       position: 0.4,0,-0.2
     - type: RigidBody
+      friction: 3
+      restitution: 0.1
+      density: 2
       shape:
-        !type:SphereShape
-        radius: 0.5
+        !type:BoxShape
+        halfExtents: 0.5,0.5,0.5
     - type: Weapon
       damageAreaId: pistolDamageArea
       translation: 0,0,3
@@ -27,10 +30,10 @@
     - type: ActiveDamageArea
       damage: 15
     - type: RigidBody
-      density: 0.5
+      density: 0.25
       shape:
         !type:SphereShape
-        radius: 0.5
+        radius: 0.75
     - type: TimedDespawn
       lifetime: 5
     - type: DeleteOnCollide
