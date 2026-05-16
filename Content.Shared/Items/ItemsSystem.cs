@@ -78,6 +78,7 @@ public sealed class ItemsSystem : EntitySystem
         var itemToDrop = collector.Comp.CurrentItem.Value;
 
         var collectorTransform = Comp<Transform3dComponent>(collector);
+        var collectorBody = Comp<RigidBodyComponent>(collector);
         var transform = Comp<Transform3dComponent>(itemToDrop);
         var itemComp = Comp<CollectibleComponent>(itemToDrop);
         
@@ -92,7 +93,7 @@ public sealed class ItemsSystem : EntitySystem
         {
             var rigidBody = AddComp<RigidBodyComponent>(itemToDrop);
             rigidBody.Properties = itemComp.TakenProperties.Value;
-            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(itemToDrop, rigidBody), translate * rigidBody.Mass * 2);
+            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(itemToDrop, rigidBody), translate * rigidBody.Mass * 2 + collectorBody.LinearForce);
         }
         
         collector.Comp.CurrentItem = null;
