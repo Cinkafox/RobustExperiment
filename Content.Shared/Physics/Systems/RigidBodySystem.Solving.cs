@@ -40,6 +40,8 @@ public sealed partial class RigidBodySystem
                 {
                     body.LinearVelocity.Y *= MathF.Pow(0.3f, deltaTime);
                 }
+                
+                body.AngularVelocity *= MathF.Pow(0.85f, deltaTime);
             }
             else
             {
@@ -57,13 +59,31 @@ public sealed partial class RigidBodySystem
             }
         
             // ===== ANGULAR DAMPING =====
-            var angularSpeed = body.AngularVelocity.Length();
-            if (angularSpeed > 0.01f)
+            if (!body.EnableAngularVelocity)
             {
-                // Stronger angular damping when grounded
-                var angularDrag = body.IsGrounded ? 0.5f : 0.15f;
-                var dragTorque = body.AngularVelocity * angularDrag;
-                body.AngularVelocity -= dragTorque * deltaTime;
+                body.AngularVelocity = Vector3.Zero;
+            }
+            else
+            {
+                var angularSpeed = body.AngularVelocity.Length();
+
+                if (angularSpeed > 0.01f)
+                {
+                    var angularDrag = body.IsGrounded ? 0.5f : 0.15f;
+                    var dragTorque = body.AngularVelocity * angularDrag;
+
+                    body.AngularVelocity -= dragTorque * deltaTime;
+                }
+            }
+            
+            const float maxAngularSpeed = 50f;
+
+            var speed = body.AngularVelocity.Length();
+            if (speed > maxAngularSpeed)
+            {
+                body.AngularVelocity =
+                    Vector3.Normalize(body.AngularVelocity) *
+                    maxAngularSpeed;
             }
         }
     }
@@ -77,6 +97,12 @@ public sealed partial class RigidBodySystem
             
             xform.LocalPosition += body.LinearVelocity * deltaTime;
             
+            if (!body.EnableAngularVelocity)
+            {
+                body.AngularVelocity = Vector3.Zero;
+                continue;
+            }
+            
             var angVel = body.AngularVelocity;
             var angVelSq = angVel.LengthSquared();
 
@@ -87,7 +113,8 @@ public sealed partial class RigidBodySystem
                 var angle = angVelLen * deltaTime;
                 
                 var deltaRotation = Quaternion.CreateFromAxisAngle(axis, angle);
-                xform.LocalRotation = deltaRotation * xform.LocalRotation;
+                xform.LocalRotation = Quaternion.Normalize(
+                    deltaRotation * xform.LocalRotation);
             }
         }
     }
@@ -132,7 +159,7 @@ public sealed partial class RigidBodySystem
     private void SimulateStep(float deltaTime, int steps = 1)
     {
         var stepDt = deltaTime / steps;
-        for (int i = 0; i < steps; i++)
+        for (var i = 0; i < steps; i++)
         {
             ApplyGlobalForces(stepDt);
             IntegrateVelocities(stepDt);

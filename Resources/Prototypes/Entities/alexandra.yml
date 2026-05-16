@@ -2,10 +2,12 @@
   parent: [baseControlable]
   id: alexandra
   components:
+  - type: Health
+    maxHealth: 100
   - type: RigidBody
     friction: 3
     restitution: 0.1
-    density: 2
+    density: 4
     shape:
       !type:BoxShape
       halfExtents: 0.4, 1, 0.4

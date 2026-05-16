@@ -21,10 +21,32 @@ public sealed partial class RigidBodySystem : EntitySystem
         ent.Comp.LinearVelocity += force / ent.Comp.Mass;
     }
 
-    public void ApplyAngularForce(Entity<RigidBodyComponent> ent, Vector3 force)
+    public void ApplyTorque(Entity<RigidBodyComponent> ent, Vector3 torque)
     {
-        if(ent.Comp.PhysType == PhysType.Static) return;
-        ent.Comp.AngularVelocity += force / ent.Comp.Mass;
+        if (ent.Comp.PhysType == PhysType.Static)
+            return;
+
+        if (!ent.Comp.EnableAngularVelocity)
+            return;
+
+        ent.Comp.AngularVelocity += torque * ent.Comp.InvInertia;
+    }
+    
+    public void ApplyForceAtPoint(
+        Entity<RigidBodyComponent> ent,
+        Vector3 force,
+        Vector3 worldPoint,
+        Vector3 centerOfMass)
+    {
+        if (ent.Comp.PhysType == PhysType.Static)
+            return;
+
+        ApplyForce(ent, force);
+
+        var r = worldPoint - centerOfMass;
+        var torque = Vector3.Cross(r, force);
+
+        ApplyTorque(ent, torque);
     }
 
     public override void FrameUpdate(float frameTime)

@@ -1,4 +1,5 @@
-﻿using Content.Shared.Transform;
+﻿using Content.Shared.Physics.Components;
+using Content.Shared.Transform;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
@@ -41,6 +42,7 @@ public sealed class LocationSystem : EntitySystem
     public void AttachSession(ICommonSession session)
     {
         var entity = Spawn(_playerEntitySpawn);
+        EnsureComp<RigidBodyComponent>(entity).EnableAngularVelocity = false;
         _playerManager.SetAttachedEntity(session, entity);
     }
 
