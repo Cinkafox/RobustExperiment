@@ -22,7 +22,27 @@ public sealed class ClippingInstance
         DebugClipping.Clear();
     }
     
+    public void ClipAgainstClip(Vector3 planeP, Vector3 planeN, Triangle inTri, SimplePool<Triangle> debugPool)
+    {
+        ClipDebug(planeP, planeN, inTri, debugPool);
+    }
+
     public void ClipAgainstClip(Vector3 planeP, Vector3 planeN, Triangle inTri, DrawingInstance drawingInstance)
+    {
+        ClipDebug(planeP, planeN, inTri, drawingInstance.DebugTriangleBuffer);
+    }
+
+    public void ClipAgainstClip(Vector3 planeP, Vector3 planeN, TexturedTriangle inTri, SimplePool<TexturedTriangle> triPool, SimplePool<Triangle> debugPool)
+    {
+        ClipTextured(planeP, planeN, inTri, triPool, debugPool);
+    }
+
+    public void ClipAgainstClip(Vector3 planeP, Vector3 planeN, TexturedTriangle inTri, DrawingInstance drawingInstance)
+    {
+        ClipTextured(planeP, planeN, inTri, drawingInstance.TriangleBuffer, drawingInstance.DebugTriangleBuffer);
+    }
+
+    private void ClipDebug(Vector3 planeP, Vector3 planeN, Triangle inTri, SimplePool<Triangle> debugPool)
     {
         planeN = Vector3.Normalize(planeN);
         
@@ -52,7 +72,8 @@ public sealed class ClippingInstance
         
         if (InsidePoints.Length == 1 && OutsidePoints.Length == 2)
         {
-            var outTri1 = drawingInstance.DebugTriangleBuffer.Take();
+            var outTri1 = debugPool.Take();
+            outTri1.Clear();
             outTri1.p1 = InsidePoints[0];
             
             outTri1.p2 = IntersectPlane(planeP, planeN, InsidePoints[0],
@@ -66,8 +87,10 @@ public sealed class ClippingInstance
 
         if (InsidePoints.Length == 2 && OutsidePoints.Length == 1)
         {
-            var outTri1 = drawingInstance.DebugTriangleBuffer.Take();
-            var outTri2 = drawingInstance.DebugTriangleBuffer.Take();
+            var outTri1 = debugPool.Take();
+            var outTri2 = debugPool.Take();
+            outTri1.Clear();
+            outTri2.Clear();
             
             outTri1.p1 = InsidePoints[0];
             outTri1.p2 = InsidePoints[1];
@@ -81,8 +104,8 @@ public sealed class ClippingInstance
             DebugClipping.Add(outTri2);
         }
     }
-    
-    public void ClipAgainstClip(Vector3 planeP, Vector3 planeN, TexturedTriangle inTri, DrawingInstance drawingInstance)
+
+    private void ClipTextured(Vector3 planeP, Vector3 planeN, TexturedTriangle inTri, SimplePool<TexturedTriangle> triPool, SimplePool<Triangle> debugPool)
     {
         planeN = Vector3.Normalize(planeN);
         
@@ -112,8 +135,8 @@ public sealed class ClippingInstance
         
         if (InsidePoints.Length == 1 && OutsidePoints.Length == 2)
         {
-            var outTri1 = drawingInstance.TriangleBuffer.Take();
-            
+            var outTri1 = triPool.Take();
+            outTri1.Clear();
             outTri1.TextureId = inTri.TextureId;
             
             outTri1.Triangle.p1 = InsidePoints[0];
@@ -133,8 +156,10 @@ public sealed class ClippingInstance
 
         if (InsidePoints.Length == 2 && OutsidePoints.Length == 1)
         {
-            var outTri1 = drawingInstance.TriangleBuffer.Take();
-            var outTri2 = drawingInstance.TriangleBuffer.Take();
+            var outTri1 = triPool.Take();
+            var outTri2 = triPool.Take();
+            outTri1.Clear();
+            outTri2.Clear();
             outTri1.TextureId = inTri.TextureId;
             outTri2.TextureId = inTri.TextureId;
             

@@ -15,6 +15,7 @@ public sealed class Triangle : IEnumerable<Vector4>
     public Vector4 p3;
 
     public float Z => (p1.Z + p2.Z + p3.Z) * (1.0f / 3.0f);
+    public float ViewSpaceZ;
 
     public void Transform(Matrix4x4 matrix4)
     {
@@ -64,6 +65,7 @@ public sealed class Triangle : IEnumerable<Vector4>
     public void Clear()
     {
         p1 = p2 = p3 = new Vector4(0,0,0,1);
+        ViewSpaceZ = 0f;
     }
 
     public IEnumerator<Vector4> GetEnumerator()

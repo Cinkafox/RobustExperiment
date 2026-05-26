@@ -14,6 +14,7 @@ public sealed class TexturedTriangle
     {
         Triangle.Clear();
         TexturePoint1 = TexturePoint2 = TexturePoint3 = default;
+        TextureId = 0;
     }
 
     public void TransformTexture()

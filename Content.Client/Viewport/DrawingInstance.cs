@@ -102,6 +102,6 @@ public sealed class TriangleZComparer : IComparer<TexturedTriangle>
     {
         if (a is null || b is null) return 0;
         
-        return a.Triangle.Z.CompareTo(b.Triangle.Z);
+        return b.Triangle.ViewSpaceZ.CompareTo(a.Triangle.ViewSpaceZ);
     }
 }

@@ -79,9 +79,9 @@ public sealed class DrawingHandle3d : IDisposable
             clippedTriangle.SetP2(ToScreenVec(clippedTriangle.p2));
             clippedTriangle.SetP3(ToScreenVec(clippedTriangle.p3));
             
-            SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[0], triangle.p1.X, triangle.p1.Y);
-            SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[1], triangle.p2.X, triangle.p2.Y);
-            SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[2], triangle.p3.X, triangle.p3.Y);
+            SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[0], clippedTriangle.p1.X, clippedTriangle.p1.Y);
+            SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[1], clippedTriangle.p2.X, clippedTriangle.p2.Y);
+            SetVector2Data(ref DrawingInstance.DrawVertexUntexturedBuffer[2], clippedTriangle.p3.X, clippedTriangle.p3.Y);
             
             _handleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop, DrawingInstance.DrawVertexUntexturedBuffer, Color.White);
         }
@@ -127,6 +127,11 @@ public sealed class DrawingHandle3d : IDisposable
 
         foreach (var clippedTriangle in ClippingInstance.Clipping)
         {
+            var z1 = clippedTriangle.Triangle.p1.Z;
+            var z2 = clippedTriangle.Triangle.p2.Z;
+            var z3 = clippedTriangle.Triangle.p3.Z;
+            clippedTriangle.Triangle.ViewSpaceZ = Math.Min(z1, Math.Min(z2, z3));
+            
             clippedTriangle.Triangle.Transform(ProjectionMatrix);
             
             clippedTriangle.Triangle.SetP1(ToScreenVec(clippedTriangle.Triangle.p1));
@@ -140,7 +145,9 @@ public sealed class DrawingHandle3d : IDisposable
     public void Flush(ProfManager profManager)
     {
         using(profManager.Group("prepare_frame"))
+        {
             DrawingInstance.PrepareFrame();
+        }
         
         using(profManager.Group("draw_frame"))
         {
@@ -276,7 +283,6 @@ public sealed class DrawingHandle3d : IDisposable
         
         _handleBase.DrawPrimitives(DrawPrimitiveTopology.LineLoop, DrawingInstance.DrawVertexUntexturedBuffer, Color.White);
     }
-    
 
     public DrawingHandle3d(DrawingHandleBase handleBase, float width, float height, CameraProperties cameraProperties,
         DrawingInstance drawingInstance)
