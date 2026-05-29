@@ -7,24 +7,8 @@
   entities:
     - entity: floor
       position: 0,-2,0
-    - entity: machine
-      position: 0,5,0
-    - entity: machine
-      position: 1,2,3
-      rotation: 0,45,0
-    - entity: machine
-      position: -1,0,6
-      rotation: 0,-45,0
-    - entity: alexandra
-      position: 5,15,5
-    - entity: alexandra
-      position: 5,10,5
-    - entity: alexandra
-      position: 5,20,5
-    - entity: alexandra
-      position: 5,25,5
-    - entity: alexandra
-      position: 5,30,5
+    - entity: room
+      position: 0,-1,0
     - entity: pistol
       position: 3,0,8
     - entity: sword
