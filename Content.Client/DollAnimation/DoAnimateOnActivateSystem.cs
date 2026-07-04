@@ -10,8 +10,14 @@ public sealed class DoAnimateOnActivateSystem : EntitySystem
     public override void Initialize()
     {
         SubscribeLocalEvent<DoAnimateOnActivateComponent, ItemUseEvent>(OnUse);
+        SubscribeLocalEvent<DoAnimateOnActivateComponent, ItemDropEvent>(OnUsedDrop);
         SubscribeLocalEvent<DoAnimateWhileHoldComponent, ItemPickupEvent>(OnPickup);
         SubscribeLocalEvent<DoAnimateWhileHoldComponent, ItemDropEvent>(OnDrop);
+    }
+
+    private void OnUsedDrop(Entity<DoAnimateOnActivateComponent> ent, ref ItemDropEvent args)
+    {
+        _dollAnimationSystem.StopAnimation(args.DroppedBy,  ent.Comp.AnimationName);
     }
 
     private void OnDrop(Entity<DoAnimateWhileHoldComponent> ent, ref ItemDropEvent args)
