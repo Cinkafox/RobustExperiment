@@ -34,18 +34,18 @@ public sealed class InputMoverSystem : EntitySystem
         {
             transform3dComponent.LocalRotation *= (inputMover.RotationMovement * frameTime).ToQuaternion();
 
-            var airFactor = rigidBodyComponent.IsGrounded ? 1f : 0.05f;
+            var airFactor = rigidBodyComponent.IsGrounded ? 60f : 5f;
             
             var shift = 
                 Vector3.Transform(inputMover.PositionMovement * airFactor, 
                     Matrix4Helpers.CreateRotationY(transform3dComponent.WorldAngle.Yaw));
             
-            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), shift * rigidBodyComponent.Mass);
+            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), shift * rigidBodyComponent.Mass * frameTime);
             
             if(!rigidBodyComponent.IsGrounded || !inputMover.IsJumping) 
                 continue;
                 
-            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0, 10, 0) * rigidBodyComponent.Mass);
+            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0, 500, 0) * rigidBodyComponent.Mass * frameTime);
             inputMover.IsJumping = false;
         }
     }

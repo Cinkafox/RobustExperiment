@@ -40,4 +40,19 @@ public sealed partial class Transform3dSystem
     {
         _xformQuery.Comp(uid).WorldAngle = angles;
     }
+
+    public void SetWorldRotation(EntityUid uid, Quaternion orientation)
+    {
+        _xformQuery.Comp(uid).WorldRotation = orientation;
+    }
+
+    public Vector3 GetWorldPosition(EntityUid uid)
+    {
+        return _xformQuery.Comp(uid).WorldPosition;
+    }
+
+    public Quaternion GetWorldRotation(EntityUid uid)
+    {
+        return _xformQuery.Comp(uid).WorldRotation;
+    }
 }

@@ -5,6 +5,7 @@
       compound:
         position: 0,1.6,0
         rotation: 0,0,0
+        name: root
         child:
           - position: 0.2,1.6,0
             rotation: 0,0,0
@@ -43,6 +44,7 @@
             child:
               - position: 0.5,1.6,0
                 rotation: 0,0,0
+                name: knee1
                 data:
                   - boneIndices: 261
                     boneWeights: 1
@@ -245,6 +247,7 @@
             child:
               - position: -0.5,1.6,0
                 rotation: 0,180,0
+                name: knee2
                 data:
                   - boneIndices: 539
                     boneWeights: 1
@@ -281,6 +284,7 @@
                 child:
                   - position: -0.8,1.6,0
                     rotation: 0,180,0
+                    name: hand2
                     data:
                       - boneIndices: 514
                         boneWeights: 1

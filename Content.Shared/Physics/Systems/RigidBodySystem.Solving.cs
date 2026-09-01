@@ -19,11 +19,13 @@ public sealed partial class RigidBodySystem
     
     private void IntegrateVelocities(float deltaTime)
     {
-        var query = AllEntityQuery<RigidBodyComponent>();
-        while (query.MoveNext(out var uid, out var body))
+        var query = AllEntityQuery<RigidBodyComponent, Transform3dComponent>();
+        while (query.MoveNext(out var uid, out var body, out var transform))
         {
             if (body.PhysType == PhysType.Static) continue;
         
+            body.UpdateWorldInertia(transform.WorldRotation);
+            
             var linearSpeed = body.LinearVelocity.Length();
             
             // ===== GROUNDED DAMPING =====
@@ -163,7 +165,9 @@ public sealed partial class RigidBodySystem
         {
             ApplyGlobalForces(stepDt);
             IntegrateVelocities(stepDt);
+            PrepareConstraints(stepDt);
             ResolveCollisions(stepDt);
+            SolveConstraints(stepDt);
             UpdateGroundStates(stepDt);
             IntegratePositions(stepDt);
         }

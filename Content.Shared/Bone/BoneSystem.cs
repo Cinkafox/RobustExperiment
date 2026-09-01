@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Transform;
 
 namespace Content.Shared.Bone;
@@ -58,9 +59,10 @@ public sealed class BoneSystem : EntitySystem
         return GetCompoundRecursive(spawnedThink);
     }
 
-    public bool TryGetBone(Entity<SkeletonComponent?> entity, string boneName, out EntityUid bone)
+    public bool TryGetBone(Entity<SkeletonComponent?> entity, string? boneName,out EntityUid bone)
     {
         bone = default;
+        if (boneName == null) return false;
         return Resolve(entity, ref entity.Comp) && entity.Comp.BonesDictionary.TryGetValue(boneName, out bone);
     }
 

@@ -54,19 +54,35 @@ public sealed class ItemsSystem : EntitySystem
             Drop(collector);
         
         ent.Comp.TakenBy = ent;
-        
-        _transform3dSystem.SetParent(ent, bone);
-        var transform = Comp<Transform3dComponent>(ent);
-        transform.LocalPosition = ent.Comp.Position;
-        transform.LocalAngle = ent.Comp.Rotation;
-        transform.LocalScale = ent.Comp.Scale;
 
-        if (TryComp<RigidBodyComponent>(ent, out var rigidBody))
+        if (ent.Comp.TakeAsItem)
         {
-            ent.Comp.TakenProperties = rigidBody.Properties;
-            RemComp<RigidBodyComponent>(ent);
+            _transform3dSystem.SetParent(ent, bone);
+            var transform = Comp<Transform3dComponent>(ent);
+            transform.LocalPosition = ent.Comp.Position;
+            transform.LocalAngle = ent.Comp.Rotation;
+            transform.LocalScale = ent.Comp.Scale;
+
+            if (TryComp<RigidBodyComponent>(ent, out var rigidBody))
+            {
+                ent.Comp.TakenProperties = rigidBody.Properties;
+                RemComp<RigidBodyComponent>(ent);
+            }
         }
-        
+        else
+        {
+            var transform = Comp<Transform3dComponent>(ent);
+
+            var constrComp = AddComp<ConstraintComponent>(collector);
+            var collectorTransform = Comp<Transform3dComponent>(collector);
+
+            constrComp.ConstraintUid = ent;
+            constrComp.Constraint = new PointToPointConstraint()
+            {
+                LocalAnchorA = collectorTransform.WorldPosition - transform.WorldPosition,
+            };
+        }
+
         collector.Comp.CurrentItem = ent;
         
         RaiseLocalEvent(ent, new ItemPickupEvent(collector));
@@ -84,19 +100,26 @@ public sealed class ItemsSystem : EntitySystem
         var collectorBody = Comp<RigidBodyComponent>(collector);
         var transform = Comp<Transform3dComponent>(itemToDrop);
         var itemComp = Comp<CollectibleComponent>(itemToDrop);
-        
-        _transform3dSystem.SetParent(itemToDrop, collectorTransform.ParentUid);
 
-        var translate = Matrix4Helpers.TransformVector(new Vector3(0, 1, 2), collectorTransform.LocalRotation);
-        
-        transform.LocalPosition = collectorTransform.LocalPosition + translate;
-        transform.LocalRotation = collectorTransform.LocalRotation;
-
-        if (itemComp.TakenProperties is not null)
+        if (itemComp.TakeAsItem)
         {
-            var rigidBody = AddComp<RigidBodyComponent>(itemToDrop);
-            rigidBody.Properties = itemComp.TakenProperties.Value;
-            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(itemToDrop, rigidBody), translate * rigidBody.Mass * 2 + collectorBody.LinearForce);
+            _transform3dSystem.SetParent(itemToDrop, collectorTransform.ParentUid);
+
+            var translate = Matrix4Helpers.TransformVector(new Vector3(0, 1, 2), collectorTransform.LocalRotation);
+        
+            transform.LocalPosition = collectorTransform.LocalPosition + translate;
+            transform.LocalRotation = collectorTransform.LocalRotation;
+
+            if (itemComp.TakenProperties is not null)
+            {
+                var rigidBody = AddComp<RigidBodyComponent>(itemToDrop);
+                rigidBody.Properties = itemComp.TakenProperties.Value;
+                _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(itemToDrop, rigidBody), translate * rigidBody.Mass + collectorBody.LinearVelocity * rigidBody.Mass);
+            }
+        }
+        else
+        {
+            RemComp<ConstraintComponent>(collector);
         }
         
         collector.Comp.CurrentItem = null;

@@ -9,9 +9,10 @@ public sealed partial class CollectibleComponent: Component
     [DataField] public Vector3 Position = Vector3.Zero;
     [DataField] public EulerAngles Rotation = EulerAngles.Zero;
     [DataField] public Vector3 Scale = Vector3.One;
-    
-    [DataField] public EntityUid? TakenBy;
     [DataField] public TimeSpan CollideDelay;
+    [DataField] public bool TakeAsItem = true;
+    
+    [ViewVariables] public EntityUid? TakenBy;
     [ViewVariables(VVAccess.ReadOnly)] public bool IsTaken => TakenBy != null;
 
     [ViewVariables] public PhysicsProperty? TakenProperties;

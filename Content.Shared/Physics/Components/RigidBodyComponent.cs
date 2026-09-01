@@ -41,6 +41,7 @@ public sealed partial class RigidBodyComponent: Component
             Density = value.Density;
             RollingResistance = value.RollingResistance;
             Shape = value.Shape;
+            InvalidateInertia();
         }
     }
     

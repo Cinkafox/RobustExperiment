@@ -11,6 +11,19 @@ public sealed partial class BoxShape : IPhysicShape
     
     public float Area => HalfExtents.X * 2f * HalfExtents.Y * 2f * HalfExtents.Z * 2f;
     
+    public Vector3 CalculateLocalInertia(float mass)
+    {
+        var x = 2f * HalfExtents.X;
+        var y = 2f * HalfExtents.Y;
+        var z = 2f * HalfExtents.Z;
+        
+        var ixx = (mass / 12f) * (y * y + z * z);
+        var iyy = (mass / 12f) * (x * x + z * z);
+        var izz = (mass / 12f) * (x * x + y * y);
+        
+        return new Vector3(ixx, iyy, izz);
+    }
+    
     public void DrawShape(DebugDrawingHandle handle, TransformedPhysicShape transformedPhysicShape)
     {
         var vertices = GetBoxVertices(transformedPhysicShape);

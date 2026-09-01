@@ -22,4 +22,50 @@
   - type: BoneCompound
     compoundEntId: alexandraSkeleton
     offset: 0,-1.2,0
-      
+
+- type: entity
+  id: alexandraRagdoll
+  components:
+    - type: Health
+      maxHealth: 100
+    - type: Model
+      currentMesh:
+        path: "/Models/alexandra/untitled_back.obj"
+        offset: 0,-1.2,0
+    - type: ItemCollector
+      boneName: hand
+    - type: Skeleton
+    - type: BoneCompound
+      compoundEntId: alexandraSkeleton
+      offset: 0,-1.2,0
+    - type: BonePhysics
+      bonePhysics:
+        root:
+          shape:
+            !type:SphereShape
+            radius: 0.02
+          friction: 3
+          restitution: 0.1
+          density: 4
+        shoulder1:
+          shape:
+            !type:BoxShape
+            halfExtents: 0.14, 0.1, 0.1
+          friction: 3
+          restitution: 0.1
+          density: 4
+        knee1:
+          shape:
+            !type:BoxShape
+            halfExtents: 0.14, 0.1, 0.1
+          friction: 3
+          restitution: 0.1
+          density: 2
+        hand:
+          shape:
+            !type:BoxShape
+            halfExtents: 0.1, 0.1, 0.1
+          friction: 3
+          restitution: 0.1
+          density: 1
+        
