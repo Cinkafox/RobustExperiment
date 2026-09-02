@@ -2,6 +2,7 @@
 using Content.Shared.Location;
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Data;
+using Content.Shared.Physics.Systems;
 using Content.Shared.Transform;
 using Robust.Shared.Player;
 
@@ -12,6 +13,7 @@ public abstract class SharedGameTicker : EntitySystem
     [Dependency] protected readonly ISharedPlayerManager PlayerManager = default!;
     [Dependency] private readonly LocationSystem _locationSystem = default!;
     [Dependency] private readonly Transform3dSystem _transform3DSystem = default!;
+    [Dependency] private readonly ConstraintSystem _constraintSystem = default!;
     
     public void InitializeGame()
     {
@@ -38,10 +40,7 @@ public abstract class SharedGameTicker : EntitySystem
             RemComp<CollectibleComponent>(parent);
             parent = SpawnChain(parent, chainLength);
         }
-
-        var collectible = EnsureComp<CollectibleComponent>(parent);
-        collectible.TakeAsItem = false;
-        collectible.CollideDelay = TimeSpan.FromSeconds(5);
+        
         RemComp<CollectibleComponent>(parent);
     }
 
@@ -64,13 +63,11 @@ public abstract class SharedGameTicker : EntitySystem
         var childInitialPos = parentBottomWorld - Vector3.Transform(localAnchorB, parentRot);
         _transform3DSystem.SetWorldPosition(chainThink, childInitialPos);
         
-        var constrComp = EnsureComp<ConstraintComponent>(chainThink);
-        constrComp.ConstraintUid = parent;
-        constrComp.Constraint = new PointToPointConstraint()
+        _constraintSystem.AddConstraint(chainThink, parent, new PointToPointConstraint()
         {
             LocalAnchorA = localAnchorA,
             LocalAnchorB = localAnchorB,
-        };
+        });
     
         var rb = EnsureComp<RigidBodyComponent>(chainThink);
         rb.Density = 65f;

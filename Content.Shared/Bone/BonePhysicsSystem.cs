@@ -54,43 +54,7 @@ public sealed class BonePhysicsSystem : EntitySystem
                 physComp.PhysType = PhysType.Static;
                 continue;
             }
-        
-            Log.Warning($"constr for {proxyUid} -- {parentProxy}");
-            var constrComp = EnsureComp<ConstraintComponent>(proxyUid);
-            constrComp.ConstraintUid = parentProxy;
-            constrComp.Constraint = new PointToPointConstraint()
-            {
-                LocalAnchorA = boneTransform.WorldPosition * 2,
-                LocalAnchorB = EnsureComp<Transform3dComponent>(boneTransform.ParentUid).WorldPosition * 2,
-            };
-        }
-    }
-
-    public override void FrameUpdate(float frameTime)
-    {
-        base.FrameUpdate(frameTime);
-        
-        var query = EntityQueryEnumerator<Transform3dComponent, BoneProxyComponent>();
-        while (query.MoveNext(out var transform, out var boneProxy))
-        {
-            if(!TryComp<Transform3dComponent>(boneProxy.ProxyUid, out var proxyTransform))
-                continue;
-            
-            if (!transform.ParentUid.Valid)
-            {
-                var ownerTransform = EnsureComp<Transform3dComponent>(boneProxy.OwnerUid);
-                
-                if(!ownerTransform.ParentUid.Valid) 
-                    continue;
-                _transform3DSystem.SetParent(transform.Owner, ownerTransform.ParentUid);
-                continue;
-            }
-            
-            continue;
-            
-            proxyTransform.WorldPosition = transform.WorldPosition;
-            proxyTransform.WorldRotation = transform.WorldRotation;
-            proxyTransform.WorldScale = transform.WorldScale;
+           
         }
     }
 }

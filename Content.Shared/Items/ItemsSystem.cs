@@ -19,6 +19,7 @@ public sealed class ItemsSystem : EntitySystem
     [Dependency] private readonly Transform3dSystem _transform3dSystem = default!;
     [Dependency] private readonly RigidBodySystem _rigidBodySystem = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private readonly ConstraintSystem _constraintSystem = default!;
     
     public override void Initialize()
     {
@@ -72,15 +73,12 @@ public sealed class ItemsSystem : EntitySystem
         else
         {
             var transform = Comp<Transform3dComponent>(ent);
-
-            var constrComp = AddComp<ConstraintComponent>(collector);
             var collectorTransform = Comp<Transform3dComponent>(collector);
-
-            constrComp.ConstraintUid = ent;
-            constrComp.Constraint = new PointToPointConstraint()
+            
+            _constraintSystem.AddConstraint(collector, ent, new PointToPointConstraint()
             {
                 LocalAnchorA = collectorTransform.WorldPosition - transform.WorldPosition,
-            };
+            });
         }
 
         collector.Comp.CurrentItem = ent;
@@ -119,7 +117,7 @@ public sealed class ItemsSystem : EntitySystem
         }
         else
         {
-            RemComp<ConstraintComponent>(collector);
+            _constraintSystem.RemoveConstraint(collector, itemToDrop);
         }
         
         collector.Comp.CurrentItem = null;
