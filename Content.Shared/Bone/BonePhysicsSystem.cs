@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using Content.Shared.Items;
+﻿using Content.Shared.Items;
 using Content.Shared.Physics.Components;
-using Content.Shared.Physics.Data;
 using Content.Shared.Physics.Systems;
 using Content.Shared.Transform;
 
@@ -42,15 +40,24 @@ public sealed class BonePhysicsSystem : EntitySystem
 
     private void OnAttaching(Entity<BonePhysicsComponent> ent, ref OnEntityAttachingEvent args)
     {
-        foreach (var (key, _) in ent.Comp.BonePhysics)
+        foreach (var (key, value) in ent.Comp.BonePhysics)
         {
             if (!_boneSystem.TryGetBone(ent.Owner, key, out var boneUid))
             {
                 Log.Error($"Can't find {key} from {Name(ent.Owner)}");
                 continue;
             }
+
+            foreach (var constraint in value.Constraints)
+            {
+                if (!_boneSystem.TryGetBone(ent.Owner, constraint.Key, out var boneChildUid))
+                {
+                    continue;
+                }
+                
+                _constraintSystem.RemoveConstraint(boneUid, boneChildUid);
+            }
             
-            RemComp<ConstraintComponent>(boneUid);
             RemComp<RigidBodyComponent>(boneUid);
             RemComp<CollectibleComponent>(boneUid);
             _transform3DSystem.SetParent(boneUid, ent);

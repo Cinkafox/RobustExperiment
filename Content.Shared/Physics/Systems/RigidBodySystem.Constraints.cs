@@ -17,7 +17,7 @@ public partial class RigidBodySystem
     }
     
     private void BaseConstraintQuery(Action<IBodyConstraint,Entity<RigidBodyComponent, Transform3dComponent>,
-        Entity<RigidBodyComponent, Transform3dComponent>> action)
+        Entity<RigidBodyComponent?, Transform3dComponent>> action)
     {
         var query = AllEntityQuery<RigidBodyComponent, Transform3dComponent, ConstraintComponent>();
         while (query.MoveNext(out var uid, out var body, out var transform, out var constraint))
@@ -26,14 +26,9 @@ public partial class RigidBodySystem
 
             foreach (var (bodyBUid, bodyConstraint) in constraint.Constraints)
             {
-                if (!TryComp<RigidBodyComponent>(bodyBUid, out var rigidBodyB) ||
-                    !TryComp<Transform3dComponent>(bodyBUid, out var transformB))
-                {
-                    Log.Error($"Rigid body component not found {bodyBUid}");
-                    continue;
-                }
+                TryComp<RigidBodyComponent>(bodyBUid, out var rigidBodyB);
                 
-                var bodyB = new Entity<RigidBodyComponent, Transform3dComponent>(bodyBUid, rigidBodyB, transformB);
+                var bodyB = new Entity<RigidBodyComponent?, Transform3dComponent>(bodyBUid, rigidBodyB, Comp<Transform3dComponent>(bodyBUid));
                 action(bodyConstraint, bodyA, bodyB);
             }
         }

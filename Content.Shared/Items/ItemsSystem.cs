@@ -2,6 +2,7 @@ using Content.Shared.Bone;
 using Content.Shared.Input;
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Data;
+using Content.Shared.Physics.Shapes;
 using Content.Shared.Physics.Systems;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
@@ -72,12 +73,14 @@ public sealed class ItemsSystem : EntitySystem
         }
         else
         {
-            var transform = Comp<Transform3dComponent>(ent);
-            var collectorTransform = Comp<Transform3dComponent>(collector);
+            var takeToUid = collector.Owner;
+            if (_boneSystem.TryGetBone(collector.Owner, collector.Comp.BoneName, out var boneUid))
+                takeToUid = boneUid;
             
-            _constraintSystem.AddConstraint(collector, ent, new PointToPointConstraint()
+            _constraintSystem.AddConstraint(ent, takeToUid, new PointToPointConstraint()
             {
-                LocalAnchorA = collectorTransform.WorldPosition - transform.WorldPosition,
+                LocalAnchorA = new Vector3(0,0.15f,0),
+                LocalAnchorB = new Vector3(0,-0.15f,0),
             });
         }
 
@@ -117,7 +120,11 @@ public sealed class ItemsSystem : EntitySystem
         }
         else
         {
-            _constraintSystem.RemoveConstraint(collector, itemToDrop);
+            var takeToUid = collector.Owner;
+            if (_boneSystem.TryGetBone(collector.Owner, collector.Comp.BoneName, out var boneUid))
+                takeToUid = boneUid;
+            
+            _constraintSystem.RemoveConstraint(itemToDrop, takeToUid);
         }
         
         collector.Comp.CurrentItem = null;
