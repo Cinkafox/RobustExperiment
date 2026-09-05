@@ -175,15 +175,15 @@ public sealed class AlexandraAnimationSystem: EntitySystem
 
     private void OnInit(Entity<AlexandraAnimationComponent> ent, ref ComponentStartup args)
     {
-       _dollAnimationSystem.RegisterAnimation(ent.Owner, "walk1", new AnimationProperty("shoulder1", Animation1, true));
-       _dollAnimationSystem.RegisterAnimation(ent.Owner, "walk2", new AnimationProperty("shoulder2", Animation2, true));
+       _dollAnimationSystem.RegisterAnimation(ent.Owner, "walk1", new AnimationProperty("left-shoulder", Animation1, true));
+       _dollAnimationSystem.RegisterAnimation(ent.Owner, "walk2", new AnimationProperty("right-shoulder", Animation2, true));
        
-       _dollAnimationSystem.RegisterAnimation(ent.Owner, "standby1", new AnimationProperty("shoulder1", Standby1, true));
-       _dollAnimationSystem.RegisterAnimation(ent.Owner, "standby2", new AnimationProperty("shoulder2", Standby2, true));
+       _dollAnimationSystem.RegisterAnimation(ent.Owner, "standby1", new AnimationProperty("left-shoulder", Standby1, true));
+       _dollAnimationSystem.RegisterAnimation(ent.Owner, "standby2", new AnimationProperty("right-shoulder", Standby2, true));
        
-       _dollAnimationSystem.RegisterAnimation(ent.Owner, "whoosh", new AnimationProperty("shoulder1", WhoshAnim, false));
-       _dollAnimationSystem.RegisterAnimation(ent.Owner, "pistolhold", new AnimationProperty("shoulder1", PistolHold, false));
-       _dollAnimationSystem.RegisterAnimation(ent.Owner, "pistolfire", new AnimationProperty("shoulder1", PistolFire, false));
+       _dollAnimationSystem.RegisterAnimation(ent.Owner, "whoosh", new AnimationProperty("left-shoulder", WhoshAnim, false));
+       _dollAnimationSystem.RegisterAnimation(ent.Owner, "pistolhold", new AnimationProperty("left-shoulder", PistolHold, false));
+       _dollAnimationSystem.RegisterAnimation(ent.Owner, "pistolfire", new AnimationProperty("left-shoulder", PistolFire, false));
 
        _dollAnimationSystem.PlayAnimation(ent.Owner, "standby1");
        _dollAnimationSystem.PlayAnimation(ent.Owner, "standby2");

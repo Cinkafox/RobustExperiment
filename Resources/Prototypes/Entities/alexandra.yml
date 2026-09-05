@@ -16,7 +16,7 @@
       path: "/Models/alexandra/untitled_back.obj"
       offset: 0,-1.2,0
   - type: ItemCollector
-    boneName: hand
+    boneName: left-hand
   - type: AlexandraAnimation
   - type: Skeleton
   - type: BoneCompound
@@ -40,32 +40,97 @@
       offset: 0,-1.2,0
     - type: BonePhysics
       bonePhysics:
-        root:
+        torso:
           shape:
-            !type:SphereShape
-            radius: 0.02
+            !type:BoxShape
+            halfExtents: 0.1, 0.2, 0.2
           friction: 3
           restitution: 0.1
           density: 4
-        shoulder1:
+        left-shoulder:
           shape:
             !type:BoxShape
             halfExtents: 0.14, 0.1, 0.1
           friction: 3
           restitution: 0.1
           density: 4
-        knee1:
+          constraints:
+            torso:
+              !type:PointToPointConstraint
+              localAnchorA: -0.17, 0, 0
+              localAnchorB: 0.17, 0, 0
+        left-knee:
           shape:
             !type:BoxShape
             halfExtents: 0.14, 0.1, 0.1
           friction: 3
           restitution: 0.1
           density: 2
-        hand:
+          constraints:
+            left-shoulder:
+              !type:PointToPointConstraint
+              localAnchorA: -0.17, 0, 0
+              localAnchorB: 0.17, 0, 0
+        left-hand:
           shape:
             !type:BoxShape
             halfExtents: 0.1, 0.1, 0.1
           friction: 3
           restitution: 0.1
           density: 1
-        
+          constraints:
+            left-knee:
+              !type:PointToPointConstraint
+              localAnchorA: -0.17, 0, 0
+              localAnchorB: 0.17, 0, 0
+        right-shoulder:
+          shape:
+            !type:BoxShape
+            halfExtents: 0.14, 0.1, 0.1
+          friction: 3
+          restitution: 0.1
+          density: 4
+          constraints:
+            torso:
+              !type:PointToPointConstraint
+              localAnchorA: 0.17, 0, 0
+              localAnchorB: -0.17, 0, 0
+        right-knee:
+          shape:
+            !type:BoxShape
+            halfExtents: 0.14, 0.1, 0.1
+          friction: 3
+          restitution: 0.1
+          density: 2
+          constraints:
+            right-shoulder:
+              !type:PointToPointConstraint
+              localAnchorA: 0.17, 0, 0
+              localAnchorB: -0.17, 0, 0
+        right-hand:
+          shape:
+            !type:BoxShape
+            halfExtents: 0.1, 0.1, 0.1
+          friction: 3
+          restitution: 0.1
+          density: 1
+          takeble: true
+          constraints:
+            right-knee:
+              !type:PointToPointConstraint
+              localAnchorA: 0.17, 0, 0
+              localAnchorB: -0.17, 0, 0
+              
+        hip:
+          shape:
+            !type:BoxShape
+            halfExtents: 0.15, 0.1, 0.15
+          friction: 3
+          restitution: 0.1
+          density: 1
+          constraints:
+            torso:
+              !type:PointToPointConstraint
+              localAnchorA: 0, 0.25, 0
+              localAnchorB: 0, -0.25, 0
+  

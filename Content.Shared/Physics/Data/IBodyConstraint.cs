@@ -16,6 +16,8 @@ public partial interface IBodyConstraint
         Entity<RigidBodyComponent, Transform3dComponent> bodyA, 
         Entity<RigidBodyComponent, Transform3dComponent> bodyB, 
         float dt);
+
+    public void DrawDebug(DebugDrawingHandle handle);
 }
 
 [DataDefinition]
@@ -28,6 +30,8 @@ public sealed partial class PointToPointConstraint : IBodyConstraint
     private Matrix3x3 _effectiveMassMatrix; 
     private Vector3 _bias;
     
+    private Vector3 _worldA, _worldB;
+    
     public void Prepare(
         RigidBodySystem system, 
         Entity<RigidBodyComponent, Transform3dComponent> bodyA, 
@@ -37,10 +41,10 @@ public sealed partial class PointToPointConstraint : IBodyConstraint
         _rA = Vector3.Transform(LocalAnchorA, bodyA.Comp2.WorldRotation);
         _rB = Vector3.Transform(LocalAnchorB, bodyB.Comp2.WorldRotation);
         
-        var worldA = bodyA.Comp2.WorldPosition + _rA;
-        var worldB = bodyB.Comp2.WorldPosition + _rB;
+        _worldA = bodyA.Comp2.WorldPosition + _rA;
+        _worldB = bodyB.Comp2.WorldPosition + _rB;
         
-        var C = worldB - worldA;
+        var C = _worldB - _worldA;
         var beta = 0.2f; // Baumgarte factor
         _bias = (beta / dt) * C;
         
@@ -74,5 +78,11 @@ public sealed partial class PointToPointConstraint : IBodyConstraint
         bodyB.Comp1.LinearVelocity += impulse * bodyB.Comp1.InvMass;
         bodyB.Comp1.AngularVelocity += Matrix3x3.Transform(
             Vector3.Cross(_rB, impulse), bodyB.Comp1.WorldInvInertia);
+    }
+
+    public void DrawDebug(DebugDrawingHandle handle)
+    {
+        handle.DrawSphere(_worldA, LocalAnchorA.LengthSquared()/4);
+        handle.DrawSphere(_worldB, LocalAnchorB.LengthSquared()/4);
     }
 }

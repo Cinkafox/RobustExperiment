@@ -143,6 +143,27 @@ public sealed class GameViewport : Control
         {
             using (_profManager.Group("DrawTransform"))
             {
+                var q1 = _entityManager.EntityQueryEnumerator<ConstraintComponent>();
+
+                while (q1.MoveNext(out var constraint))
+                {
+                    var debugHandler = new DebugDrawingHandle();
+                    foreach (var constraintsValue in constraint.Constraints.Values)
+                    {
+                        constraintsValue.DrawDebug(debugHandler);
+                    }
+                    
+                    foreach (var (radius, position) in debugHandler.SphereBuffer)
+                    {
+                        drawHandle.DrawCircle(position, radius);
+                    }
+                    
+                    foreach (var vertexes in debugHandler.VertexBuffer)
+                    {
+                        drawHandle.DrawDebugFace(vertexes);
+                    }
+                }
+                
                 var q = _entityManager.EntityQueryEnumerator<Transform3dComponent, RigidBodyComponent>();
                 while (q.MoveNext(out var transform3d, out var rigidBodyComponent))
                 {

@@ -5,8 +5,8 @@
     position: 0,6,12
     rotation: 0,180,0
   entities:
-    #- entity: alexandraRagdoll
-    #  position: 0,3,0
+    - entity: alexandraRagdoll
+      position: 0,3,0
     - entity: floor
       position: 0,-2,0
     - entity: pistol

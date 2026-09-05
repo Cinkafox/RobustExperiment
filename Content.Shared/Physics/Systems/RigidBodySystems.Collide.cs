@@ -50,7 +50,6 @@ public sealed partial class RigidBodySystem
     
     private void ResolveCollisions(float deltaTime)
     {
-        var activeKeys = new HashSet<ContactKey>();
         var query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
         _dynamicBodies.Clear();
         _contacts.Clear();

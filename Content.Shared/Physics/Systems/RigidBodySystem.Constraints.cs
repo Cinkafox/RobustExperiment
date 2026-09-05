@@ -29,7 +29,7 @@ public partial class RigidBodySystem
                 if (!TryComp<RigidBodyComponent>(bodyBUid, out var rigidBodyB) ||
                     !TryComp<Transform3dComponent>(bodyBUid, out var transformB))
                 {
-                    Log.Error($"Rigid body component not found {uid}");
+                    Log.Error($"Rigid body component not found {bodyBUid}");
                     continue;
                 }
                 

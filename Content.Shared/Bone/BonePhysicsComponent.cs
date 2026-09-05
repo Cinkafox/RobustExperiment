@@ -1,17 +1,33 @@
 ﻿using Content.Shared.Physics.Components;
+using Content.Shared.Physics.Data;
+using Content.Shared.Physics.Shapes;
 
 namespace Content.Shared.Bone;
 
 [RegisterComponent]
 public sealed partial class BonePhysicsComponent : Component
 {
-    [DataField] public Dictionary<string, PhysicsProperty> BonePhysics = [];
-    [DataField] public Dictionary<EntityUid, EntityUid> Proxies = [];
+    [DataField] public Dictionary<string, BonePhysicsProperty> BonePhysics = [];
 }
 
-[RegisterComponent]
-public sealed partial class BoneProxyComponent : Component
+[DataDefinition]
+public sealed partial class BonePhysicsProperty
 {
-    [ViewVariables] public EntityUid ProxyUid;
-    [ViewVariables] public EntityUid OwnerUid;
+    [DataField] public IPhysicShape Shape = new SphereShape();
+    [DataField] public float Density = 1f;
+    [DataField] public float Friction = 0.8f;
+    [DataField] public float Restitution = 0.3f;
+    [DataField] public float RollingResistance = 0.015f;
+    [DataField] public bool Takeble = false;
+
+    public PhysicsProperty Property => new()
+    {
+        Shape =  Shape,
+        Density = Density,
+        Friction = Friction,
+        Restitution = Restitution,
+        RollingResistance = RollingResistance
+    };
+
+    [DataField] public Dictionary<string, IBodyConstraint> Constraints = [];
 }

@@ -46,6 +46,8 @@ public sealed partial class Transform3dSystem
         if (!xformQuery.Resolve(parent, ref parentXform))
             return;
         
+        RaiseLocalEvent(uid, new OnEntityAttachingEvent());
+        
         var parRot = parentXform.WorldAngle;
         var parInvMatrix = parentXform.InvWorldMatrix;
         var (pos, rot) = GetWorldPositionRotation(xform, xformQuery);
@@ -53,6 +55,11 @@ public sealed partial class Transform3dSystem
         var newRot = rot - parRot;
 
         xform.ParentUid = parent;
+        
+        RaiseLocalEvent(uid, new OnEntityAttachedEvent()
+        {
+            To = parent,
+        });
         
         SetWorldPositionRotationInternal(uid, newPos, newRot);
     }
@@ -73,4 +80,16 @@ public sealed partial class Transform3dSystem
 
         SetParent(uid, xform, parentUid, parentXform);
     }
+}
+
+[Serializable]
+public sealed class OnEntityAttachingEvent : EntityEventArgs
+{
+    
+}
+
+[Serializable]
+public sealed class OnEntityAttachedEvent : EntityEventArgs
+{
+    public EntityUid To;
 }
