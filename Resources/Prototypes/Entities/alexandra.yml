@@ -44,15 +44,11 @@
           shape:
             !type:BoxShape
             halfExtents: 0.1, 0.2, 0.2
-          friction: 3
-          restitution: 0.1
           density: 4
         left-shoulder:
           shape:
             !type:BoxShape
             halfExtents: 0.14, 0.1, 0.1
-          friction: 3
-          restitution: 0.1
           density: 4
           constraints:
             torso:
@@ -63,8 +59,6 @@
           shape:
             !type:BoxShape
             halfExtents: 0.14, 0.1, 0.1
-          friction: 3
-          restitution: 0.1
           density: 2
           constraints:
             left-shoulder:
@@ -75,8 +69,6 @@
           shape:
             !type:BoxShape
             halfExtents: 0.1, 0.1, 0.1
-          friction: 3
-          restitution: 0.1
           density: 1
           constraints:
             left-knee:
@@ -87,9 +79,7 @@
           shape:
             !type:BoxShape
             halfExtents: 0.14, 0.1, 0.1
-          friction: 3
-          restitution: 0.1
-          density: 4
+          density: 3
           constraints:
             torso:
               !type:PointToPointConstraint
@@ -99,8 +89,6 @@
           shape:
             !type:BoxShape
             halfExtents: 0.14, 0.1, 0.1
-          friction: 3
-          restitution: 0.1
           density: 2
           constraints:
             right-shoulder:
@@ -111,8 +99,6 @@
           shape:
             !type:BoxShape
             halfExtents: 0.1, 0.1, 0.1
-          friction: 3
-          restitution: 0.1
           density: 1
           takeble: true
           constraints:
@@ -125,9 +111,7 @@
           shape:
             !type:BoxShape
             halfExtents: 0.15, 0.1, 0.15
-          friction: 3
-          restitution: 0.1
-          density: 1
+          density: 2
           constraints:
             torso:
               !type:PointToPointConstraint
