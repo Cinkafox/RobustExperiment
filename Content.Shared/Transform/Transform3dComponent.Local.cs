@@ -64,7 +64,7 @@ public partial class Transform3dComponent
     
     [ViewVariables(VVAccess.ReadWrite)]
     [Animatable]
-    public Vector3 LocalAngleAnim
+    public Vector3 LocalAngleAsVector
     {
         get
         {

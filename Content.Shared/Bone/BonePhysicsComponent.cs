@@ -8,6 +8,7 @@ namespace Content.Shared.Bone;
 public sealed partial class BonePhysicsComponent : Component
 {
     [DataField] public Dictionary<string, BonePhysicsProperty> BonePhysics = [];
+    [ViewVariables] public Dictionary<EntityUid, EntityUid> BonesParent = new();
 }
 
 [DataDefinition]

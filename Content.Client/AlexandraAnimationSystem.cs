@@ -21,7 +21,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
             {
                 ComponentType = typeof(Transform3dComponent),
                 InterpolationMode = AnimationInterpolationMode.Cubic,
-                Property = "LocalAngleAnim",
+                Property = nameof(Transform3dComponent.LocalAngleAsVector),
                 KeyFrames =
                 {
                     new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(-90),(float)Angle.FromDegrees(0), (float)Angle.FromDegrees(-90)), 0f),
@@ -41,7 +41,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
             {
                 ComponentType = typeof(Transform3dComponent),
                 InterpolationMode = AnimationInterpolationMode.Cubic,
-                Property = "LocalAngleAnim",
+                Property = nameof(Transform3dComponent.LocalAngleAsVector),
                 KeyFrames =
                 {
                     new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(-90),(float)Angle.FromDegrees(0), (float)Angle.FromDegrees(-90)), 0f),
@@ -59,7 +59,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
             {
                 ComponentType = typeof(Transform3dComponent),
                 InterpolationMode = AnimationInterpolationMode.Cubic,
-                Property = "LocalAngleAnim",
+                Property = nameof(Transform3dComponent.LocalAngleAsVector),
                 KeyFrames =
                 {
                     new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(0), (float)Angle.FromDegrees(-55)), 0f),
@@ -80,7 +80,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
             {
                 ComponentType = typeof(Transform3dComponent),
                 InterpolationMode = AnimationInterpolationMode.Cubic,
-                Property = "LocalAngleAnim",
+                Property = nameof(Transform3dComponent.LocalAngleAsVector),
                 KeyFrames =
                 {
                     new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(0), (float)Angle.FromDegrees(-55)), 0.5f),
@@ -98,7 +98,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
             {
                 ComponentType = typeof(Transform3dComponent),
                 InterpolationMode = AnimationInterpolationMode.Cubic,
-                Property = "LocalAngleAnim",
+                Property = nameof(Transform3dComponent.LocalAngleAsVector),
                 KeyFrames =
                 {
                     new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(40), (float)Angle.FromDegrees(-65)), 0f),
@@ -120,7 +120,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
             {
                 ComponentType = typeof(Transform3dComponent),
                 InterpolationMode = AnimationInterpolationMode.Cubic,
-                Property = "LocalAngleAnim",
+                Property = nameof(Transform3dComponent.LocalAngleAsVector),
                 KeyFrames =
                 {
                     new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(180 + 0), (float)Angle.FromDegrees(-55)), 0.5f),
@@ -138,7 +138,7 @@ public sealed class AlexandraAnimationSystem: EntitySystem
             {
                 ComponentType = typeof(Transform3dComponent),
                 InterpolationMode = AnimationInterpolationMode.Cubic,
-                Property = "LocalAngleAnim",
+                Property = nameof(Transform3dComponent.LocalAngleAsVector),
                 KeyFrames =
                 {
                     new AnimationTrackProperty.KeyFrame(new Vector3((float)Angle.FromDegrees(0),(float)Angle.FromDegrees(180 + 40), (float)Angle.FromDegrees(-65)), 0f),
