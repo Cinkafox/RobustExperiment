@@ -6,7 +6,7 @@ namespace Content.Shared.Animations.Data;
 public sealed partial class BodyAnimationTrack
 {
     [DataField] public Type? ComponentType;
-    [DataField] public AnimationInterpolationMode InterpolationMode;
+    [DataField] public AnimationInterpolationMode InterpolationMode = AnimationInterpolationMode.Cubic;
     [DataField] public string Property;
     [DataField] public string? Bone;
     [DataField] public BodyAnimationKeyContainer KeyFrames;

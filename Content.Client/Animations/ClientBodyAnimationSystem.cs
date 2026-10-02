@@ -19,6 +19,15 @@ public sealed class ClientBodyAnimationSystem : BodyAnimationSystem
     public override void Initialize()
     {
         SubscribeLocalEvent<ActiveBodyAnimationComponent, AnimationCompletedEvent>(OnAnimationComplete);
+        SubscribeLocalEvent<ActiveLoopedBodyAnimationComponent, AnimationCompletedEvent>(OnAnimationLoopedComplete);
+    }
+
+    private void OnAnimationLoopedComplete(Entity<ActiveLoopedBodyAnimationComponent> ent, ref AnimationCompletedEvent args)
+    {
+        if(!args.Finished)
+            return;
+        
+        _animationPlayer.Play(ent, ent.Comp.CurrentAnimation, args.Key);
     }
 
     private void OnAnimationComplete(Entity<ActiveBodyAnimationComponent> ent, ref AnimationCompletedEvent args)
@@ -26,7 +35,7 @@ public sealed class ClientBodyAnimationSystem : BodyAnimationSystem
         if(!args.Finished || 
            !TryComp<BodyAnimationComponent>(ent.Comp.MainUid, out var bodyAnimation) || 
            !bodyAnimation.ActiveAnimations.TryGetValue(args.Key, out var animationSpan) ||
-           (_gameTiming.CurTime >= animationSpan && !ent.Comp.IsLooped)) 
+           (_gameTiming.CurTime >= animationSpan)) 
             return;
         
         _animationPlayer.Play(ent, ent.Comp.CurrentAnimation, args.Key);
@@ -35,6 +44,7 @@ public sealed class ClientBodyAnimationSystem : BodyAnimationSystem
     public override void Play(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
     {
         base.Play(uid, animationId);
+        
         if(!_prototypeManager.TryIndex(animationId, out var proto))
             return;
         
@@ -42,12 +52,34 @@ public sealed class ClientBodyAnimationSystem : BodyAnimationSystem
         
         foreach (var animation in animations)
         {
-            _animationPlayer.Play(animation.Item1, animation.Item2, animationId);
-            var activeComp = AddComp<ActiveBodyAnimationComponent>(animation.Item1);
-            activeComp.MainUid = uid;
-            activeComp.CurrentAnimation = animation.Item2;
-            activeComp.IsLooped = animation.Item3;
+            if (animation.Looped)
+            {
+                ProceedAnimationPlay<ActiveLoopedBodyAnimationComponent>(uid, animation, animationId);
+            }
+            else
+            {
+                ProceedAnimationPlay<ActiveBodyAnimationComponent>(uid, animation, animationId);
+            }
         }
+    }
+
+    private void ProceedAnimationPlay<T>(EntityUid uid, 
+        CurrentAnimationProperty property, 
+        ProtoId<BodyAnimationPrototype> animationId) 
+        where T: Component, IActiveBodyAnimation, new()
+    {
+        if(TryComp<T>(property.EntityUid, out var activeComp))
+        {
+            _animationPlayer.Stop(property.EntityUid, animationId);
+            RemComp<T>(property.EntityUid);
+        }
+            
+        activeComp = AddComp<T>(property.EntityUid);
+        activeComp.MainUid = uid;
+        activeComp.CurrentAnimation = property.Animation;
+        activeComp.AnimationId = animationId;
+        
+        _animationPlayer.Play(property.EntityUid, property.Animation, animationId);
     }
 
     public override void Stop(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
@@ -60,12 +92,26 @@ public sealed class ClientBodyAnimationSystem : BodyAnimationSystem
 
         foreach (var animation in animations)
         {
-            _animationPlayer.Stop(animation.Item1, animationId);
-            RemComp<ActiveBodyAnimationComponent>(animation.Item1);
+            _animationPlayer.Stop(animation.EntityUid, animationId);
+            if (animation.Looped)
+                RemComp<ActiveLoopedBodyAnimationComponent>(animation.EntityUid);
+            else
+            {
+                RemComp<ActiveBodyAnimationComponent>(animation.EntityUid);
+                //ResumeLoopedAnimation(animation.EntityUid);
+            }
         }
     }
 
-    public List<(EntityUid, Animation, bool)> GetAnimation(EntityUid uid, BodyAnimation animation)
+    private void ResumeLoopedAnimation(EntityUid playingUid)
+    {
+        if(!TryComp<ActiveLoopedBodyAnimationComponent>(playingUid, out var activeComp))
+            return;
+        
+        _animationPlayer.Play(playingUid, activeComp.CurrentAnimation, activeComp.AnimationId);
+    }
+
+    private List<CurrentAnimationProperty> GetAnimation(EntityUid uid, BodyAnimation animation)
     {
         var animaList = new Dictionary<EntityUid, Animation>();
         
@@ -109,7 +155,9 @@ public sealed class ClientBodyAnimationSystem : BodyAnimationSystem
             mainAnimation.AnimationTracks.Add(track);
         }
         
-        return animaList.Select(kv => (uid, kv.Value, animation.Looped)).ToList();
+        return animaList.Select(kv => new CurrentAnimationProperty(kv.Key, kv.Value, animation.Looped)).ToList();
     }
     
 }
+
+public record struct CurrentAnimationProperty(EntityUid EntityUid, Animation Animation, bool Looped);

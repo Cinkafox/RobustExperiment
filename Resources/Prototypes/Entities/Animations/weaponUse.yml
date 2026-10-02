@@ -1,0 +1,48 @@
+- type: bodyAnimation
+  id: pistolFire
+  animation:
+    length: 15s
+    looped: false
+    tracks:
+      - bone: left-shoulder
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        keyFrames:
+          - keyTime: 0
+            value: -1.571, 0.000, -1.571
+          - keyTime: 0.025
+            value: -1.658, 0.087, -1.658
+          - keyTime: 0.150
+            value: -1.571, 0.000, -1.571
+
+- type: bodyAnimation
+  id: pistolHold
+  animation:
+    length: 15s
+    looped: false
+    tracks:
+      - bone: left-shoulder
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        keyFrames:
+          - keyTime: 0
+            value: -1.571, 0.000, -1.571
+
+- type: bodyAnimation
+  id: whoosh
+  animation:
+    length: 0.65s
+    looped: false
+    tracks:
+      - bone: left-shoulder
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        keyFrames:
+          - keyTime: 0
+            value: 0.000, 0.000, -0.960
+          - keyTime: 0.15
+            value: -0.785, 0.087, -0.960
+          - keyTime: 0.25
+            value: -1.571, -0.785, -0.960
+          - keyTime: 0.35
+            value: 0.000, 0.000, -0.960    

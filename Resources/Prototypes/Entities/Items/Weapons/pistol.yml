@@ -20,9 +20,9 @@
       translation: 0,0,3
       impulse: 0,0,500
     - type: DoAnimateWhileHold
-      animationName: pistolhold
+      animationName: pistolHold
     - type: DoAnimateOnActivate
-      animationName: pistolfire
+      animationName: pistolFire
       
 - type: entity
   id: pistolDamageArea

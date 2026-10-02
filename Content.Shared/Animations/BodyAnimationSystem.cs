@@ -19,7 +19,21 @@ public abstract class BodyAnimationSystem : EntitySystem
         }
         
         var bodyAnimationComp = EnsureComp<BodyAnimationComponent>(uid);
-        bodyAnimationComp.ActiveAnimations.Add(animationId, _gameTiming.CurTime + animation.Animation.Length);
+
+        if (animation.Animation.Looped)
+        {
+            if(bodyAnimationComp.ActiveLoopedAnimation.Contains(animationId))
+                Stop(uid, animationId);
+            
+            bodyAnimationComp.ActiveLoopedAnimation.Add(animationId);
+        }
+        else
+        {
+            if (bodyAnimationComp.ActiveAnimations.ContainsKey(animationId))
+                Stop(uid, animationId);
+            
+            bodyAnimationComp.ActiveAnimations.Add(animationId, _gameTiming.CurTime + animation.Animation.Length);
+        }
         
         RaiseLocalEvent(uid, new AnimationStartEvent()
         {
@@ -33,6 +47,7 @@ public abstract class BodyAnimationSystem : EntitySystem
             return;
 
         bodyAnimationComp.ActiveAnimations.Remove(animationId);
+        bodyAnimationComp.ActiveLoopedAnimation.Remove(animationId);
         
         RaiseLocalEvent(uid, new AnimationStopEvent()
         {

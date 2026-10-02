@@ -17,7 +17,9 @@
       offset: 0,-1.2,0
   - type: ItemCollector
     boneName: left-hand
-  - type: AlexandraAnimation
+  - type: DoAnimateOnMove
+    onMove: alexandraWalk
+    onStandby: alexandraStandby
   - type: Skeleton
   - type: BoneCompound
     compoundEntId: alexandraSkeleton

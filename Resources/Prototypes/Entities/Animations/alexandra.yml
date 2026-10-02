@@ -1,0 +1,54 @@
+- type: bodyAnimation
+  id: alexandraStandby
+  animation:
+    length: 1s
+    looped: true
+    tracks:
+      - bone: left-shoulder
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        keyFrames:
+          - keyTime: 1
+            value: 0,0,-0.96
+      - bone: right-shoulder
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        keyFrames:
+          - keyTime: 1
+            value: 0,3.14,-0.96
+            
+- type: bodyAnimation
+  id: alexandraWalk
+  animation:
+    length: 1s
+    looped: true
+    tracks:
+      - bone: left-shoulder
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        keyFrames:
+          - keyTime: 0
+            value: 0,0.7,-1.134
+          - keyTime: 0.25
+            value: 0,0,-0.96
+          - keyTime: 0.25
+            value: 0,-0.7,-1.134
+          - keyTime: 0.25
+            value: 0,0,-0.96
+          - keyTime: 0.25
+            value: 0,0.7,-1.134
+      - bone: right-shoulder
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        keyFrames:
+          - keyTime: 0
+            value: 0,3.83,-1.134
+          - keyTime: 0.25
+            value: 0,3.14,-0.96
+          - keyTime: 0.25
+            value: 0,2.44,-1.134
+          - keyTime: 0.25
+            value: 0,3.14,-0.96
+          - keyTime: 0.25
+            value: 0,3.83,-1.134
+            
