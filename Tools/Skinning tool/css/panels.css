@@ -62,6 +62,27 @@
   max-height: 110px;
 }
 
+/* Выгрузка анимаций — тот же блок, что и YAML скелета */
+#animYamlOutput {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+  line-height: 1.45;
+  white-space: pre;
+  overflow: auto;
+  max-height: 160px;
+  padding: 6px;
+  margin-top: 6px;
+  background: var(--bg-viewport);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+  user-select: text;
+}
+
+#animYamlOutput:empty {
+  display: none;
+}
+
 /* --- Список костей --- */
 
 .bone-item {

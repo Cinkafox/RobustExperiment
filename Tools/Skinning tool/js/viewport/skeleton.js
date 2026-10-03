@@ -825,10 +825,16 @@
 
   // ---------- Покадровое обновление ----------
 
-  /** Оверлей нужен только в режиме позинга — в остальных вкладках мешает. */
+  /**
+   * Оверлей нужен в позинге и в анимациях: на таймлайне видно, что
+   * двигается, а кольца остаются только у выбранной кости.
+   * В остальных вкладках он мешает.
+   */
   function isVisible() {
     const { state } = SkinTool.model;
-    return state.currentTab === 'pose' && state.showSkeleton !== false;
+    const tabAllows = state.currentTab === 'pose' || state.currentTab === 'animation';
+
+    return tabAllows && state.showSkeleton !== false;
   }
 
   function update() {

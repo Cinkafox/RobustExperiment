@@ -24,6 +24,10 @@
       </div>
       <div class="tool-group" data-tab-tools="pose">
         <button id="btnToggleSkeleton" class="active" title="Скелет и окружности вращения (режим позинга)">🔁 Оси</button>
+        <button id="btnKeyPose" class="primary" title="Создать ключевой кадр на текущем времени анимации из пробной позы">🔑 Кадр из позы</button>
+      </div>
+      <div class="tool-group" data-tab-tools="animation">
+        <button id="btnKeyBone" title="Создать ключевой кадр на текущем времени из текущей позы выбранной кости">📌 Кадр из кости</button>
       </div>
       <!-- Камера нужна на всех вкладках -->
       <button id="btnResetCamera">🎥 Сброс</button>
@@ -69,6 +73,7 @@
       <button class="tab active" data-tab="grouping">🦴 Группировка</button>
       <button class="tab" data-tab="skinning">🔬 Скиннинг</button>
       <button class="tab" data-tab="pose">🦾 Позинг</button>
+      <button class="tab" data-tab="animation">🎞 Анимации</button>
     </div>
 
     <!-- TAB: GROUPING — кости, индексы, свойства -->
@@ -210,6 +215,128 @@
       <div class="hint hint-indent">Кольцо можно тянуть мышью — это поворот кости по этой оси</div>
       <div class="hint hint-indent">Размер колец не зависит от камеры — они всегда одного размера на экране</div>
     </div>
+
+    <!-- TAB: ANIMATION — клипы, дорожки, ключевые кадры -->
+    <div class="tab-content" data-tab="animation">
+      <h2>Клипы</h2>
+      <div class="row">
+        <select id="animClip"></select>
+      </div>
+      <div class="row">
+        <button id="btnAnimNew" class="primary">+ Клип</button>
+        <button id="btnAnimDuplicate">⧉ Копия</button>
+        <button id="btnAnimDelete" class="danger">🗑 Удалить</button>
+      </div>
+
+      <label>ID клипа — имя прототипа в движке</label>
+      <input type="text" id="animClipId">
+
+      <label class="label-spaced">Длина, с</label>
+      <input type="number" id="animLength" min="0.05" step="0.05">
+      <label class="checkbox-row">
+        <input type="checkbox" id="animLooped" checked>
+        Зациклить в движке
+      </label>
+
+      <hr>
+      <h2>Кость и дорожки</h2>
+      <label>Кость</label>
+      <select id="animBone"></select>
+      <div class="row">
+        <button id="btnAnimTrackRotation">+ Поворот</button>
+        <button id="btnAnimTrackPosition">+ Позиция</button>
+      </div>
+      <div id="animTrackList"></div>
+
+      <hr>
+      <h2>Ключевой кадр</h2>
+      <div id="animKeyEmpty" class="placeholder">
+        Выберите точку в таймлайне внизу или нажмите «+ Кадр».
+      </div>
+      <div id="animKeyEditor" class="hidden">
+        <label>Время кадра, с</label>
+        <input type="number" id="animKeyTime" min="0" step="0.01">
+
+        <label class="label-spaced">InterpolationMode</label>
+        <select id="animKeyMode"></select>
+        <div class="hint" id="animKeyModeHint"></div>
+
+        <div id="animKeyValues"></div>
+
+        <div class="row btn-row">
+          <button id="btnAnimKeyUpdate" class="primary">Применить</button>
+          <button id="btnAnimKeyDelete" class="danger">Удалить кадр</button>
+        </div>
+      </div>
+
+      <hr>
+      <h2>Экспорт</h2>
+      <div class="row">
+        <button id="btnAnimYaml">📄 YAML</button>
+        <button id="btnAnimCopy">📋 Копировать</button>
+        <button id="btnAnimDownload">💾 Скачать</button>
+      </div>
+      <div class="row">
+        <button id="btnAnimYamlAll">📄 Все клипы</button>
+      </div>
+      <div id="animYamlOutput"></div>
+
+      <hr>
+      <h2>Импорт анимаций</h2>
+      <div class="import-drop" id="animDrop">
+        🎞 Нажмите или перетащите YAML с bodyAnimation
+        <input type="file" id="animFileInput" accept=".yml,.yaml" class="hidden">
+      </div>
+      <div class="hint" id="animImportLog">Клипы из файла добавятся к текущим. Кости ищутся по имени.</div>
+
+      <hr>
+      <h2>Как это работает</h2>
+      <div class="hint">• Модель показывает <b>кадр в момент времени</b>, а не bind-позу</div>
+      <div class="hint">• ▸ в таймлайне раскрывает дочерние кости</div>
+      <div class="hint">• Точку можно тащить по времени, ПКМ — удалить</div>
+      <div class="hint">• «+ Кадр» — значения из bind-данных кости</div>
+      <div class="hint">• «Кадр из позы» в тулбаре — из пробной позы вкладки «Позинг»</div>
+    </div>
+  </div>
+
+  <!-- ТАЙМЛАЙН: раскладка внизу, только на вкладке анимаций -->
+  <div id="timelineDock">
+    <div id="timelineToolbar">
+      <button id="btnAnimPlay" class="primary">▶ Старт</button>
+      <button id="btnAnimStop">⏹ Стоп</button>
+      <div class="dock-field">
+        <label>Время</label>
+        <input type="number" id="animTime" min="0" step="0.01">
+      </div>
+      <div class="dock-field">
+        <label>Длина</label>
+        <input type="number" id="animDockLength" min="0.05" step="0.05">
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" id="animLoopPlayback" checked>
+        Цикл
+      </label>
+      <span id="animPlayState">Стоп</span>
+      <div class="dock-spacer"></div>
+      <button id="btnAnimKeyAdd" class="primary" title="Ключевой кадр на текущем времени из текущей позы выбранной кости">+ Кадр</button>
+      <button id="btnAnimCollapseAll" title="Свернуть все кости">⇱ Свернуть</button>
+      <button id="btnAnimExpandAll" title="Развернуть все кости">⇲ Развернуть</button>
+    </div>
+
+    <div id="timelineScroll">
+      <div id="timelineInner">
+        <div id="timelineRulerRow">
+          <div class="tl-name-head">Кость / дорожка</div>
+          <div class="tl-lane-head" id="timelineRuler"></div>
+        </div>
+        <div id="timelineRows"></div>
+        <div id="timelinePlayhead"></div>
+      </div>
+    </div>
+
+    <div id="timelineHint" class="hint">
+      Клик по линейке — перемотка · клик по точке — выбор · тянуть точку — сдвиг по времени · ПКМ — удалить
+    </div>
   </div>
 </div>
 
@@ -229,6 +356,7 @@
 <script defer src="js/core/namespace.js"></script>
 <script defer src="js/core/dom.js"></script>
 <script defer src="js/core/model.js"></script>
+<script defer src="js/core/animation.js"></script>
 
 <!-- 3D-сцена -->
 <script defer src="js/viewport/scene.js"></script>
@@ -242,6 +370,7 @@
 <script defer src="js/io/yamlParser.js"></script>
 <script defer src="js/io/yamlImport.js"></script>
 <script defer src="js/io/yamlExport.js"></script>
+<script defer src="js/io/animationYaml.js"></script>
 
 <!-- Интерфейс -->
 <script defer src="js/ui/tabs.js"></script>
@@ -249,6 +378,7 @@
 <script defer src="js/ui/selection.js"></script>
 <script defer src="js/ui/skinning.js"></script>
 <script defer src="js/ui/pose.js"></script>
+<script defer src="js/ui/animation.js"></script>
 <script defer src="js/ui/keyboard.js"></script>
 
 <!-- Запуск -->

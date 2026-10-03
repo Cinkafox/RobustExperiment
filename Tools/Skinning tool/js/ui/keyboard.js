@@ -1,6 +1,9 @@
 /**
  * Точная подстройка положения якоря выбранной кости стрелками.
  * Шаг — вдоль осей камеры, чтобы двигать было интуитивно.
+ *
+ * На вкладке «Анимации» стрелки заняты таймлайном (перемотка), поэтому
+ * здесь вкладку пропускаем.
  */
 (function (SkinTool) {
   'use strict';
@@ -20,6 +23,7 @@
   /** @param {KeyboardEvent} event */
   function onKeyDown(event) {
     if (isTypingTarget(event.target)) return;
+    if (SkinTool.model.state.currentTab === 'animation') return;
 
     const bone = SkinTool.model.getSelectedBone();
     if (!bone) return;

@@ -27,9 +27,10 @@
  * Без пробной позы все skin = identity, поэтому bind-матрица и поведение
  * инструмента не меняются: якоря стоят ровно в bone.position.
  *
- * Пробная поза (state.pose) не трогает данные кости и не попадает в
- * экспорт, пока пользователь не нажмёт «Записать в кость» — тогда
- * значения переносятся в bone.rotation.
+ * Пробная поза (state.pose с поворотами и state.poseOffset со сдвигами
+ * сустава) не трогает данные кости и не попадает в экспорт, пока
+ * пользователь не нажмёт «Записать в кость» — тогда значения переносятся
+ * в bone.rotation и bone.position.
  */
 (function (SkinTool) {
   'use strict';
@@ -131,13 +132,15 @@
     const visited = new Set();
     const quaternion = new THREE.Quaternion();
     const euler = new THREE.Euler();
+    const pivot = new THREE.Vector3();
     const position = new THREE.Vector3();
 
     function walk(bone, parentSkin) {
       if (!bone || visited.has(bone.id)) return;
       visited.add(bone.id);
 
-      position.set(bone.position[0], bone.position[1], bone.position[2]);
+      pivot.set(bone.position[0], bone.position[1], bone.position[2]);
+      position.copy(pivot);
 
       // Пробный поворот относительно bone.rotation: у неповёрнутой кости он нулевой.
       const rotation = isPosed(bone.id) ? state.pose[bone.id] : [0, 0, 0];
@@ -149,11 +152,25 @@
       );
       quaternion.setFromEuler(euler);
 
-      // Поворот вокруг собственного сустава кости: T(p) · R(d) · T(-p).
+      // Смещение сустава (state.poseOffset) двигает кость целиком вместе с
+      // потомками: анимации хранят в кадрах мировую позицию, а деформатору
+      // нужен сдвиг относительно bind-координаты.
+      if (state.poseOffset[bone.id]) {
+        const offset = state.poseOffset[bone.id];
+        position.x += offset[0];
+        position.y += offset[1];
+        position.z += offset[2];
+      }
+
+      // Поворот вокруг собственного сустава кости: T(p + offset) · R · T(-p).
+      // Обратный перенос остаётся по bind-суставу: если сдвинуть и его, то
+      // у неповёрнутой кости T(p + offset) · T(-p - offset) схлопнётся в I и
+      // смещение исчезнет.
       const own = new THREE.Matrix4()
         .makeTranslation(position.x, position.y, position.z)
-        .multiply(new THREE.Matrix4().makeRotationFromQuaternion(quaternion))
-        .multiply(new THREE.Matrix4().makeTranslation(-position.x, -position.y, -position.z));
+        .multiply(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
+
+      own.multiply(new THREE.Matrix4().makeTranslation(-pivot.x, -pivot.y, -pivot.z));
 
       // Родительская деформация применяется первой, поэтому её матрица
       // идёт слева. Каждый шаг создаёт свои объекты — иначе матрица
@@ -189,7 +206,10 @@
     });
 
     SkinTool.scene.updatePositions(deformVertices());
-    posedCounts = Object.keys(SkinTool.model.state.pose).length;
+    posedCounts = new Set([
+      ...Object.keys(SkinTool.model.state.pose),
+      ...Object.keys(SkinTool.model.state.poseOffset)
+    ]).size;
   }
 
   /**
@@ -267,7 +287,34 @@
     return state.pose[boneId] || (getBone(boneId) || { rotation: [0, 0, 0] }).rotation;
   }
 
-  /** Переносит пробную позу в данные кости — попадёт в экспорт. */
+  /**
+   * Сдвигает сустав кости в пробной позе — [dx, dy, dz] относительно
+   * bind-координаты. Используется анимациями: их кадры хранят позицию
+   * в мире, а деформатору нужен именно сдвиг.
+   */
+  function setPoseOffset(boneId, offset) {
+    SkinTool.model.state.poseOffset[boneId] = [offset[0], offset[1], offset[2]];
+    update();
+  }
+
+  /** Заменяет всю пробную позу разом — так дешевле, чем ставить по одной кости. */
+  function setPose(pose, offsets) {
+    const { state } = SkinTool.model;
+
+    state.pose = pose || {};
+    state.poseOffset = offsets || {};
+
+    update();
+  }
+
+  /**
+   * Переносит пробную позу в данные костей — попадёт в экспорт.
+   *
+   * Пересобираем всё (rebuild, а не update), потому что bind-матрицы
+   * строятся из bone.position и bone.rotation: после записи они уже
+   * неверны, и без пересборки модель вернулась бы к старой позе,
+   * хотя данные уже изменены.
+   */
   function applyPose() {
     const { state } = SkinTool.model;
 
@@ -276,8 +323,19 @@
       if (bone) bone.rotation = state.pose[boneId].slice();
     });
 
+    Object.keys(state.poseOffset).forEach((boneId) => {
+      const bone = SkinTool.model.getBone(Number(boneId));
+      const offset = state.poseOffset[boneId];
+      if (bone) bone.position = [
+        bone.position[0] + offset[0],
+        bone.position[1] + offset[1],
+        bone.position[2] + offset[2]
+      ];
+    });
+
     state.pose = {};
-    update();
+    state.poseOffset = {};
+    rebuild();
   }
 
   /** Сбрасывает пробную позу: @param {number} boneId — null сбрасывает всё */
@@ -286,8 +344,10 @@
 
     if (boneId === null || boneId === undefined) {
       state.pose = {};
+      state.poseOffset = {};
     } else {
       delete state.pose[boneId];
+      delete state.poseOffset[boneId];
     }
 
     update();
@@ -332,6 +392,8 @@
     update,
     setPoseRotation,
     getPoseRotation,
+    setPoseOffset,
+    setPose,
     applyPose,
     discardPose,
     getBoneMatrix,

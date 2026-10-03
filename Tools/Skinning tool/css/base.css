@@ -55,7 +55,356 @@ body {
 #app {
   display: grid;
   grid-template-columns: 1fr 380px;
+  /* Вторая строка — док таймлайна; пустая (auto = 0), когда он скрыт */
+  grid-template-rows: 1fr auto;
   height: 100vh;
+}
+
+/* ============================================================
+   Док таймлайна анимаций: раскладка внизу, только на своей вкладке
+   ============================================================ */
+
+#timelineDock {
+  display: none;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  height: 236px;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-strong);
+  overflow: hidden;
+}
+
+#timelineDock.active {
+  display: flex;
+}
+
+#timelineToolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-app);
+  flex-wrap: wrap;
+}
+
+#timelineToolbar button {
+  font-size: 11px;
+  padding: 5px 9px;
+}
+
+#timelineToolbar .dock-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#timelineToolbar .dock-field label {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+#timelineToolbar .dock-field input {
+  width: 64px;
+  font-size: 11px;
+  padding: 4px 6px;
+}
+
+#timelineToolbar .checkbox-row {
+  margin: 0;
+}
+
+#timelineToolbar .dock-spacer {
+  flex: 1;
+}
+
+#animPlayState {
+  font-size: 10px;
+  color: var(--text-muted);
+  min-width: 52px;
+}
+
+#animPlayState.playing {
+  color: var(--ok);
+}
+
+#timelineScroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Дорожки и линейка делят одну и ту же сетку, иначе точки уедут
+   от линейки при разной высоте строк */
+#timelineInner {
+  position: relative;
+  --tl-name: 190px;
+}
+
+.tl-row,
+#timelineRulerRow {
+  display: grid;
+  grid-template-columns: var(--tl-name) 1fr;
+  align-items: center;
+}
+
+#timelineRulerRow {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--bg-app);
+  border-bottom: 1px solid var(--border-soft);
+  height: 24px;
+}
+
+.tl-name-head {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--border);
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.tl-lane-head {
+  position: relative;
+  height: 100%;
+  cursor: ew-resize;
+}
+
+.tl-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--border-soft);
+}
+
+.tl-tick.major {
+  border-left-color: var(--border-strong);
+}
+
+.tl-tick-label {
+  position: absolute;
+  top: 4px;
+  left: 3px;
+  font-size: 9px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.tl-row {
+  height: 21px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* Кость без дорожек — приглушённая, чтобы дерево читалось */
+.tl-row.bone {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tl-row.track {
+  background: transparent;
+}
+
+.tl-row.selected-bone {
+  background: var(--bg-selected);
+}
+
+.tl-row:hover {
+  background: var(--bg-raised);
+}
+
+.tl-row.selected-bone:hover {
+  background: var(--bg-selected);
+}
+
+.tl-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px 0 calc(4px + var(--tl-depth, 0) * 11px);
+  height: 100%;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tl-name > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tl-caret {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 0;
+  width: 12px;
+  font-size: 9px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tl-caret.leaf {
+  visibility: hidden;
+}
+
+.tl-caret:hover {
+  color: var(--accent);
+}
+
+.tl-kind {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: var(--bg-control);
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.tl-kind.rotation {
+  background: #3a4a6a;
+  color: var(--accent);
+}
+
+.tl-kind.position {
+  background: #3a5a4a;
+  color: var(--ok);
+}
+
+.tl-mode {
+  font-size: 9px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.tl-lane {
+  position: relative;
+  height: 100%;
+  cursor: crosshair;
+}
+
+/* Ключевой кадр — ромб, поворот/позиция различаются цветом */
+.tl-key {
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  padding: 0;
+  border: 1px solid var(--bg-app);
+  border-radius: 1px;
+  background: var(--accent);
+  transform: rotate(45deg);
+  cursor: grab;
+}
+
+.tl-key.position {
+  background: var(--ok);
+}
+
+.tl-key:hover {
+  border-color: var(--text);
+}
+
+/* Выбранный кадр остаётся ромбом — скругление снимаем, иначе
+   перестаёт читаться как точка */
+.tl-key.selected {
+  border-color: #fff;
+  box-shadow: 0 0 5px #fff;
+}
+
+.tl-key.dragging {
+  cursor: grabbing;
+  opacity: 0.7;
+}
+
+#timelinePlayhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px solid var(--error);
+  pointer-events: none;
+  z-index: 2;
+  /* Смещение на ширину колонки имён: линейка и точки начинаются правее */
+  left: calc(var(--tl-name) + (100% - var(--tl-name)) * var(--tl-time, 0));
+}
+
+#timelinePlayhead::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -4px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid var(--error);
+}
+
+#timelineHint {
+  padding: 4px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-app);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Списки дорожек и полей кадра в панели --- */
+
+.anim-track-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 5px 6px;
+  margin: 3px 0;
+  background: var(--bg-raised);
+  border-radius: 3px;
+}
+
+.anim-track-item .anim-track-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.anim-track-item button {
+  padding: 3px 6px;
+  font-size: 10px;
+}
+
+.anim-value-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.anim-value-row label {
+  width: 18px;
+  color: var(--text-muted);
+  font-size: 10px;
+  text-align: center;
+}
+
+.anim-value-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  font-size: 11px;
 }
 
 .panel {

@@ -16,6 +16,7 @@
     SkinTool.selection.bind();
     SkinTool.skinning.bind();
     SkinTool.pose.bind();
+    SkinTool.animationUI.bind();
     SkinTool.anchors.bind();
     SkinTool.skeleton.bind();
     SkinTool.keyboard.bind();

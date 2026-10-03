@@ -97,6 +97,9 @@
     state.bones = state.bones.filter((bone) => !toDelete.has(bone.id));
     if (toDelete.has(state.selectedBoneId)) state.selectedBoneId = null;
 
+    // Дорожки удалённых костей в анимациях больше некуда привязать.
+    SkinTool.animation.pruneTracks();
+
     refreshAll();
   }
 
