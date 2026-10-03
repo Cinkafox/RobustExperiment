@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>OBJ Bone Grouping Tool</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/panels.css">
+<link rel="stylesheet" href="css/viewport.css">
+</head>
+<body>
+<div id="app">
+  <!-- VIEWPORT: слева от панели -->
+  <div id="viewport">
+    <div class="toolbar">
+      <!-- Тулбар показывает только инструменты активной вкладки -->
+      <div class="tool-group active" data-tab-tools="grouping">
+        <button id="btnToggleAnchors">📍 Якоря</button>
+      </div>
+      <div class="tool-group" data-tab-tools="skinning">
+        <button id="modeNone">🚫 Выкл</button>
+        <button id="modeAdd">➕ Добавлять</button>
+        <button id="modeRemove">➖ Убирать</button>
+        <button id="btnBoxSelect">🔲 Рамка</button>
+      </div>
+      <div class="tool-group" data-tab-tools="pose">
+        <button id="btnToggleSkeleton" class="active" title="Скелет и окружности вращения (режим позинга)">🔁 Оси</button>
+      </div>
+      <!-- Камера нужна на всех вкладках -->
+      <button id="btnResetCamera">🎥 Сброс</button>
+    </div>
+    <div id="status">Загрузите OBJ файл...</div>
+    <div id="selectionBox"></div>
+  </div>
+
+  <!-- ПАНЕЛЬ: справа, единственная -->
+  <div class="panel">
+    <!-- Работа с файлами нужна на любой вкладке -->
+    <div class="panel-common">
+      <div class="file-grid">
+        <div>
+          <label class="label-spaced">Модель OBJ</label>
+          <div class="import-drop" id="objDrop">
+            📦 Нажмите или перетащите
+            <input type="file" id="fileInput" accept=".obj" class="hidden">
+          </div>
+        </div>
+        <div>
+          <label class="label-spaced">Импорт YAML</label>
+          <div class="import-drop" id="importDrop">
+            📥 Нажмите или перетащите
+            <input type="file" id="yamlInput" accept=".yml,.yaml" class="hidden">
+          </div>
+        </div>
+      </div>
+
+      <label>Entity ID</label>
+      <input type="text" id="entityId" value="alexandraSkeleton">
+
+      <label class="label-spaced">Экспорт</label>
+      <div class="row">
+        <button id="btnExport" class="primary">📄 YAML</button>
+        <button id="btnCopy">📋 Копировать</button>
+        <button id="btnDownload">💾 Скачать</button>
+      </div>
+      <div id="yamlOutput"></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="grouping">🦴 Группировка</button>
+      <button class="tab" data-tab="skinning">🔬 Скиннинг</button>
+      <button class="tab" data-tab="pose">🦾 Позинг</button>
+    </div>
+
+    <!-- TAB: GROUPING — кости, индексы, свойства -->
+    <div class="tab-content active" data-tab="grouping">
+      <h2>Кости</h2>
+      <div class="row">
+        <button id="btnAddBone" class="primary">+ Кость</button>
+        <button id="btnAddRoot">+ Корень</button>
+      </div>
+      <div id="bonesList"></div>
+
+      <hr>
+      <h2>Свойства кости</h2>
+      <div id="boneProps" class="placeholder">Выберите кость в списке</div>
+
+      <hr>
+      <h2>Добавление индексов</h2>
+      <label>Ручной ввод (через запятую или диапазон 10-20):</label>
+      <textarea id="manualIndices" placeholder="222, 224, 230-241"></textarea>
+      <div class="row">
+        <button id="btnAddManual">Добавить</button>
+        <button id="btnClearIndices">Очистить</button>
+      </div>
+
+      <hr>
+      <h2>Индексы текущей кости</h2>
+      <div id="indicesList">—</div>
+      <div class="hint" id="indicesCount">Всего: 0</div>
+
+      <hr>
+      <h2>Легенда цветов</h2>
+      <div class="hint">🔵 Голубой: не назначена</div>
+      <div class="hint">🎨 Разные цвета: разные кости</div>
+      <div class="hint">✨ Яркий цвет: текущая выбранная кость</div>
+      <div class="hint">📍 Якорь: позиция и ориентация кости (можно перетаскивать)</div>
+      <div class="hint">⌨️ Стрелки: двигают якорь (Shift — большой шаг, PgUp/PgDn — глубина)</div>
+    </div>
+
+    <!-- TAB: SKINNING — назначение вершин костям -->
+    <div class="tab-content" data-tab="skinning">
+      <h2>Статистика</h2>
+      <div id="skinningStats"></div>
+
+      <hr>
+      <h2>Режим визуализации</h2>
+      <div class="viz-btn-group">
+        <button id="vizBones" class="active">🎨 Кости</button>
+        <button id="vizProblems">⚠️ Проблемы</button>
+        <button id="vizHeat">🔥 Тепло</button>
+      </div>
+      <div class="hint" id="vizHint">Цвет = ID кости, яркая = выбранная</div>
+
+      <hr>
+      <h2>Детали вершины</h2>
+      <div id="vertexDetails" class="placeholder">
+        Наведите курсор на вершину, чтобы увидеть список назначенных костей.
+      </div>
+
+      <hr>
+      <h2>Кости</h2>
+      <div id="skinningBonesList"></div>
+
+      <hr>
+      <h2>Проблемные вершины</h2>
+      <div class="row">
+        <button id="btnFindProblems" class="primary">🔍 Найти</button>
+        <button id="btnClearProblems">Очистить</button>
+      </div>
+      <div id="problemsList" class="scroll-box"></div>
+
+      <hr>
+      <h2>Легенда скиннинга</h2>
+      <div class="hint">🎨 <b>Кости</b>: каждая кость — свой цвет</div>
+      <div class="hint">⚠️ <b>Проблемы</b>:</div>
+      <div class="hint hint-indent">🔴 красная — несколько костей</div>
+      <div class="hint hint-indent">⚪ белая — не назначена</div>
+      <div class="hint hint-indent">🟢 зелёная — ок (одна кость)</div>
+      <div class="hint">🔥 <b>Тепло</b>: ярче = больше костей влияет</div>
+
+      <hr>
+      <h2>Советы</h2>
+      <div class="hint">• У каждой вершины должна быть ровно одна кость</div>
+      <div class="hint">• Проверьте, что все вершины назначены</div>
+      <div class="hint">• Переключайтесь между режимами визуализации для проверки</div>
+    </div>
+
+    <!-- TAB: POSE — повороты костей -->
+    <div class="tab-content" data-tab="pose">
+      <h2>Пробная поза</h2>
+      <div class="hint">
+        Поворачивает кости без записи в данные — экспорт её не видит,
+        пока вы не нажмёте «Записать в кость».
+      </div>
+
+      <label class="label-spaced">Кость</label>
+      <select id="poseBone"></select>
+
+      <hr>
+      <h2>Поворот</h2>
+      <div id="poseRotation"></div>
+      <div class="row" id="poseQuick"></div>
+      <div class="hint" id="poseState"></div>
+      <div class="row">
+        <button id="btnPoseApply" class="primary" disabled>Записать в кость</button>
+        <button id="btnPoseDiscard" disabled>Сбросить</button>
+      </div>
+      <button id="btnPoseDiscardAll" disabled>Сбросить всю позу</button>
+
+      <hr>
+      <h2>Поза кости</h2>
+      <div id="poseReadout"></div>
+
+      <hr>
+      <h2>Веса вершин</h2>
+      <div class="hint" id="poseWeightsSummary"></div>
+      <div id="poseWeights" class="scroll-box"></div>
+
+      <hr>
+      <h2>Модель</h2>
+      <label class="checkbox-row">
+        <input type="checkbox" id="poseNormalize" checked>
+        Нормализовать веса (делить на сумму)
+      </label>
+      <div class="hint">
+        Снимите галочку, чтобы увидеть, что будет без нормализации:
+        вершина сместится от скелета.
+      </div>
+
+      <hr>
+      <h2>Что видно в сцене</h2>
+      <div class="hint"><b>🔁 Оси</b> в тулбаре включает и выключает накладку</div>
+      <div class="hint hint-indent">Рёбра — связи между суставами, цвет = кость</div>
+      <div class="hint hint-indent">Белая кость выбрана, светлая — в пробной позе</div>
+      <div class="hint hint-indent">Три кольца вокруг сустава — оси X, Y, Z выбранной кости</div>
+      <div class="hint hint-indent">Дуга на кольце — поворот от bind-посы</div>
+      <div class="hint hint-indent">Короткая засечка — где ось была, длинный указатель — где она сейчас</div>
+      <div class="hint hint-indent">Серый крестик осей — ориентация кости в bind-посе</div>
+      <div class="hint hint-indent">Кольца и дуги — только у выбранной кости</div>
+      <div class="hint hint-indent">Кольцо можно тянуть мышью — это поворот кости по этой оси</div>
+      <div class="hint hint-indent">Размер колец не зависит от камеры — они всегда одного размера на экране</div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
+
+<!-- Three.js с CDN: публикуется в window.THREE / window.OrbitControls -->
+<script type="module" src="js/boot.js"></script>
+
+<!-- Ядро -->
+<script defer src="js/core/namespace.js"></script>
+<script defer src="js/core/dom.js"></script>
+<script defer src="js/core/model.js"></script>
+
+<!-- 3D-сцена -->
+<script defer src="js/viewport/scene.js"></script>
+<script defer src="js/viewport/colors.js"></script>
+<script defer src="js/viewport/anchors.js"></script>
+<script defer src="js/viewport/skeleton.js"></script>
+<script defer src="js/viewport/deformer.js"></script>
+
+<!-- Импорт / экспорт данных -->
+<script defer src="js/io/obj.js"></script>
+<script defer src="js/io/yamlParser.js"></script>
+<script defer src="js/io/yamlImport.js"></script>
+<script defer src="js/io/yamlExport.js"></script>
+
+<!-- Интерфейс -->
+<script defer src="js/ui/tabs.js"></script>
+<script defer src="js/ui/bones.js"></script>
+<script defer src="js/ui/selection.js"></script>
+<script defer src="js/ui/skinning.js"></script>
+<script defer src="js/ui/pose.js"></script>
+<script defer src="js/ui/keyboard.js"></script>
+
+<!-- Запуск -->
+<script defer src="js/main.js"></script>
+</body>
+</html>

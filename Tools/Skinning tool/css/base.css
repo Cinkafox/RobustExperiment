@@ -1,0 +1,232 @@
+/* ============================================================
+   Базовые стили: палитра, раскладка, элементы управления
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  /* Фоны */
+  --bg-app: #1e1e2e;
+  --bg-panel: #252537;
+  --bg-viewport: #1a1a2a;
+  --bg-raised: #2d2d42;
+  --bg-control: #3a3a52;
+  --bg-control-hover: #4a4a62;
+  --bg-selected: #3a4a6a;
+
+  /* Границы */
+  --border: #333;
+  --border-soft: #444;
+  --border-strong: #4a4a62;
+  --border-dashed: #555;
+
+  /* Текст */
+  --text: #e0e0e0;
+  --text-dim: #aaa;
+  --text-muted: #888;
+  --text-faint: #777;
+  --text-placeholder: #666;
+  --text-on-accent: #fff;
+
+  /* Акценты */
+  --accent: #8ab4f8;
+  --accent-solid: #4a7fd6;
+  --accent-solid-hover: #5a8fe6;
+  --danger: #a04040;
+  --danger-hover: #b05050;
+  --warn: #ffaa55;
+  --error: #ff5555;
+  --ok: #80ff80;
+  --toggle: #d68a4a;
+  --toggle-border: #e69a5a;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: var(--bg-app);
+  color: var(--text);
+  overflow: hidden;
+  height: 100vh;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  height: 100vh;
+}
+
+.panel {
+  background: var(--bg-panel);
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Панель стоит справа от сцены */
+.panel:last-child {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+/* --- Общий блок: работа с файлами --- */
+.file-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.file-grid > div {
+  min-width: 0;
+}
+
+.file-grid .row {
+  margin-top: 0;
+}
+
+.file-grid label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.file-grid .import-drop,
+.file-grid input[type="file"] {
+  width: 100%;
+}
+
+h2 {
+  font-size: 14px;
+  margin: 0 0 8px 0;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
+}
+
+/* --- Кнопки --- */
+
+button {
+  background: var(--bg-control);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+  margin: 2px;
+}
+
+button:hover {
+  background: var(--bg-control-hover);
+}
+
+button.primary {
+  background: var(--accent-solid);
+  border-color: var(--accent-solid-hover);
+}
+
+button.primary:hover {
+  background: var(--accent-solid-hover);
+}
+
+button.danger {
+  background: var(--danger);
+  border-color: var(--danger-hover);
+}
+
+button.small {
+  padding: 2px 6px;
+  font-size: 11px;
+}
+
+button.active {
+  background: var(--toggle);
+  border-color: var(--toggle-border);
+  color: var(--text-on-accent);
+  font-weight: bold;
+}
+
+/* --- Поля ввода --- */
+
+input,
+textarea,
+select {
+  background: var(--bg-app);
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  width: 100%;
+  font-family: monospace;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+label {
+  font-size: 11px;
+  color: var(--text-dim);
+  display: block;
+  margin-top: 6px;
+}
+
+/* --- Утилиты --- */
+
+.row {
+  display: flex;
+  gap: 4px;
+}
+
+.row > * {
+  flex: 1;
+}
+
+.hint {
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+.hint-indent {
+  margin-left: 8px;
+}
+
+.label-spaced {
+  margin-top: 8px;
+}
+
+.btn-row {
+  margin-top: 8px;
+}
+
+.scroll-box {
+  margin-top: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+.placeholder {
+  color: var(--text-placeholder);
+  font-size: 12px;
+}
+
+.placeholder-sm {
+  color: var(--text-placeholder);
+  font-size: 11px;
+}

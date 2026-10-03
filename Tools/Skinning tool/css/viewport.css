@@ -1,0 +1,67 @@
+/* ============================================================
+   Стили центрального 3D-вьюпорта
+   ============================================================ */
+
+#viewport {
+  background: var(--bg-viewport);
+  position: relative;
+  overflow: hidden;
+}
+
+#viewport canvas {
+  display: block;
+}
+
+/* --- Панель инструментов поверх вьюпорта --- */
+
+.toolbar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.toolbar button {
+  margin: 0;
+}
+
+/* --- Инструменты по вкладкам ---
+   Показывается только группа активной вкладки, переключением
+   занимается SkinTool.tabs.switchTab. */
+.tool-group {
+  display: none;
+}
+
+.tool-group.active {
+  display: flex;
+  gap: 4px;
+}
+
+/* --- Строка статуса --- */
+
+#status {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* --- Рамка выделения --- */
+
+#selectionBox {
+  position: absolute;
+  border: 1px dashed var(--text-on-accent);
+  background: rgba(255, 255, 255, 0.15);
+  display: none;
+  pointer-events: none;
+  z-index: 10;
+}

@@ -1,0 +1,364 @@
+/* ============================================================
+   Стили панелей: вкладки, списки костей, статистика, проблемы
+   ============================================================ */
+
+/* --- Вкладки --- */
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+  font-size: 12px;
+  font-weight: bold;
+  flex: 1;
+  margin: 0;
+}
+
+.tab.active {
+  background: var(--bg-control);
+  color: var(--accent);
+  border-color: var(--border-soft);
+  border-bottom-color: var(--bg-control);
+}
+
+.tab:hover:not(.active) {
+  color: #ccc;
+  background: var(--bg-raised);
+}
+
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* --- Общий блок панели: файлы --- */
+.panel-common {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.panel-common .row {
+  flex-wrap: wrap;
+}
+
+.panel-common #yamlOutput {
+  max-height: 110px;
+}
+
+/* --- Список костей --- */
+
+.bone-item {
+  background: var(--bg-raised);
+  padding: 6px 8px;
+  margin: 3px 0;
+  border-radius: 4px;
+  border-left: 3px solid var(--accent-solid);
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bone-item.selected {
+  background: var(--bg-selected);
+  border-left-color: var(--text-on-accent);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+.bone-item .bone-content {
+  flex: 1;
+}
+
+.bone-item .bone-name {
+  font-weight: bold;
+}
+
+.bone-item .bone-info {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.bone-item .delete-btn {
+  background: var(--danger);
+  color: var(--text-on-accent);
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 11px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.bone-item .delete-btn:hover {
+  background: var(--danger-hover);
+}
+
+.bone-color-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.child-indent {
+  margin-left: 12px;
+  border-left: 1px dashed var(--border-dashed);
+  padding-left: 6px;
+}
+
+/* --- Индексы вершин --- */
+
+.index-tag {
+  display: inline-block;
+  background: var(--bg-control);
+  padding: 1px 5px;
+  margin: 1px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-family: monospace;
+}
+
+#indicesList {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-app);
+  padding: 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+/* --- Экспорт YAML --- */
+
+#yamlOutput {
+  font-family: monospace;
+  font-size: 10px;
+  white-space: pre;
+  background: var(--bg-viewport);
+  padding: 8px;
+  border-radius: 3px;
+  max-height: 300px;
+  overflow: auto;
+  color: #c0c0c0;
+}
+
+/* --- Статистика скиннинга --- */
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 6px;
+  background: var(--bg-app);
+  border-radius: 3px;
+  font-size: 11px;
+  margin: 2px 0;
+}
+
+.stat-row .stat-label {
+  color: var(--text-dim);
+}
+
+.stat-row .stat-value {
+  color: var(--text-on-accent);
+  font-weight: bold;
+}
+
+.stat-row.problem .stat-value {
+  color: var(--error);
+}
+
+.stat-row.ok .stat-value {
+  color: var(--ok);
+}
+
+.problem-item {
+  background: var(--bg-raised);
+  padding: 5px 8px;
+  margin: 2px 0;
+  border-radius: 3px;
+  font-size: 11px;
+  border-left: 3px solid var(--error);
+  cursor: pointer;
+}
+
+.problem-item.warn {
+  border-left-color: var(--warn);
+}
+
+.problem-item:hover {
+  background: var(--bg-selected);
+}
+
+.problem-bones {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* --- Детали вершины --- */
+
+.vertex-header {
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.vertex-ok {
+  color: var(--ok);
+}
+
+.vertex-bad {
+  color: #ff8080;
+}
+
+.vertex-bone-item {
+  margin-left: 8px;
+  margin-top: 2px;
+}
+
+/* --- Режим визуализации --- */
+
+.viz-btn-group {
+  display: flex;
+  gap: 2px;
+  margin: 6px 0;
+}
+
+.viz-btn-group button {
+  flex: 1;
+  margin: 0;
+  font-size: 10px;
+  padding: 5px 4px;
+}
+
+/* --- Импорт YAML --- */
+
+.import-drop {
+  border: 2px dashed var(--border-soft);
+  padding: 10px;
+  text-align: center;
+  border-radius: 4px;
+  margin: 6px 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.import-drop:hover {
+  border-color: #666;
+  color: var(--text-dim);
+  background: var(--bg-raised);
+}
+
+.import-drop.dragover {
+  border-color: #8ab4f8;
+  color: var(--text);
+  background: var(--bg-raised);
+}
+/* --- Позинг --- */
+
+.pose-axis {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.pose-axis-name {
+  width: 12px;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.pose-axis input[type="range"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.pose-axis input[type="number"] {
+  width: 62px;
+  flex-shrink: 0;
+  padding: 3px 4px;
+  font-size: 11px;
+}
+
+#poseQuick {
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+#poseQuick button {
+  flex: 0 0 auto;
+  padding: 4px 6px;
+  font-size: 10px;
+}
+
+.pose-readout-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px;
+  margin-bottom: 3px;
+  background: var(--bg-raised);
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  margin: 6px 0;
+}
+
+.checkbox-row input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.weight-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.weight-row input {
+  width: 68px;
+  flex-shrink: 0;
+  padding: 2px 4px;
+  font-size: 11px;
+}
+
+.weight-shared {
+  color: #ff8c42;
+  font-weight: 700;
+}
