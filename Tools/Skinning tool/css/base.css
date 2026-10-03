@@ -141,6 +141,8 @@ body {
 #timelineInner {
   position: relative;
   --tl-name: 190px;
+  /* Высота дорожки настраивается мышью за нижний край линейки */
+  --tl-lane-height: 21px;
 }
 
 .tl-row,
@@ -170,6 +172,67 @@ body {
   height: 100%;
   display: flex;
   align-items: center;
+  gap: 6px;
+}
+
+/* Заголовок может сжаться — уводим его из-под обрезки */
+.tl-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#btnTimelineHeightReset {
+  flex: none;
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+#btnTimelineHeightReset:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+/* Ползунок высоты: за нижний край линейки, поверх всего */
+#timelineHeightGrip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 7px;
+  cursor: ns-resize;
+  z-index: 4;
+}
+
+#timelineHeightGrip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 34px;
+  height: 2px;
+  margin-left: -17px;
+  border-radius: 1px;
+  background: var(--border-strong);
+  opacity: 0;
+}
+
+#timelineInner:hover #timelineHeightGrip::after {
+  opacity: 0.55;
+}
+
+#timelineHeightGrip:hover::after {
+  opacity: 1;
+}
+
+#timelineHeightGrip.dragging::after {
+  opacity: 1;
+  background: var(--accent);
 }
 
 .tl-lane-head {
@@ -199,7 +262,7 @@ body {
 }
 
 .tl-row {
-  height: 21px;
+  height: var(--tl-lane-height, 21px);
   font-size: 11px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
@@ -293,38 +356,54 @@ body {
   cursor: crosshair;
 }
 
-/* Ключевой кадр — ромб, поворот/позиция различаются цветом */
+/* Ключевой кадр: сам элемент — увеличенная зона клика, ромб рисует ::before.
+   Иначе ромб 9px приходилось целить мышью, а дорожки бывают низкие. */
 .tl-key {
   position: absolute;
   top: 50%;
+  width: 17px;
+  height: 17px;
+  margin: -8.5px 0 0 -8.5px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: grab;
+}
+
+.tl-key::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 9px;
   height: 9px;
   margin: -4.5px 0 0 -4.5px;
-  padding: 0;
   border: 1px solid var(--bg-app);
   border-radius: 1px;
   background: var(--accent);
   transform: rotate(45deg);
-  cursor: grab;
 }
 
-.tl-key.position {
+.tl-key.position::before {
   background: var(--ok);
 }
 
-.tl-key:hover {
+.tl-key:hover::before {
   border-color: var(--text);
 }
 
 /* Выбранный кадр остаётся ромбом — скругление снимаем, иначе
    перестаёт читаться как точка */
-.tl-key.selected {
+.tl-key.selected::before {
   border-color: #fff;
   box-shadow: 0 0 5px #fff;
 }
 
 .tl-key.dragging {
   cursor: grabbing;
+}
+
+.tl-key.dragging::before {
   opacity: 0.7;
 }
 

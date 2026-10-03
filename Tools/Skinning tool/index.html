@@ -27,7 +27,7 @@
         <button id="btnKeyPose" class="primary" title="Создать ключевой кадр на текущем времени анимации из пробной позы">🔑 Кадр из позы</button>
       </div>
       <div class="tool-group" data-tab-tools="animation">
-        <button id="btnKeyBone" title="Создать ключевой кадр на текущем времени из текущей позы выбранной кости">📌 Кадр из кости</button>
+        <button id="btnKeyBone" title="Записать текущую позу кости в кадры на текущем времени. Поворот кольцом или ползунком попадает в кадр сразу">📌 Кадр из кости</button>
       </div>
       <!-- Камера нужна на всех вкладках -->
       <button id="btnResetCamera">🎥 Сброс</button>
@@ -326,8 +326,12 @@
     <div id="timelineScroll">
       <div id="timelineInner">
         <div id="timelineRulerRow">
-          <div class="tl-name-head">Кость / дорожка</div>
+          <div class="tl-name-head">
+            <span class="tl-name-text">Кость / дорожка</span>
+            <button id="btnTimelineHeightReset" title="Вернуть стандартную высоту дорожек">⟲</button>
+          </div>
           <div class="tl-lane-head" id="timelineRuler"></div>
+          <div id="timelineHeightGrip" title="Потяните, чтобы изменить высоту дорожек"></div>
         </div>
         <div id="timelineRows"></div>
         <div id="timelinePlayhead"></div>

@@ -281,10 +281,16 @@
     update();
   }
 
-  /** Пробный поворот кости; если позы нет — берётся bone.rotation. */
+  /**
+   * Пробный поворот кости — дельта к bind, а не мировой угол.
+   *
+   * Именно дельту накладывает деформатор, и именно её показывают кольца
+   * и ползунки. Раньше здесь возвращался bone.rotation, из-за чего первое
+   * же движение ползунка у зеркальной кости (bind 0,180,0) доворачивало
+   * её ещё на 180°.
+   */
   function getPoseRotation(boneId) {
-    const { state, getBone } = SkinTool.model;
-    return state.pose[boneId] || (getBone(boneId) || { rotation: [0, 0, 0] }).rotation;
+    return SkinTool.model.state.pose[boneId] || [0, 0, 0];
   }
 
   /**
@@ -320,7 +326,11 @@
 
     Object.keys(state.pose).forEach((boneId) => {
       const bone = SkinTool.model.getBone(Number(boneId));
-      if (bone) bone.rotation = state.pose[boneId].slice();
+      // Пробная поза — дельта к bind, а bone.rotation хранит мировой угол.
+      // Без пересчёта зеркальная кость (bind 0,180,0) теряла бы разворот.
+      if (bone) {
+        bone.rotation = SkinTool.animation.rotationAbsolute(bone.rotation, state.pose[boneId]);
+      }
     });
 
     Object.keys(state.poseOffset).forEach((boneId) => {

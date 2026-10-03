@@ -189,9 +189,11 @@
   function normalizeMode(value) {
     const mode = String(value || '');
 
-    return SkinTool.animation.INTERPOLATION_MODES.indexOf(mode) >= 0
-      ? mode
-      : SkinTool.animation.DEFAULT_INTERPOLATION;
+    if (SkinTool.animation.INTERPOLATION_MODES.indexOf(mode) >= 0) return mode;
+
+    // Поля нет — значит файл рассчитан на дефолт движка (Linear), а не на
+    // авторский дефолт инструмента: иначе превью разойдётся с игрой.
+    return SkinTool.animation.ENGINE_DEFAULT_INTERPOLATION;
   }
 
   /**
@@ -210,6 +212,15 @@
     const THREE = SkinTool.THREE;
     const degrees = [local[0] * RAD_TO_DEG, local[1] * RAD_TO_DEG, local[2] * RAD_TO_DEG];
     const parent = bone.parentId === null ? null : SkinTool.model.getBone(bone.parentId);
+
+    // Родитель не повёрнут → локальный угол из YAML и есть мировой.
+    // Только переводим единицы, кватернион не трогаем: так число из файла
+    // доживает до экспорта дословно. Через кватернион пришлось бы выбирать
+    // ветвь разложения, и 0 превратился бы в -180 у зеркальных костей.
+    if (!parent || SkinTool.animation.isIdentityRotation(parent.rotation)) {
+      return degrees;
+    }
+
     const world = new THREE.Quaternion().setFromEuler(new THREE.Euler(
       THREE.MathUtils.degToRad(degrees[0]),
       THREE.MathUtils.degToRad(degrees[1]),
@@ -217,18 +228,18 @@
       'XYZ'
     ));
 
-    if (parent) {
-      world.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(
-        THREE.MathUtils.degToRad(parent.rotation[0]),
-        THREE.MathUtils.degToRad(parent.rotation[1]),
-        THREE.MathUtils.degToRad(parent.rotation[2]),
-        'XYZ'
-      )));
-    }
+    world.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(
+      THREE.MathUtils.degToRad(parent.rotation[0]),
+      THREE.MathUtils.degToRad(parent.rotation[1]),
+      THREE.MathUtils.degToRad(parent.rotation[2]),
+      'XYZ'
+    )));
 
-    const euler = new THREE.Euler().setFromQuaternion(world, 'XYZ');
-
-    return [euler.x * RAD_TO_DEG, euler.y * RAD_TO_DEG, euler.z * RAD_TO_DEG];
+    // Опорный угол — bind кости в градусах, чтобы выбрать читаемую запись.
+    return SkinTool.animation.eulerFromQuaternion(
+      world,
+      bone.rotation
+    );
   }
 
   /**

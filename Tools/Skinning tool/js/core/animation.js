@@ -26,8 +26,24 @@
   /** Режимы интерполяции — как AnimationInterpolationMode в движке. */
   const INTERPOLATION_MODES = ['Linear', 'Cubic', 'Nearest', 'Previous'];
 
-  /** Движок по умолчанию читает трек как Cubic — повторяем. */
+  /**
+   * Режим для новых дорожек, которые пользователь рисует в инструменте.
+   *
+   * Это авторское предпочтение инструмента, а не поведение движка: в
+   * экспорт режим попадает явным полем, поэтому движок берёт именно его.
+   */
   const DEFAULT_INTERPOLATION = 'Cubic';
+
+  /**
+   * Режим, который движок подставляет, если в файле поля нет.
+   *
+   * AnimationTrackProperty.InterpolationMode инициализируется как Linear,
+   * и AnimationTrackProperty.AdvancePlayback смотрит именно на это
+   * свойство. Если при импорте подставить свой DEFAULT_INTERPOLATION
+   * (Cubic), превью между кадрами разойдётся с движком: на ключах
+   * совпадёт, а между ними уедет на единицы градусов.
+   */
+  const ENGINE_DEFAULT_INTERPOLATION = 'Linear';
 
   const COMPONENT_TYPE = 'Content.Shared.Transform.Transform3dComponent';
 
@@ -269,48 +285,314 @@
     return result;
   }
 
+  // ---------- Локальная система кости ----------
+
+  /**
+   * Мировой угол кадра → угол в системе родителя, градусы XYZ.
+   *
+   * Именно это значение движок получает в LocalAngleAsVector, и между
+   * такими значениями он интерполирует. Вычитать углы Эйлера нельзя
+   * (родитель повёрнут, и в local-системе оси другие), поэтому считаем
+   * через кватернионы — тем же путём, что и экспорт в toYamlValue.
+   *
+   * @param {object|null} parentBone
+   * @param {number[]} worldDegrees
+   * @param {number[]} [referenceDegrees] — bind-угол самой кости в градусах
+   * @returns {number[]} градусы XYZ
+   */
+  function toLocalRotation(parentBone, worldDegrees, referenceDegrees) {
+    // Родитель не повёрнут → его система координат совпадает с мировой.
+    // Возвращаем число как есть: конверсия не нужна, и текст не поедет.
+    if (!parentBone || isIdentityRotation(parentBone.rotation)) {
+      return worldDegrees.slice();
+    }
+
+    const world = quaternionFromDegrees(worldDegrees);
+    const local = quaternionFromDegrees(parentBone.rotation).invert().multiply(world);
+
+    return eulerFromQuaternion(local, referenceDegrees);
+  }
+
+  /**
+   * Мировая позиция → LocalPosition в системе родителя.
+   * @param {object|null} parentBone
+   * @param {number[]} worldPosition
+   * @returns {number[]}
+   */
+  function toLocalPosition(parentBone, worldPosition) {
+    const local = new SkinTool.THREE.Vector3(
+      worldPosition[0],
+      worldPosition[1],
+      worldPosition[2]
+    );
+
+    if (parentBone) {
+      local.sub(new SkinTool.THREE.Vector3(
+        parentBone.position[0],
+        parentBone.position[1],
+        parentBone.position[2]
+      ));
+      local.applyQuaternion(quaternionFromDegrees(parentBone.rotation).invert());
+    }
+
+    return [local.x, local.y, local.z];
+  }
+
+  /**
+   * Дорожка, переведённая в локальную систему родителя.
+   *
+   * Кадры хранят мировые значения (так их удобно ставить инструментом),
+   * но интерполировать движок будет локальные. Разница видна не только
+   * на ключевых кадрах, но и между ними: у зеркальных костей вроде
+   * right-shoulder локальная система развёрнута на 180° по Y, поэтому
+   * мировая и локальная интерполяция расходятся до 180° посередине.
+   *
+   * @param {object} track
+   * @param {object} bone
+   * @returns {object} дорожка с локальными значениями
+   */
+  function asLocalTrack(track, bone) {
+    const parent = bone.parentId === undefined || bone.parentId === null
+      ? null : SkinTool.model.getBone(bone.parentId);
+
+    const convert = track.kind === 'position'
+      ? (value) => toLocalPosition(parent, value)
+      : (value) => toLocalRotation(parent, value, bindLocalDegrees(bone));
+
+    return {
+      interpolationMode: track.interpolationMode,
+      keys: track.keys.map((key) => ({ time: key.time, value: convert(key.value) }))
+    };
+  }
+
+  /**
+   * Bind-поворот кости в её собственной системе, градусы.
+   *
+   * Опорный угол, к которому притягиваем ветвь разложения Эйлера. У
+   * зеркальных костей bind — это (0, 180, 0), поэтому близкой к bind
+   * оказывается авторская запись с нулевым pitch, а не -180°.
+   *
+   * @param {object} bone
+   * @returns {number[]|null} null для корня
+   */
+  function bindLocalDegrees(bone) {
+    const parent = bone.parentId === undefined || bone.parentId === null
+      ? null : SkinTool.model.getBone(bone.parentId);
+
+    if (!parent) return bone.rotation.slice();
+
+    if (isIdentityRotation(parent.rotation)) return bone.rotation.slice();
+
+    const bindRotation = quaternionFromDegrees(bone.rotation);
+    const bindLocal = quaternionFromDegrees(parent.rotation).invert().multiply(bindRotation);
+
+    return eulerFromQuaternion(bindLocal);
+  }
+
+  /**
+   * Кости в порядке обхода: родитель раньше детей.
+   *
+   * Мир ребёнка собирается из уже посчитанного мира родителя — так же,
+   * как в движке, где локальные значения применяются к узлам дерева.
+   *
+   * @param {object[]} bones
+   * @returns {object[]}
+   */
+  function hierarchyOrder(bones) {
+    const byId = new Map(bones.map((bone) => [bone.id, bone]));
+    const children = new Map();
+    const parentOf = (bone) => (bone.parentId === undefined ? null : bone.parentId);
+
+    bones.forEach((bone) => {
+      const parentId = parentOf(bone);
+
+      if (parentId === null || !byId.has(parentId)) return;
+
+      if (!children.has(parentId)) children.set(parentId, []);
+      children.get(parentId).push(bone);
+    });
+
+    const order = [];
+    const visited = new Set();
+    const walk = (bone) => {
+      if (visited.has(bone.id)) return;
+      visited.add(bone.id);
+      order.push(bone);
+      (children.get(bone.id) || []).forEach(walk);
+    };
+
+    bones.forEach((bone) => {
+      const parentId = parentOf(bone);
+      if (parentId === null || !byId.has(parentId)) walk(bone);
+    });
+
+    // Кости с битой ссылкой на родителя не должны потеряться.
+    bones.forEach((bone) => {
+      if (!visited.has(bone.id)) walk(bone);
+    });
+
+    return order;
+  }
+
   /**
    * Позы всех дорожек клипа в момент времени.
    *
-   * Здесь важна разница двух систем отсчёта:
+   * Здесь важны две системы отсчёта:
    *
-   *   - кадр анимации — АБСОЛЮТНЫЙ угол кости (именно его пишет движок
-   *     в LocalAngleAsVector, заменяя текущий угол целиком);
+   *   - движок интерполирует ЛОКАЛЬНЫЕ значения (LocalAngleAsVector,
+   *     LocalPosition) и собирает мир как currentWorld(родитель) ∘ currentLocal,
+   *     поэтому обход идёт по иерархии, а ключи пересчитываются в локальные
+   *     через asLocalTrack — только так превью совпадает с экспортом;
    *   - state.pose деформатора — ДЕЛЬТА относительно bind-угла: модель
    *     нарисована в bind-посе, поэтому лишний поворот добавляется
-   *     сверх bone.rotation (см. buildSkinMatrices).
-   *
-   * Поэтому абсолютный кадр переводится в дельту через кватернионы:
-   * delta = inverse(bind) * absolute. Для костей с нулевым bind-углом
-   * это тождество, а для правой стороны (bind 0,180,0) — необходимое
-   * преобразование, иначе поворот применился бы дважды.
-   *
-   * Позиция кадра — мировая, а деформатору нужен сдвиг относительно
-   * bind-координаты.
+   *     сверх bone.rotation (см. buildSkinMatrices), а позиция кадра
+   *     приходит в деформатор мировым сдвигом от bind-координаты.
    *
    * @param {object} clip
    * @param {number} time
    * @returns {{pose: object, offsets: object}}
    */
   function sampleClip(clip, time) {
+    const THREE = SkinTool.THREE;
+    const { state, getBone } = SkinTool.model;
     const pose = {};
     const offsets = {};
 
+    // У кости бывают обе дорожки, поэтому собираем их по костям.
+    const tracks = new Map();
+
     clip.tracks.forEach((track) => {
-      const bone = SkinTool.model.getBone(track.boneId);
+      const bone = getBone(track.boneId);
       if (!bone) return;
 
-      const value = sampleTrack(track, time);
-      if (!value) return;
+      let entry = tracks.get(bone.id);
 
-      if (track.kind === 'rotation') {
-        pose[track.boneId] = rotationDelta(bone.rotation, value);
-      } else {
-        offsets[track.boneId] = [
-          value[0] - bone.position[0],
-          value[1] - bone.position[1],
-          value[2] - bone.position[2]
+      if (!entry) {
+        entry = {};
+        tracks.set(bone.id, entry);
+      }
+
+      entry[track.kind] = track;
+    });
+
+    if (tracks.size === 0) return { pose, offsets };
+
+    const world = new Map();
+
+    hierarchyOrder(state.bones).forEach((bone) => {
+      const entry = tracks.get(bone.id);
+      const parent = bone.parentId === undefined || bone.parentId === null
+        ? null : getBone(bone.parentId);
+      const parentWorld = parent ? world.get(parent.id) : null;
+
+      // bone.rotation и bone.position — мировые bind-значения скелета.
+      const bindRotation = quaternionFromDegrees(bone.rotation);
+      const bindPosition = new THREE.Vector3(
+        bone.position[0],
+        bone.position[1],
+        bone.position[2]
+      );
+      const bindParent = parent
+        ? quaternionFromDegrees(parent.rotation)
+        : new THREE.Quaternion();
+      const bindParentPosition = parent
+        ? new THREE.Vector3(parent.position[0], parent.position[1], parent.position[2])
+        : new THREE.Vector3();
+      const bindLocal = bindParent.clone().invert().multiply(bindRotation);
+      const bindLocalPosition = bindPosition.clone()
+        .sub(bindParentPosition)
+        .applyQuaternion(bindParent.clone().invert());
+
+      // Мир без анимации — bind. Его считаем для всех костей, включая те,
+      // у которых нет дорожек: иначе ребёнок собрался бы с пустым миром
+      // родителя и потерял bind-поворот.
+      const rotation = bindRotation.clone();
+      const position = bindLocalPosition.clone();
+      let localRotation = null;
+      let localPosition = null;
+
+      // Узел в движке всегда висит на родителе: world = parentPos + parentRot * local.
+      // Даже без своей дорожки кость едет вместе с анимированным родителем.
+      if (parentWorld) {
+        position.applyQuaternion(parentWorld.rotation).add(parentWorld.position);
+      }
+
+      if (entry && entry.rotation) {
+        const sampled = sampleTrack(asLocalTrack(entry.rotation, bone), time);
+
+        if (sampled) {
+          localRotation = sampled;
+          rotation.copy(
+            (parentWorld ? parentWorld.rotation : new THREE.Quaternion())
+              .multiply(quaternionFromDegrees(sampled))
+          );
+        }
+      }
+
+      if (entry && entry.position) {
+        const sampled = sampleTrack(asLocalTrack(entry.position, bone), time);
+
+        if (sampled) {
+          localPosition = sampled;
+          const value = new THREE.Vector3(sampled[0], sampled[1], sampled[2]);
+
+          if (parentWorld) {
+            position.copy(value.applyQuaternion(parentWorld.rotation).add(parentWorld.position));
+          } else {
+            position.copy(value);
+          }
+        }
+      }
+
+      world.set(bone.id, { rotation, position });
+
+      if (!entry) return;
+
+      if (entry.rotation) {
+        // Дельта, которую ждёт деформатор. Он композирует скин-матрицы по
+        // иерархии (skin = skin_parent · own), а движок применяет к кости
+        // абсолютную дельту currentWorld * inverse(bindWorld). Совпадение даёт
+        // локальная дельта, перенесённая в bind-кадр родителя:
+        //   delta = bindParent * (local * inverse(bindLocal)) * inverse(bindParent)
+        // При неподвижном родителе (world = bind) сводится к привычному
+        // world * inverse(bind), поэтому поведение не меняется.
+        const local = localRotation !== null
+          ? quaternionFromDegrees(localRotation)
+          : bindLocal.clone();
+        const delta = bindParent.clone()
+          .multiply(local.multiply(bindLocal.clone().invert()))
+          .multiply(bindParent.clone().invert());
+
+        const euler = new THREE.Euler().setFromQuaternion(delta, 'XYZ');
+
+        pose[bone.id] = [
+          euler.x / DEG_TO_RAD,
+          euler.y / DEG_TO_RAD,
+          euler.z / DEG_TO_RAD
         ];
+      }
+
+      if (entry.position && localPosition !== null) {
+        // Смещение сустава в локальной относительной форме. Деформатор
+        // композирует матрицы, движок берёт смещение абсолютно
+        // (currentWorldPosition - originalPosition), поэтому child's world
+        // нужно перенести в bind-кадр родителя:
+        //   offset = (bindParentPos - bindPos) + inverse(deltaParent) * (worldPos - worldParentPos)
+        // При неподвижном родителе сводится к worldPos - bindPos.
+        let offset = position.clone().sub(bindPosition);
+
+        if (parentWorld) {
+          const deltaParent = parentWorld.rotation
+            .clone()
+            .multiply(bindParent.clone().invert());
+          const relative = position.clone()
+            .sub(parentWorld.position)
+            .applyQuaternion(deltaParent.invert());
+
+          offset = bindParentPosition.clone().sub(bindPosition).add(relative);
+        }
+
+        offsets[bone.id] = [offset.x, offset.y, offset.z];
       }
     });
 
@@ -445,42 +727,19 @@
    * @returns {number[]} значения в виде YAML
    */
   function toYamlValue(track, value, bone) {
-    const parent = bone.parentId === null ? null : SkinTool.model.getBone(bone.parentId);
+    const parent = bone.parentId === null || bone.parentId === undefined
+      ? null : SkinTool.model.getBone(bone.parentId);
 
+    // Пересчёт в локальную систему родителя общий с сэмплером
+    // (toLocalRotation / toLocalPosition): экспорт и превью обязаны
+    // считать кадр одинаково, иначе анимация в движке поедет.
     if (track.kind !== 'position') {
-      // Локальный угол: мировой минус родительский. Вычитание углов Эйлера
-      // точно только когда поворот вокруг одной оси (как у большинства костей),
-      // поэтому общий случай считаем через кватернионы.
-      const world = quaternionFromDegrees(value);
-      const local = parent
-        ? quaternionFromDegrees(parent.rotation).invert().multiply(world)
-        : world;
-
-      const euler = new SkinTool.THREE.Euler().setFromQuaternion(local, 'XYZ');
-
-      // setFromQuaternion уже отдаёт радианы — движок ждёт именно их,
-      // поэтому конвертировать здесь больше нечего.
-      return [
-        round(euler.x),
-        round(euler.y),
-        round(euler.z)
-      ];
+      // Градусы → радианы: в YAML движка углы именно в радианах.
+      return toLocalRotation(parent, value, bindLocalDegrees(bone))
+        .map((angle) => round(angle * DEG_TO_RAD));
     }
 
-    // LocalPosition — положение в системе родителя, а не в мире: сначала
-    // убираем начало родителя, потом его поворот.
-    const world = new SkinTool.THREE.Vector3(value[0], value[1], value[2]);
-
-    if (parent) {
-      world.sub(new SkinTool.THREE.Vector3(
-        parent.position[0],
-        parent.position[1],
-        parent.position[2]
-      ));
-      world.applyQuaternion(quaternionFromDegrees(parent.rotation).invert());
-    }
-
-    return [round(world.x), round(world.y), round(world.z)];
+    return toLocalPosition(parent, value).map(round);
   }
 
   /** @param {number[]} degrees */
@@ -494,6 +753,104 @@
     );
 
     return new THREE.Quaternion().setFromEuler(euler);
+  }
+
+  /**
+   * Тождественный ли поворот?
+   *
+   * Если поворот bind-родителя тождественный, его система координат совпадает
+   * с мировой: локальный угол из YAML равен мировому без всякой конверсии.
+   * Это не только быстрее — главное, что так число из файла доходит до
+   * экспорта дословно. Через кватернион пришлось бы выбирать ветвь разложения
+   * Эйлера, и авторское «0, 3.83, -1.134» превратилось бы в
+   * «-3.1416, -0.6884, 2.0076» — то же вращение, но другой текст.
+   *
+   * @param {number[]|null|undefined} degrees
+   * @returns {boolean}
+   */
+  function isIdentityRotation(degrees) {
+    return !degrees
+      || degrees.every((value) => Math.abs(value) <= 1e-9);
+  }
+
+  /** @param {number[]} radians */
+  function quaternionFromRadians(radians) {
+    const THREE = SkinTool.THREE;
+
+    return new THREE.Quaternion().setFromEuler(new THREE.Euler(
+      radians[0],
+      radians[1],
+      radians[2],
+      'XYZ'
+    ));
+  }
+
+  /**
+   * Углы XYZ для поворота — ближайшие к опорным.
+   *
+   * setFromQuaternion возвращает только одну запись, и для наших костей
+   * она часто неудобная: у зеркального right-shoulder pitch скачет к -180°,
+   * хотя автор писал 0. Держим список эквивалентных записей (поворот тот же,
+   * числа другие), сверяем каждую обратным ходом через кватернион и берём
+   * ту, что ближе всего к опорному углу.
+   *
+   * @param {THREE.Quaternion} quaternion
+   * @param {number[]} [referenceDegrees] — опорный угол, обычно bind кости
+   * @returns {number[]} градусы XYZ
+   */
+  function eulerFromQuaternion(quaternion, referenceDegrees) {
+    const THREE = SkinTool.THREE;
+    const principal = new THREE.Euler().setFromQuaternion(quaternion, 'XYZ');
+    const base = [principal.x, principal.y, principal.z];
+    const pi = Math.PI;
+    const reference = referenceDegrees || [0, 0, 0];
+
+    // Сдвиги, которые переводят одну и ту же матрицу в другую запись.
+    // Половина (±π на трёх осях) и целые обороты — это все варианты, где
+    // atan2 может вернуть −π вместо +π.
+    const shifts = [
+      [0, 0, 0],
+      [pi, pi, pi],
+      [-pi, -pi, -pi],
+      [pi, 0, pi],
+      [-pi, 0, -pi],
+      [0, pi, pi],
+      [0, -pi, -pi],
+      [2 * pi, 0, 0],
+      [-2 * pi, 0, 0],
+      [0, 2 * pi, 0],
+      [0, -2 * pi, 0],
+      [0, 0, 2 * pi],
+      [0, 0, -2 * pi]
+    ];
+
+    let best = base.map((value) => value / DEG_TO_RAD);
+    let bestDistance = best.reduce((sum, value, index) => (
+      sum + Math.pow(value - reference[index], 2)
+    ), 0);
+
+    shifts.forEach((shift) => {
+      const candidate = [
+        base[0] + shift[0],
+        base[1] + shift[1],
+        base[2] + shift[2]
+      ];
+
+      // Проверяем обратным ходом: лишние варианты просто отсеются.
+      if (Math.abs(quaternionFromRadians(candidate).dot(quaternion)) < 1 - 1e-9) return;
+
+      const degrees = candidate.map((value) => value / DEG_TO_RAD);
+      const distance = degrees.reduce((sum, value, index) => (
+        sum + Math.pow(value - reference[index], 2)
+      ), 0);
+
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = degrees;
+      }
+    });
+
+    return best;
   }
 
   /** Длина клипа: движок ждёт TimeSpan, поэтому "1s". */
@@ -515,6 +872,7 @@
   SkinTool.animation = {
     INTERPOLATION_MODES,
     DEFAULT_INTERPOLATION,
+    ENGINE_DEFAULT_INTERPOLATION,
     COMPONENT_TYPE,
     PROPERTIES,
     createClip,
@@ -536,6 +894,9 @@
     sampleClip,
     rotationDelta,
     rotationAbsolute,
+    isIdentityRotation,
+    eulerFromQuaternion,
+    bindLocalDegrees,
     toYaml,
     toYamlAll
   };

@@ -80,6 +80,14 @@
   function selectBone(id) {
     SkinTool.model.state.selectedBoneId = id;
     refreshAll();
+
+    // Выбор кости во вьюпорте должен подхватывать и панель ключей, иначе
+    // подсвеченная дорожка в timeline остаётся от другой кости. Панель
+    // обратно вызывает selectBone, но там bone.id уже совпадает, поэтому
+    // рекурсии не возникает.
+    if (SkinTool.animationUI) {
+      SkinTool.animationUI.selectTrackForBone(id);
+    }
   }
 
   /** Удаляет кость вместе со всеми потомками. @param {number} id */

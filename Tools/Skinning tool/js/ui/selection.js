@@ -189,9 +189,15 @@
       setCanvasCursor('');
 
       const rotation = bone ? SkinTool.deformer.getPoseRotation(bone.id) : [0, 0, 0];
+      // На «Анимации» поворот уже лёг в кадр на текущем времени — говорим
+      // об этом, иначе статус остался бы от позинга и путал.
+      const prefix = SkinTool.model.state.currentTab === 'animation'
+        ? `Кадр на ${SkinTool.animationUI.getTime().toFixed(2)} с`
+        : 'Пробный поворот';
+
       SkinTool.dom.setStatus(
         bone
-          ? `Пробный поворот "${bone.name}": ${rotation.map((v) => v + '°').join(', ')}`
+          ? `${prefix} "${bone.name}": ${rotation.map((v) => v + '°').join(', ')}`
           : 'Поворот сброшен'
       );
       return;

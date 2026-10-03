@@ -28,6 +28,12 @@
     /** Свёрнутые кости. Всё, чего здесь нет, показано раскрытым. */
     collapsed: new Set(),
     trackId: null,
+    /**
+     * Тип дорожки, который пользователь смотрел последним.
+     * Живёт отдельно от trackId: при переходе на другую кость выделенная
+     * дорожка меняется, а предпочтение «rotation или position» остаётся.
+     */
+    preferredKind: 'rotation',
     keyTime: null,
     drag: null
   };
@@ -156,11 +162,95 @@
       releasePointer(ruler, event);
     });
 
+    bindLaneHeight();
+
     const rows = $('timelineRows');
 
     rows.addEventListener('pointermove', onKeyDragMove);
     rows.addEventListener('pointerup', endKeyDrag);
     rows.addEventListener('pointercancel', endKeyDrag);
+  }
+
+  // ---------- Высота дорожек ----------
+
+  const LANE_HEIGHT_MIN = 12;
+  const LANE_HEIGHT_MAX = 64;
+  const LANE_HEIGHT_DEFAULT = 21;
+
+  /**
+   * Высота дорожек timeline. Живёт в CSS-переменной --tl-lane-height,
+   * которую читает .tl-row, поэтому точки и линейка остаются на одной сетке.
+   * @returns {number}
+   */
+  function laneHeight() {
+    const inner = $('timelineInner');
+    const value = parseFloat(inner.style.getPropertyValue('--tl-lane-height'));
+
+    return Number.isFinite(value) && value > 0 ? value : LANE_HEIGHT_DEFAULT;
+  }
+
+  /** @param {number|null} value */
+  function setLaneHeight(value) {
+    const height = value === null
+      ? LANE_HEIGHT_DEFAULT
+      : Math.min(LANE_HEIGHT_MAX, Math.max(LANE_HEIGHT_MIN, Math.round(value)));
+    const inner = $('timelineInner');
+    const grip = $('timelineHeightGrip');
+
+    inner.style.setProperty('--tl-lane-height', `${height}px`);
+
+    if (grip) {
+      grip.title = `Высота дорожек: ${height}px. Потяните за край линейки`;
+    }
+
+    return height;
+  }
+
+  /**
+   * Ползунок высоты: тянем за нижний край линейки. Работает по всей ширине
+   * строки, потому что полоса в 7px неудобна для точного попадания.
+   */
+  function bindLaneHeight() {
+    const inner = $('timelineInner');
+    const row = $('timelineRulerRow');
+    const grip = $('timelineHeightGrip');
+    const reset = $('btnTimelineHeightReset');
+
+    if (!row || !grip) return;
+
+    setLaneHeight(null);
+
+    let dragging = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    grip.addEventListener('pointerdown', (event) => {
+      dragging = true;
+      startY = event.clientY;
+      startHeight = laneHeight();
+      grip.classList.add('dragging');
+      capturePointer(grip, event);
+      event.preventDefault();
+    });
+
+    grip.addEventListener('pointermove', (event) => {
+      if (!dragging) return;
+      setLaneHeight(startHeight + (event.clientY - startY));
+    });
+
+    const stop = (event) => {
+      if (!dragging) return;
+      dragging = false;
+      grip.classList.remove('dragging');
+      releasePointer(grip, event);
+    };
+
+    grip.addEventListener('pointerup', stop);
+    grip.addEventListener('pointercancel', stop);
+
+    if (reset) {
+      reset.addEventListener('click', () => setLaneHeight(null));
+    }
   }
 
   /**
@@ -314,6 +404,8 @@
     ui.trackId = track ? track.id : null;
     ui.keyTime = null;
 
+    if (track) ui.preferredKind = track.kind;
+
     const bone = track ? SkinTool.model.getBone(track.boneId) : null;
 
     if (bone && SkinTool.model.state.selectedBoneId !== bone.id) {
@@ -455,6 +547,62 @@
     expandTo(bone.id);
     refresh();
     SkinTool.dom.setStatus(`Кадр из позы «${bone.name}» на ${ui.time.toFixed(2)} с`);
+  }
+
+  // Кадр, поставленный из вьюпорта, не требует полной перерисовки.
+  let autoKeyRaf = 0;
+
+  /**
+   * Синхронизация вьюпорта с кадром: поворот кости кольцом или ползунком
+   * сразу записывается в кадр на текущем времени.
+   *
+   * Пробная поза — дельта к bind, а кадр хранит мировой угол, поэтому
+   * значение берём через currentValue. Дорожку создаём на лету: иначе
+   * поворот во вьюпорте уходил бы в никуда и кнопка «+ Кадр» потом
+   * затирала бы его bind-значением.
+   *
+   * Перемотка и проигрывание сюда не попадают — они идут через setPose,
+   * поэтому чужие кадры при движении времени не переписываются.
+   *
+   * @param {number} boneId
+   */
+  function syncRotationToKey(boneId) {
+    if (SkinTool.model.state.currentTab !== 'animation') return;
+
+    const clip = SkinTool.animation.getCurrentClip();
+    const bone = SkinTool.model.getBone(boneId);
+
+    if (!clip || !bone) return;
+
+    let track = SkinTool.animation.findTrack(clip, bone.id, 'rotation');
+    let created = false;
+
+    if (!track) {
+      track = SkinTool.animation.addTrack(clip, SkinTool.animation.createTrack(bone.id, 'rotation'));
+      expandTo(bone.id);
+      created = true;
+    }
+
+    SkinTool.animation.setKey(track, ui.time, currentValue(bone, 'rotation'));
+
+    // Если открыт редактор этой дорожки — показываем в нём записанное.
+    if (ui.keyTime === null && ui.trackId === track.id) ui.keyTime = ui.time;
+
+    if (created) {
+      renderTrackList();
+      SkinTool.dom.setStatus(`Дорожка поворота «${bone.name}»: кадр на ${ui.time.toFixed(2)} с`);
+    }
+
+    // refresh() здесь не годится: он пересчитывает кадр через setTime, и
+    // пробная поза, которую пользователь держит мышью, затёрлась бы. Поэтому
+    // трогаем только таймлайн и редактор кадра, и не чаще раза за кадр.
+    if (!autoKeyRaf) {
+      autoKeyRaf = requestAnimationFrame(() => {
+        autoKeyRaf = 0;
+        renderRows();
+        renderKeyEditor();
+      });
+    }
   }
 
   function deleteSelectedKey() {
@@ -1338,12 +1486,67 @@
     setTime(Math.min(ui.time, clipLength()));
   }
 
+  /**
+   * Подбирает дорожку кости для панели ключей и выделяет её.
+   *
+   * Вызывается, когда кость выбрали во вьюпорте или в списке: панель
+   * должна показать ключи именно этой кости, иначе выбор в 3D и в
+   * timeline расходится. Если у кости в текущем клипе нет дорожек —
+   * выделение снимается.
+   *
+   * При двух дорожках кости держим тип последней выбранной (rotation или
+   * position), чтобы переключение «поворот ↔ позиция» не сбрасывалось
+   * при каждом клике по кости; при отсутствии такого типа берём rotation.
+   *
+   * @param {number} boneId
+   */
+  function selectTrackForBone(boneId) {
+    const clip = SkinTool.animation.getCurrentClip();
+
+    if (!clip) {
+      if (ui.trackId !== null) selectTrack(null);
+      renderRows();
+      renderKeyEditor();
+      return;
+    }
+
+    const tracks = clip.tracks.filter((track) => track.boneId === boneId);
+
+    if (tracks.length === 0) {
+      if (ui.trackId !== null) selectTrack(null);
+      renderRows();
+      renderKeyEditor();
+      return;
+    }
+
+    const kind = ui.preferredKind;
+    const track = tracks.find((item) => item.kind === kind)
+      || tracks.find((item) => item.kind === 'rotation')
+      || tracks[0];
+
+    if (!track || track.id === ui.trackId) return;
+
+    selectTrack(track);
+
+    // Подбор дорожки не должен менять предпочтение типа: у кости может не
+    // оказаться rotation, и тогда мы подставили position, но пользователь
+    // по-прежнему смотрит повороты и хочет их на следующей кости.
+    ui.preferredKind = kind;
+
+    renderRows();
+    renderKeyEditor();
+  }
+
   SkinTool.animationUI = {
     bind,
     refresh,
     play,
     stop,
     showBindPose,
+    syncRotationToKey,
+    selectTrackForBone,
+    getLaneHeight: laneHeight,
+    setLaneHeight,
     getTime: () => ui.time
   };
 })(window.SkinTool);

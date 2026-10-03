@@ -155,6 +155,11 @@
 
   /**
    * Записывает пробный поворот и обновляет сцену.
+   *
+   * На вкладке «Анимация» поворот во вьюпорте сразу уходит в кадр на
+   * текущем времени — иначе пришлось бы нажимать «+ Кадр» после каждого
+   * движения кольца.
+   *
    * @param {number} axisIndex
    * @param {number} value
    */
@@ -167,6 +172,8 @@
 
     SkinTool.deformer.setPoseRotation(bone.id, rotation);
     SkinTool.anchors.sync();
+
+    SkinTool.animationUI.syncRotationToKey(bone.id);
 
     syncRotationInputs(rotation);
     updatePoseReadout(rotation);
