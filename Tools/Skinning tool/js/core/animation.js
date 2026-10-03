@@ -563,7 +563,7 @@
           .multiply(local.multiply(bindLocal.clone().invert()))
           .multiply(bindParent.clone().invert());
 
-        const euler = new THREE.Euler().setFromQuaternion(delta, 'XYZ');
+        const euler = new THREE.Euler().setFromQuaternion(delta, SkinTool.EULER_ORDER);
 
         pose[bone.id] = [
           euler.x / DEG_TO_RAD,
@@ -621,7 +621,7 @@
     const delta = quaternionFromDegrees(absoluteDegrees)
       .multiply(quaternionFromDegrees(bindDegrees).invert());
 
-    const euler = new SkinTool.THREE.Euler().setFromQuaternion(delta, 'XYZ');
+    const euler = new SkinTool.THREE.Euler().setFromQuaternion(delta, SkinTool.EULER_ORDER);
 
     return [
       euler.x / DEG_TO_RAD,
@@ -641,7 +641,7 @@
   function rotationAbsolute(bindDegrees, deltaDegrees) {
     const absolute = quaternionFromDegrees(deltaDegrees).multiply(quaternionFromDegrees(bindDegrees));
 
-    const euler = new SkinTool.THREE.Euler().setFromQuaternion(absolute, 'XYZ');
+    const euler = new SkinTool.THREE.Euler().setFromQuaternion(absolute, SkinTool.EULER_ORDER);
 
     return [
       euler.x / DEG_TO_RAD,
@@ -749,7 +749,7 @@
       THREE.MathUtils.degToRad(degrees[0]),
       THREE.MathUtils.degToRad(degrees[1]),
       THREE.MathUtils.degToRad(degrees[2]),
-      'XYZ'
+      SkinTool.EULER_ORDER
     );
 
     return new THREE.Quaternion().setFromEuler(euler);
@@ -781,7 +781,7 @@
       radians[0],
       radians[1],
       radians[2],
-      'XYZ'
+      SkinTool.EULER_ORDER
     ));
   }
 
@@ -800,7 +800,7 @@
    */
   function eulerFromQuaternion(quaternion, referenceDegrees) {
     const THREE = SkinTool.THREE;
-    const principal = new THREE.Euler().setFromQuaternion(quaternion, 'XYZ');
+    const principal = new THREE.Euler().setFromQuaternion(quaternion, SkinTool.EULER_ORDER);
     const base = [principal.x, principal.y, principal.z];
     const pi = Math.PI;
     const reference = referenceDegrees || [0, 0, 0];

@@ -225,14 +225,14 @@
       THREE.MathUtils.degToRad(degrees[0]),
       THREE.MathUtils.degToRad(degrees[1]),
       THREE.MathUtils.degToRad(degrees[2]),
-      'XYZ'
+      SkinTool.EULER_ORDER
     ));
 
     world.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(
       THREE.MathUtils.degToRad(parent.rotation[0]),
       THREE.MathUtils.degToRad(parent.rotation[1]),
       THREE.MathUtils.degToRad(parent.rotation[2]),
-      'XYZ'
+      SkinTool.EULER_ORDER
     )));
 
     // Опорный угол — bind кости в градусах, чтобы выбрать читаемую запись.
@@ -267,7 +267,7 @@
       THREE.MathUtils.degToRad(parent.rotation[0]),
       THREE.MathUtils.degToRad(parent.rotation[1]),
       THREE.MathUtils.degToRad(parent.rotation[2]),
-      'XYZ'
+      SkinTool.EULER_ORDER
     ));
 
     vector.applyQuaternion(parentQuaternion);

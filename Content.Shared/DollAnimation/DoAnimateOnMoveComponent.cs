@@ -8,4 +8,5 @@ public sealed partial class DoAnimateOnMoveComponent : Component
 {
     [DataField] public ProtoId<BodyAnimationPrototype> OnMove;
     [DataField] public ProtoId<BodyAnimationPrototype> OnStandby;
+    [DataField] public ProtoId<BodyAnimationPrototype> OnJump;
 }

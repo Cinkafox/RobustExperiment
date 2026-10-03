@@ -20,6 +20,7 @@
   - type: DoAnimateOnMove
     onMove: alexandraWalk
     onStandby: alexandraStandby
+    onJump: alexandraJump
   - type: Skeleton
   - type: BoneCompound
     compoundEntId: alexandraSkeleton

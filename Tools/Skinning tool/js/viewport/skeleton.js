@@ -400,7 +400,7 @@
       THREE.MathUtils.degToRad(bone.rotation[0]),
       THREE.MathUtils.degToRad(bone.rotation[1]),
       THREE.MathUtils.degToRad(bone.rotation[2]),
-      'XYZ'
+      SkinTool.EULER_ORDER
     );
     bindQuaternion.setFromEuler(eulerScratch);
 

@@ -105,7 +105,7 @@
         THREE.MathUtils.degToRad(bone.rotation[0]),
         THREE.MathUtils.degToRad(bone.rotation[1]),
         THREE.MathUtils.degToRad(bone.rotation[2]),
-        'XYZ'
+        SkinTool.EULER_ORDER
       );
 
       position.set(bone.position[0], bone.position[1], bone.position[2]);
@@ -148,7 +148,7 @@
         THREE.MathUtils.degToRad(rotation[0]),
         THREE.MathUtils.degToRad(rotation[1]),
         THREE.MathUtils.degToRad(rotation[2]),
-        'XYZ'
+        SkinTool.EULER_ORDER
       );
       quaternion.setFromEuler(euler);
 

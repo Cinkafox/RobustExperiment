@@ -32,6 +32,12 @@ public sealed class InputMoverSystem : EntitySystem
 
         while (query.MoveNext(out var uid, out var inputMover, out var transform3dComponent, out var rigidBodyComponent))
         {
+            if (rigidBodyComponent.IsGrounded != rigidBodyComponent.IsGrounding)
+            {
+                RaiseLocalEvent(uid, new EntityGroundStatusChangedEvent(rigidBodyComponent.IsGrounded));
+                rigidBodyComponent.IsGrounded = rigidBodyComponent.IsGrounding;
+            }
+            
             transform3dComponent.LocalRotation *= (inputMover.RotationMovement * frameTime).ToQuaternion();
 
             var airFactor = rigidBodyComponent.IsGrounded ? 60f : 5f;
@@ -47,6 +53,16 @@ public sealed class InputMoverSystem : EntitySystem
                 
             _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0, 500, 0) * rigidBodyComponent.Mass * frameTime);
             inputMover.IsJumping = false;
+            RaiseLocalEvent(uid, new EntityJumpedEvent());
         }
     }
+}
+
+public sealed class EntityGroundStatusChangedEvent(bool inGround) : EntityEventArgs
+{
+    public bool InGround { get; } = inGround;
+}
+
+public sealed class EntityJumpedEvent : EntityEventArgs
+{
 }

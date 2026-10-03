@@ -6,7 +6,7 @@
       context: human
     - type: Camera
       fov: 4
-      shift: 1.2,1.2,-3
+      shift: 1.2,1.2,-4
       rotation: 0,0,0
     - type: RigidBody
       friction: 3

@@ -7,16 +7,40 @@
       - bone: left-shoulder
         componentType: Content.Shared.Transform.Transform3dComponent
         property: LocalAngleAsVector
+        interpolationMode: Linear
         keyFrames:
-          - keyTime: 1
+          - keyTime: 0
             value: 0,0,-0.96
       - bone: right-shoulder
         componentType: Content.Shared.Transform.Transform3dComponent
         property: LocalAngleAsVector
+        interpolationMode: Linear
         keyFrames:
-          - keyTime: 1
+          - keyTime: 0
             value: 0,3.14,-0.96
-            
+      - bone: hip
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,0,0
+      - bone: left-leg
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,0,0
+      - bone: right-leg
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,3.1416,0
+
+
 - type: bodyAnimation
   id: alexandraWalk
   animation:
@@ -79,5 +103,77 @@
             value: 0,0.0873,0
           - keyTime: 0.5
             value: 0,-0.0873,0
+      - bone: right-leg
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0.2618,3.1416,0
+          - keyTime: 0.5
+            value: -0.2618,3.1416,0
+          - keyTime: 0.5
+            value: 0.2618,3.1416,0
+      - bone: left-leg
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0.2618,0,0
+          - keyTime: 0.5
+            value: -0.2618,0,0
+          - keyTime: 0.5
+            value: 0.2618,0,0
 
-            
+
+- type: bodyAnimation
+  id: alexandraJump
+  animation:
+    length: 1s
+    tracks:
+      - bone: left-shoulder
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,0,-0.96
+          - keyTime: 0.3067
+            value: -0.1745,0,0.2793
+      - bone: right-shoulder
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,3.14,-0.96
+          - keyTime: 0.3226
+            value: 0.1745,3.14,0.2094
+      - bone: right-leg
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,3.1416,0
+          - keyTime: 0.1797
+            value: -0.2094,3.1416,0
+      - bone: left-leg
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,0,0
+          - keyTime: 0.2883
+            value: -0.6981,0,0
+      - bone: hip
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,0,0
+          - keyTime: 0.3433
+            value: -0.4189,0,0
