@@ -26,6 +26,7 @@
       - bone: left-shoulder
         componentType: Content.Shared.Transform.Transform3dComponent
         property: LocalAngleAsVector
+        interpolationMode: Cubic
         keyFrames:
           - keyTime: 0
             value: 0,0.7,-1.134
@@ -40,6 +41,7 @@
       - bone: right-shoulder
         componentType: Content.Shared.Transform.Transform3dComponent
         property: LocalAngleAsVector
+        interpolationMode: Cubic
         keyFrames:
           - keyTime: 0
             value: 0,3.83,-1.134
@@ -51,4 +53,31 @@
             value: 0,3.14,-0.96
           - keyTime: 0.25
             value: 0,3.83,-1.134
+      - bone: torso
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,0.0873,0
+          - keyTime: 0.25
+            value: 0,0,0
+          - keyTime: 0.25
+            value: 0,-0.0873,0
+          - keyTime: 0.25
+            value: 0,0,0
+          - keyTime: 0.25
+            value: 0,0.0873,0
+      - bone: head
+        componentType: Content.Shared.Transform.Transform3dComponent
+        property: LocalAngleAsVector
+        interpolationMode: Cubic
+        keyFrames:
+          - keyTime: 0
+            value: 0,-0.0873,0
+          - keyTime: 0.5
+            value: 0,0.0873,0
+          - keyTime: 0.5
+            value: 0,-0.0873,0
+
             

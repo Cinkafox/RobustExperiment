@@ -169,6 +169,23 @@
     rows.addEventListener('pointermove', onKeyDragMove);
     rows.addEventListener('pointerup', endKeyDrag);
     rows.addEventListener('pointercancel', endKeyDrag);
+
+    // Указатель за пределами окна: Firefox присылает координаты 0,0, и кадр
+    // без спроса прыгал на t=0. Пока курсор не в окне, движение игнорируем.
+    // Кнопку там отпустить нельзя — событие не дойдёт, поэтому по возврату
+    // в окно смотрим на event.buttons: если кнопка уже отжата, перенос закончен.
+    window.addEventListener('mouseout', (event) => {
+      if (ui.drag && !event.relatedTarget) ui.drag.outside = true;
+    });
+    window.addEventListener('mouseover', (event) => {
+      if (ui.drag && event.relatedTarget) ui.drag.outside = false;
+    });
+    window.addEventListener('pointermove', (event) => {
+      if (ui.drag && !(event.buttons & 1)) endKeyDrag();
+    });
+    window.addEventListener('blur', () => {
+      if (ui.drag) endKeyDrag();
+    });
   }
 
   // ---------- Высота дорожек ----------
@@ -187,6 +204,41 @@
     const value = parseFloat(inner.style.getPropertyValue('--tl-lane-height'));
 
     return Number.isFinite(value) && value > 0 ? value : LANE_HEIGHT_DEFAULT;
+  }
+
+  const END_PAD_DEFAULT = 20;
+
+  /**
+   * Отступ справа от конца клипа, в пикселях. Живёт в CSS-переменной
+   * --tl-end-pad, потому что сетку дорожек рисует CSS, а время по курсору
+   * считает JS — оба берут значение оттуда, иначе разъедутся.
+   *
+   * @returns {number}
+   */
+  function endPad() {
+    const inner = $('timelineInner');
+    const value = parseFloat(getComputedStyle(inner).getPropertyValue('--tl-end-pad'));
+
+    return Number.isFinite(value) && value > 0 ? value : END_PAD_DEFAULT;
+  }
+
+  /**
+   * Позиция во времени вдоль дорожки или линейки.
+   *
+   * Считаем от «полезной» ширины: всё минус отступ справа. Доля времени
+   * уже не до 100% всей дорожки, поэтому последний кадр (t = length)
+   * встаёт на её край и остаётся целиком видимым и кликабельным.
+   *
+   * @param {number} length — длина клипа
+   * @param {number} time
+   * @returns {string} значение для CSS left
+   */
+  function timeToLeft(length, time) {
+    if (!(length > 0)) return '0px';
+
+    const ratio = Math.min(Math.max(time / length, 0), 1);
+
+    return `calc(${ratio} * (100% - ${endPad()}px))`;
   }
 
   /** @param {number|null} value */
@@ -933,7 +985,7 @@
     const element = document.createElement('button');
 
     element.className = 'tl-key ' + track.kind + (isSelectedKey(track, key) ? ' selected' : '');
-    element.style.left = (key.time / length) * 100 + '%';
+    element.style.left = timeToLeft(length, key.time);
     element.title = `${key.time.toFixed(2)} с · ${key.value.map((n) => n.toFixed(1)).join(', ')}`;
     element.dataset.trackId = track.id;
     element.dataset.keyTime = String(key.time);
@@ -953,6 +1005,7 @@
         key,
         lane,
         length,
+        outside: false,
         // Захват не даёт кадру прыгнуть к курсору в момент нажатия.
         grabOffset: key.time - timeFromPointer(event, lane, length)
       };
@@ -1008,7 +1061,7 @@
 
   /** @param {PointerEvent} event */
   function onKeyDragMove(event) {
-    if (!ui.drag) return;
+    if (!ui.drag || ui.drag.outside) return;
 
     const { lane, length, grabOffset } = ui.drag;
     const time = Math.min(
@@ -1018,7 +1071,7 @@
 
     ui.drag.key.time = time;
     ui.drag.track.keys.sort((a, b) => a.time - b.time);
-    ui.drag.element.style.left = (time / length) * 100 + '%';
+    ui.drag.element.style.left = timeToLeft(length, time);
     ui.drag.element.title = time.toFixed(2) + ' с';
 
     ui.keyTime = time;
@@ -1037,6 +1090,11 @@
 
   /**
    * Время по положению курсора над дорожкой.
+   *
+   * Обратная операция к timeToLeft: полезная ширина — всё минус отступ
+   * справа, поэтому курсор в отступе даёт время больше длины клипа и мы
+   * прижимаем его к концу.
+   *
    * @param {PointerEvent|MouseEvent} event
    * @param {HTMLElement} lane
    * @param {number} length
@@ -1044,10 +1102,11 @@
    */
   function timeFromPointer(event, lane, length) {
     const rect = lane.getBoundingClientRect();
+    const usable = rect.width - endPad();
 
-    if (rect.width <= 0) return 0;
+    if (usable <= 0) return 0;
 
-    const ratio = (event.clientX - rect.left) / rect.width;
+    const ratio = (event.clientX - rect.left) / usable;
 
     return Math.min(Math.max(0, ratio), 1) * length;
   }
@@ -1076,7 +1135,7 @@
       const isWhole = Math.abs(time - Math.round(time)) < 1e-6;
 
       tick.className = 'tl-tick' + (isWhole ? ' major' : '');
-      tick.style.left = (time / clip.length) * 100 + '%';
+      tick.style.left = timeToLeft(clip.length, time);
 
       const label = document.createElement('span');
 
@@ -1290,8 +1349,8 @@
   /** @param {string} mode */
   function renderModeHint(mode) {
     const hints = {
-      Linear: 'Ровная линия между соседними кадрами.',
-      Cubic: 'Плавная кривая Catmull-Rom через все кадры. По умолчанию движка.',
+      Linear: 'Ровная линия между соседними кадрами. Это то, что движок берёт по умолчанию.',
+      Cubic: 'Плавная кривая Catmull-Rom через все кадры.',
       Nearest: 'Значение ближайшего по времени кадра — ступеньками.',
       Previous: 'Держится значение предыдущего кадра — «залипает».'
     };
