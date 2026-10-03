@@ -2,6 +2,7 @@
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Systems;
 using Content.Shared.Transform;
+using Robust.Shared.Physics;
 
 namespace Content.Shared.Bone;
 
@@ -18,6 +19,19 @@ public sealed class BonePhysicsSystem : EntitySystem
         
         SubscribeLocalEvent<BonePhysicsComponent, ComponentInit>(OnInit);
         SubscribeLocalEvent<BonePhysicsComponent, ComponentRemove>(OnRemove);
+    }
+
+    public void AddRagdoll(Entity<SkeletonComponent?> ent, Dictionary<string, BonePhysicsProperty> bonePhysics)
+    {
+        if(!Resolve(ent, ref ent.Comp))
+            return;
+        
+        var comp = AddComp<BonePhysicsComponent>(ent);
+        comp.BonePhysics = bonePhysics;
+        var skeletEnt = new Entity<BonePhysicsComponent>(ent, comp);
+        InitInternal(skeletEnt);
+        MakeRagdoll(skeletEnt, Comp<Transform3dComponent>(ent).ParentUid);
+        RemComp<RigidBodyComponent>(skeletEnt);
     }
 
     private void OnRemove(Entity<BonePhysicsComponent> ent, ref ComponentRemove args)
@@ -51,6 +65,12 @@ public sealed class BonePhysicsSystem : EntitySystem
             return;
         }
         
+        if(ent.Comp.BonePhysics.Count != 0)
+            InitInternal(ent);
+    }
+
+    private void InitInternal(Entity<BonePhysicsComponent> ent)
+    {
         foreach (var (key, _) in ent.Comp.BonePhysics)
         {
             if (!_boneSystem.TryGetBone(ent.Owner, key, out var boneUid))
@@ -67,6 +87,11 @@ public sealed class BonePhysicsSystem : EntitySystem
     }
 
     private void OnAttaching(Entity<BonePhysicsComponent> ent, ref OnEntityAttachingEvent args)
+    {
+        CleanupRagdoll(ent);
+    }
+
+    private void CleanupRagdoll(Entity<BonePhysicsComponent> ent)
     {
         foreach (var (key, value) in ent.Comp.BonePhysics)
         {
@@ -100,6 +125,11 @@ public sealed class BonePhysicsSystem : EntitySystem
 
     private void OnAttach(Entity<BonePhysicsComponent> ent, ref OnEntityAttachedEvent args)
     {
+        MakeRagdoll(ent, args.To);
+    }
+
+    private void MakeRagdoll(Entity<BonePhysicsComponent> ent, EntityUid attachTo)
+    {
         foreach (var (key, bonePhysicsProperty) in ent.Comp.BonePhysics)
         {
             if (!_boneSystem.TryGetBone(ent.Owner, key, out var bone))
@@ -108,7 +138,7 @@ public sealed class BonePhysicsSystem : EntitySystem
                 continue;
             }
             
-            _transform3DSystem.SetParent(bone, args.To);
+            _transform3DSystem.SetParent(bone, attachTo);
             var rb = AddComp<RigidBodyComponent>(bone);
             rb.Properties = bonePhysicsProperty.Property;
 

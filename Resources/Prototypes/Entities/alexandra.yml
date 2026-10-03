@@ -8,6 +8,7 @@
     friction: 3
     restitution: 0.1
     density: 4
+    enableAngularVelocity: false
     shape:
       !type:BoxShape
       halfExtents: 0.4, 1, 0.4
@@ -25,99 +26,81 @@
   - type: BoneCompound
     compoundEntId: alexandraSkeleton
     offset: 0,-1.2,0
-
-- type: entity
-  id: alexandraRagdoll
-  components:
-    - type: Health
-      maxHealth: 100
-    - type: Model
-      currentMesh:
-        path: "/Models/alexandra/untitled_back.obj"
-        offset: 0,-1.2,0
-    - type: ItemCollector
-      boneName: hand
-    - type: Skeleton
-    - type: BoneCompound
-      compoundEntId: alexandraSkeleton
-      offset: 0,-1.2,0
-    - type: BonePhysics
-      bonePhysics:
-        torso:
-          shape:
-            !type:BoxShape
-            halfExtents: 0.1, 0.2, 0.2
-          density: 4
-        left-shoulder:
-          shape:
-            !type:BoxShape
-            halfExtents: 0.14, 0.1, 0.1
-          density: 4
-          constraints:
-            torso:
-              !type:PointToPointConstraint
-              localAnchorA: -0.17, 0, 0
-              localAnchorB: 0.17, 0, 0
-        left-knee:
-          shape:
-            !type:BoxShape
-            halfExtents: 0.14, 0.1, 0.1
-          density: 2
-          constraints:
-            left-shoulder:
-              !type:PointToPointConstraint
-              localAnchorA: -0.17, 0, 0
-              localAnchorB: 0.17, 0, 0
-        left-hand:
-          shape:
-            !type:BoxShape
-            halfExtents: 0.1, 0.1, 0.1
-          density: 1
-          constraints:
-            left-knee:
-              !type:PointToPointConstraint
-              localAnchorA: -0.17, 0, 0
-              localAnchorB: 0.17, 0, 0
-        right-shoulder:
-          shape:
-            !type:BoxShape
-            halfExtents: 0.14, 0.1, 0.1
-          density: 3
-          constraints:
-            torso:
-              !type:PointToPointConstraint
-              localAnchorA: 0.17, 0, 0
-              localAnchorB: -0.17, 0, 0
-        right-knee:
-          shape:
-            !type:BoxShape
-            halfExtents: 0.14, 0.1, 0.1
-          density: 2
-          constraints:
-            right-shoulder:
-              !type:PointToPointConstraint
-              localAnchorA: 0.17, 0, 0
-              localAnchorB: -0.17, 0, 0
-        right-hand:
-          shape:
-            !type:BoxShape
-            halfExtents: 0.1, 0.1, 0.1
-          density: 1
-          takeble: true
-          constraints:
-            right-knee:
-              !type:PointToPointConstraint
-              localAnchorA: 0.17, 0, 0
-              localAnchorB: -0.17, 0, 0
-              
-        hip:
-          shape:
-            !type:BoxShape
-            halfExtents: 0.15, 0.1, 0.15
-          density: 2
-          constraints:
-            torso:
-              !type:PointToPointConstraint
-              localAnchorA: 0, 0.25, 0
-              localAnchorB: 0, -0.25, 0
-  
+  - type: RagdolizeOnDead
+    bonePhysics:
+      torso:
+        shape:
+          !type:BoxShape
+          halfExtents: 0.1, 0.2, 0.2
+        density: 4
+      left-shoulder:
+        shape:
+          !type:BoxShape
+          halfExtents: 0.14, 0.1, 0.1
+        density: 4
+        constraints:
+          torso:
+            !type:PointToPointConstraint
+            localAnchorA: -0.17, 0, 0
+            localAnchorB: 0.17, 0, 0
+      left-knee:
+        shape:
+          !type:BoxShape
+          halfExtents: 0.14, 0.1, 0.1
+        density: 2
+        constraints:
+          left-shoulder:
+            !type:PointToPointConstraint
+            localAnchorA: -0.17, 0, 0
+            localAnchorB: 0.17, 0, 0
+      left-hand:
+        shape:
+          !type:BoxShape
+          halfExtents: 0.1, 0.1, 0.1
+        density: 1
+        constraints:
+          left-knee:
+            !type:PointToPointConstraint
+            localAnchorA: -0.17, 0, 0
+            localAnchorB: 0.17, 0, 0
+      right-shoulder:
+        shape:
+          !type:BoxShape
+          halfExtents: 0.14, 0.1, 0.1
+        density: 3
+        constraints:
+          torso:
+            !type:PointToPointConstraint
+            localAnchorA: 0.17, 0, 0
+            localAnchorB: -0.17, 0, 0
+      right-knee:
+        shape:
+          !type:BoxShape
+          halfExtents: 0.14, 0.1, 0.1
+        density: 2
+        constraints:
+          right-shoulder:
+            !type:PointToPointConstraint
+            localAnchorA: 0.17, 0, 0
+            localAnchorB: -0.17, 0, 0
+      right-hand:
+        shape:
+          !type:BoxShape
+          halfExtents: 0.1, 0.1, 0.1
+        density: 1
+        takeble: true
+        constraints:
+          right-knee:
+            !type:PointToPointConstraint
+            localAnchorA: 0.17, 0, 0
+            localAnchorB: -0.17, 0, 0
+      hip:
+        shape:
+          !type:BoxShape
+          halfExtents: 0.15, 0.1, 0.15
+        density: 2
+        constraints:
+          torso:
+            !type:PointToPointConstraint
+            localAnchorA: 0, 0.25, 0
+            localAnchorB: 0, -0.25, 0

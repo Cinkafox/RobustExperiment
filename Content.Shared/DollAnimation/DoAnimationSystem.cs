@@ -11,7 +11,7 @@ public sealed class DoAnimationSystem : EntitySystem
     
     public override void Initialize()
     {
-        base.Initialize();
+        SubscribeLocalEvent<DoAnimateOnMoveComponent, ComponentStartup>(OnInit);
         SubscribeLocalEvent<DoAnimateOnMoveComponent, EntityStartMoveEvent>(OnStartMove);
         SubscribeLocalEvent<DoAnimateOnMoveComponent, EntityEndMoveEvent>(OnEndMove);
         SubscribeLocalEvent<DoAnimateOnMoveComponent, EntityGroundStatusChangedEvent>(OnJumping);
@@ -20,6 +20,11 @@ public sealed class DoAnimationSystem : EntitySystem
         SubscribeLocalEvent<DoAnimateOnActivateComponent, ItemDropEvent>(OnUsedDrop);
         SubscribeLocalEvent<DoAnimateWhileHoldComponent, ItemPickupEvent>(OnPickup);
         SubscribeLocalEvent<DoAnimateWhileHoldComponent, ItemDropEvent>(OnDrop);
+    }
+
+    private void OnInit(Entity<DoAnimateOnMoveComponent> ent, ref ComponentStartup args)
+    {
+        //_animationSystem.Play(ent, ent.Comp.OnStandby);
     }
 
     private void OnJumping(Entity<DoAnimateOnMoveComponent> ent, ref EntityGroundStatusChangedEvent args)

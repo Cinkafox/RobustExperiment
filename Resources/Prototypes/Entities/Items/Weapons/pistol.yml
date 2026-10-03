@@ -30,10 +30,10 @@
     - type: ActiveDamageArea
       damage: 15
     - type: RigidBody
-      density: 0.25
+      density: 0.15
       shape:
         !type:SphereShape
-        radius: 0.75
+        radius: 1
     - type: TimedDespawn
-      lifetime: 5
+      lifetime: 25
     - type: DeleteOnCollide
