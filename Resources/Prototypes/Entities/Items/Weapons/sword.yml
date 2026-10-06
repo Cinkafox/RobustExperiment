@@ -11,7 +11,7 @@
       position: 0.15,0,0.4
     - type: Weapon
       damageAreaId: swordDamageArea
-      translation: 0,0,3
+      translation: 0,0,2
     - type: RigidBody
       friction: 3
       restitution: 0.1

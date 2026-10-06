@@ -25,10 +25,11 @@ public sealed class GameViewport : Control
     [Dependency] private readonly IEntityManager _entityManager = default!;
     [Dependency] private readonly IInputManager _inputManager = default!;
     [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
-    [Dependency] private readonly IClyde _clyde = default!;
     [Dependency] private readonly ConfigurationUIManager _configuration = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
+    
+    private CameraSystem? _cameraSystem;
 
     private readonly Label _info;
     private readonly ShaderInstance _skyInstance;
@@ -51,9 +52,9 @@ public sealed class GameViewport : Control
         obj.New?.AddChild(_info);
     }
     
-    private void DrawSkyBox(DrawingHandleScreen handle)
+    private void DrawSkyBox(CameraSystem cameraSystem,DrawingHandleScreen handle)
     {
-        if(!TryGetCamera(out var camera)) 
+        if(!cameraSystem.TryGetCamera(_playerManager.LocalEntity, out var camera)) 
             return;
 
         var angle = Matrix4Helpers.TransformVector(Vector3.UnitX, camera.Value.Comp2.WorldRotation);
@@ -73,30 +74,22 @@ public sealed class GameViewport : Control
         }
     }
 
-    private bool TryGetCamera([NotNullWhen(true)] out Entity<CameraComponent, Transform3dComponent>? camera)
-    {
-        camera = null;
-        if (!_entityManager.TryGetComponent<CameraComponent>(_playerManager.LocalEntity, out var cameraComponent) ||
-            !_entityManager.TryGetComponent<Transform3dComponent>(_playerManager.LocalEntity, out var transform3dComponent))
-            return false;
-
-        camera = new Entity<CameraComponent, Transform3dComponent>(_playerManager.LocalEntity.Value, cameraComponent, transform3dComponent);
-        return true;
-    }
-
     private void Draw3d(DrawingHandleScreen handle)
     {
         if(_configuration.GetValue<bool>("pause_render"))
             return;
+
+        if (_cameraSystem is null)
+            _cameraSystem = _entityManager.System<CameraSystem>();
         
-        if(!TryGetCamera(out var camera))
+        if(!_cameraSystem.TryGetCamera(_playerManager.LocalEntity, out var camera))
            return;
         
         if(_configuration.GetValue<bool>("render_shitty_skybox"))
         {
             using (_profManager.Group("DrawSkyBox"))
             {
-                DrawSkyBox(handle);
+                DrawSkyBox(_cameraSystem, handle);
             }
         }
 

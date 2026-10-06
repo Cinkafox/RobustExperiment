@@ -31,7 +31,7 @@
 - type: bodyAnimation
   id: whoosh
   animation:
-    length: 0.65s
+    length: 0.45s
     looped: false
     tracks:
       - bone: left-shoulder
@@ -42,7 +42,7 @@
             value: 0.000, 0.000, -0.960
           - keyTime: 0.15
             value: -0.785, 0.087, -0.960
-          - keyTime: 0.25
+          - keyTime: 0.15
             value: -1.571, -0.785, -0.960
-          - keyTime: 0.35
+          - keyTime: 0.15
             value: 0.000, 0.000, -0.960    
