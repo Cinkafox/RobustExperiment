@@ -1,7 +1,0 @@
-﻿- type: entity
-  id: room
-  components:
-    - type: Model
-      currentMesh:
-        path: "/Models/room/room.obj"
-        scale: 1,1,1

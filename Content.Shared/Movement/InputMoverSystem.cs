@@ -91,16 +91,6 @@ public sealed class InputMoverSystem : EntitySystem
             RaiseLocalEvent(uid, new EntityJumpedEvent());
         }
     }
-    
-    public static EulerAngles DirectionToEuler(Vector3 direction)
-    {
-        direction = Vector3.Normalize(direction);
-        
-        var yaw = MathF.Atan2(direction.X, direction.Z);
-        var pitch = MathF.Asin(-direction.Y);
-        
-        return new EulerAngles(pitch, yaw, 0);
-    }
 }
 
 public sealed class EntityGroundStatusChangedEvent(bool inGround) : EntityEventArgs

@@ -1,14 +1,4 @@
 ﻿- type: entity
-  id: car
-  components:
-    - type: Model
-      currentMesh: "/Models/car/lowpoly car.obj"
-    - type: RigidBody
-      shape:
-         !type:BoxShape
-         halfExtents: 1, 0.7, 0.9
-         
-- type: entity
   id: machine
   components:
     - type: Model
