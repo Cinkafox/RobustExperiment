@@ -132,17 +132,17 @@ public sealed class TexturedTriangleTests
     {
         var tri = new TexturedTriangle();
         tri.Triangle.p1 = new Vector4(1, 2, 3, 1);
-        tri.TexturePoint1 = new Vector2(0.5f, 0.5f);
-        tri.TexturePoint2 = new Vector2(0.8f, 0.2f);
-        tri.TexturePoint3 = new Vector2(0.1f, 0.9f);
+        tri.TexturePoint1 = new Vector3(0.5f, 0.5f, 1f);
+        tri.TexturePoint2 = new Vector3(0.8f, 0.2f, 1f);
+        tri.TexturePoint3 = new Vector3(0.1f, 0.9f, 1f);
         tri.TextureId = 5;
 
         tri.Clear();
 
         Assert.That(tri.Triangle.p1, Is.EqualTo(new Vector4(0, 0, 0, 1)));
-        Assert.That(tri.TexturePoint1, Is.EqualTo(Vector2.Zero));
-        Assert.That(tri.TexturePoint2, Is.EqualTo(Vector2.Zero));
-        Assert.That(tri.TexturePoint3, Is.EqualTo(Vector2.Zero));
+        Assert.That(tri.TexturePoint1, Is.EqualTo(new Vector3(0, 0, 1)));
+        Assert.That(tri.TexturePoint2, Is.EqualTo(new Vector3(0, 0, 1)));
+        Assert.That(tri.TexturePoint3, Is.EqualTo(new Vector3(0, 0, 1)));
         Assert.That(tri.TextureId, Is.EqualTo(0));
     }
 
@@ -153,9 +153,9 @@ public sealed class TexturedTriangleTests
         tri.Triangle.p1 = new Vector4(0, 0, 0, 2);
         tri.Triangle.p2 = new Vector4(1, 0, 0, 4);
         tri.Triangle.p3 = new Vector4(0, 1, 0, 8);
-        tri.TexturePoint1 = new Vector2(0.4f, 0.6f);
-        tri.TexturePoint2 = new Vector2(0.8f, 0.2f);
-        tri.TexturePoint3 = new Vector2(0.1f, 0.9f);
+        tri.TexturePoint1 = new Vector3(0.4f, 0.6f, 1f);
+        tri.TexturePoint2 = new Vector3(0.8f, 0.2f, 1f);
+        tri.TexturePoint3 = new Vector3(0.1f, 0.9f, 1f);
 
         tri.TransformTexture();
 
@@ -165,6 +165,30 @@ public sealed class TexturedTriangleTests
         Assert.That(tri.TexturePoint1.Y, Is.EqualTo(0.6f / 2));
         Assert.That(tri.TexturePoint2.Y, Is.EqualTo(0.2f / 4));
         Assert.That(tri.TexturePoint3.Y, Is.EqualTo(0.9f / 8));
+        Assert.That(tri.TexturePoint1.Z, Is.EqualTo(1f / 2));
+        Assert.That(tri.TexturePoint2.Z, Is.EqualTo(1f / 4));
+        Assert.That(tri.TexturePoint3.Z, Is.EqualTo(1f / 8));
+    }
+
+    [Test]
+    public void TestTransformTexture_RecoversOriginalUVAfterDivision()
+    {
+        var tri = new TexturedTriangle();
+        tri.Triangle.p1 = new Vector4(0, 0, 0, 2);
+        tri.Triangle.p2 = new Vector4(1, 0, 0, 4);
+        tri.Triangle.p3 = new Vector4(0, 1, 0, 8);
+        tri.TexturePoint1 = new Vector3(0.4f, 0.6f, 1f);
+        tri.TexturePoint2 = new Vector3(0.8f, 0.2f, 1f);
+        tri.TexturePoint3 = new Vector3(0.1f, 0.9f, 1f);
+
+        tri.TransformTexture();
+
+        Assert.That(tri.TexturePoint1.X / tri.TexturePoint1.Z, Is.EqualTo(0.4f).Within(1e-6f));
+        Assert.That(tri.TexturePoint1.Y / tri.TexturePoint1.Z, Is.EqualTo(0.6f).Within(1e-6f));
+        Assert.That(tri.TexturePoint2.X / tri.TexturePoint2.Z, Is.EqualTo(0.8f).Within(1e-6f));
+        Assert.That(tri.TexturePoint2.Y / tri.TexturePoint2.Z, Is.EqualTo(0.2f).Within(1e-6f));
+        Assert.That(tri.TexturePoint3.X / tri.TexturePoint3.Z, Is.EqualTo(0.1f).Within(1e-6f));
+        Assert.That(tri.TexturePoint3.Y / tri.TexturePoint3.Z, Is.EqualTo(0.9f).Within(1e-6f));
     }
 }
 
@@ -327,9 +351,9 @@ public sealed class ClippingInstanceTests
         tri.Triangle.p1 = new Vector4(0, 0, 1, 1);
         tri.Triangle.p2 = new Vector4(1, 0, 1, 1);
         tri.Triangle.p3 = new Vector4(0, 1, 1, 1);
-        tri.TexturePoint1 = new Vector2(0, 0);
-        tri.TexturePoint2 = new Vector2(1, 0);
-        tri.TexturePoint3 = new Vector2(0.5f, 1);
+        tri.TexturePoint1 = new Vector3(0, 0, 1f);
+        tri.TexturePoint2 = new Vector3(1, 0, 1f);
+        tri.TexturePoint3 = new Vector3(0.5f, 1, 1f);
         tri.TextureId = 1;
 
         _clipping.ClipAgainstClip(
@@ -369,9 +393,9 @@ public sealed class ClippingInstanceTests
         tri.Triangle.p1 = new Vector4(0, 0, 1, 1);
         tri.Triangle.p2 = new Vector4(0, 1, -1, 1);
         tri.Triangle.p3 = new Vector4(1, 0, -1, 1);
-        tri.TexturePoint1 = new Vector2(0, 0);
-        tri.TexturePoint2 = new Vector2(0, 1);
-        tri.TexturePoint3 = new Vector2(1, 0);
+        tri.TexturePoint1 = new Vector3(0, 0, 1f);
+        tri.TexturePoint2 = new Vector3(0, 1, 1f);
+        tri.TexturePoint3 = new Vector3(1, 0, 1f);
         tri.TextureId = 42;
 
         _clipping.ClipAgainstClip(
@@ -397,9 +421,9 @@ public sealed class ClippingInstanceTests
         tri.Triangle.p1 = new Vector4(0, 0, 1, 1);
         tri.Triangle.p2 = new Vector4(1, 0, 1, 1);
         tri.Triangle.p3 = new Vector4(0.5f, 1, -1, 1);
-        tri.TexturePoint1 = new Vector2(0, 0);
-        tri.TexturePoint2 = new Vector2(1, 0);
-        tri.TexturePoint3 = new Vector2(0.5f, 1);
+        tri.TexturePoint1 = new Vector3(0, 0, 1f);
+        tri.TexturePoint2 = new Vector3(1, 0, 1f);
+        tri.TexturePoint3 = new Vector3(0.5f, 1, 1f);
         tri.TextureId = 7;
 
         _clipping.ClipAgainstClip(
@@ -418,6 +442,65 @@ public sealed class ClippingInstanceTests
             Assert.That(clipped.Triangle.GetP2().Z, Is.GreaterThanOrEqualTo(-0.0001f));
             Assert.That(clipped.Triangle.GetP3().Z, Is.GreaterThanOrEqualTo(-0.0001f));
         }
+    }
+
+    [Test]
+    public void TestClipTextured_ScreenClip_PerspectiveCorrectUVInvariant()
+    {
+        // Screen-space clip: p.w == 1 for every vertex, while the texture points carry
+        // (u/w, v/w, 1/w). Interpolation of the tex points must therefore be linear and
+        // the perspective-correct UV has to be recovered as X/Z.
+        var tri = new TexturedTriangle();
+        tri.Triangle.p1 = new Vector4(10, 0, 0, 1);
+        tri.Triangle.p2 = new Vector4(10, 50, 0, 1);
+        tri.Triangle.p3 = new Vector4(-50, 50, 0, 1);
+        tri.TexturePoint1 = new Vector3(0f, 0f, 0.5f);
+        tri.TexturePoint2 = new Vector3(1f, 0f, 0.1f);
+        tri.TexturePoint3 = new Vector3(0f, 1f, 1.0f);
+        tri.TextureId = 3;
+
+        var planeP = new Vector3(0, 0, 0);
+        var planeN = new Vector3(1, 0, 0);
+
+        _clipping.ClipAgainstClip(planeP, planeN, tri, _triPool, _debugPool);
+
+        // Two vertices inside, one outside -> two triangles; the first one carries the
+        // new vertex on the p1 -> p3 edge at index 3.
+        Assert.That(_clipping.Clipping.Length, Is.EqualTo(2));
+
+        ClippingInstance.IntersectPlane(planeP, planeN, tri.Triangle.p1, tri.Triangle.p3, out var t13);
+        ClippingInstance.IntersectPlane(planeP, planeN, tri.Triangle.p2, tri.Triangle.p3, out var t23);
+
+        AssertPerspectiveCorrect(tri.TexturePoint1, tri.TexturePoint3, t13, _clipping.Clipping[0].TexturePoint3);
+        AssertPerspectiveCorrect(tri.TexturePoint2, tri.TexturePoint3, t23, _clipping.Clipping[1].TexturePoint3);
+    }
+
+    private static void AssertPerspectiveCorrect(Vector3 from, Vector3 to, float t, Vector3 actual)
+    {
+        // Re-derive the original UV and w from the (u/w, v/w, 1/w) triple and evaluate the
+        // classic perspective-correct formula independently of ClipTextured.
+        var u0 = from.X / from.Z;
+        var v0 = from.Y / from.Z;
+        var w0 = 1f / from.Z;
+        var u1 = to.X / to.Z;
+        var v1 = to.Y / to.Z;
+        var w1 = 1f / to.Z;
+
+        var denominator = (1f - t) / w0 + t / w1;
+        var expectedU = ((1f - t) * u0 / w0 + t * u1 / w1) / denominator;
+        var expectedV = ((1f - t) * v0 / w0 + t * v1 / w1) / denominator;
+
+        Assert.That(MathF.Abs(actual.Z), Is.GreaterThan(1e-9f));
+        Assert.That(actual.X / actual.Z, Is.EqualTo(expectedU).Within(1e-5f));
+        Assert.That(actual.Y / actual.Z, Is.EqualTo(expectedV).Within(1e-5f));
+
+        // The affine (screen-space) blend must give a different answer, otherwise this
+        // test would not actually be exercising the perspective correction.
+        var affineU = (1f - t) * u0 + t * u1;
+        var affineV = (1f - t) * v0 + t * v1;
+        var differsFromAffine = MathF.Abs(expectedU - affineU) > 1e-4f || MathF.Abs(expectedV - affineV) > 1e-4f;
+        Assert.That(differsFromAffine, Is.True,
+            "perspective-correct and affine interpolation coincide, test is vacuous");
     }
 
     [Test]

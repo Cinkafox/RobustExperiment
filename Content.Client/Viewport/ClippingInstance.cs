@@ -7,8 +7,8 @@ public sealed class ClippingInstance
 {
     public readonly SimpleBuffer<Vector4> InsidePoints = new(3);
     public readonly SimpleBuffer<Vector4> OutsidePoints = new(3);
-    public readonly SimpleBuffer<Vector2> InsideTex = new(3);
-    public readonly SimpleBuffer<Vector2> OutsideTex = new(3);
+    public readonly SimpleBuffer<Vector3> InsideTex = new(3);
+    public readonly SimpleBuffer<Vector3> OutsideTex = new(3);
     public readonly SimpleBuffer<TexturedTriangle> Clipping = new(2);
     public readonly SimpleBuffer<Triangle> DebugClipping = new(2);
 

@@ -16,8 +16,8 @@ public sealed class DrawingInstance
     
     public readonly Vector3[] DrawVertex3dBuffer = new Vector3[3];
     public readonly Vector2[] DrawVertexUntexturedBuffer = new Vector2[3];
-    public readonly Vector2[] DrawVertexTexturePointBuffer = new Vector2[3];
-    public readonly DrawVertexUV2D[] DrawVertexBuffer = new DrawVertexUV2D[3];
+    public readonly Vector3[] DrawVertexTexturePointBuffer = new Vector3[3];
+    public readonly DrawVertexUV2DColor[] DrawVertexBuffer = new DrawVertexUV2DColor[3];
 
     public readonly ClippingInstance ClippingInstance = new();
     public readonly SimplePool<ShaderInstance> ShadersPool;
@@ -37,8 +37,8 @@ public sealed class DrawingInstance
 
         FillArrays(ref DrawVertex3dBuffer, () => new Vector3());
         FillArrays(ref DrawVertexUntexturedBuffer, () => new Vector2());
-        FillArrays(ref DrawVertexTexturePointBuffer, () => new Vector2());
-        FillArrays(ref DrawVertexBuffer, () => new DrawVertexUV2D(Vector2.Zero, Vector2.Zero));
+        FillArrays(ref DrawVertexTexturePointBuffer, () => new Vector3(0f, 0f, 1f));
+        FillArrays(ref DrawVertexBuffer, () => new DrawVertexUV2DColor(Vector2.Zero, Vector2.Zero, Color.White));
     }
 
     private void FillArrays<T>(ref T[] array, Func<T> instance)

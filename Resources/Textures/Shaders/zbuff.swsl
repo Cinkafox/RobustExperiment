@@ -10,7 +10,11 @@ highp float calculateZ(highp vec2 xy, highp vec3 p1, highp vec3 normal) {
 }
 
 void fragment() {
-    highp vec4 texCol = zTexture(UV);
+    // UV2.x carries the perspective denominator (1/w) interpolated linearly in screen
+    // space, while UV carries (u/w, v/w). Dividing here yields perspective-correct
+    // texture coordinates instead of affine (screen-space) ones.
+    highp float denom = abs(UV2.x) > 0.000001 ? UV2.x : 1.0;
+    highp vec4 texCol = zTexture(UV / denom);
 
     highp vec3 lightDir = vec3(-2,3,0);
     highp vec3 direction = normalize(lightDir);

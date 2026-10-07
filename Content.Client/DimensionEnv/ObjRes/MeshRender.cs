@@ -64,17 +64,18 @@ public sealed class MeshRender
         var vert3 = face.Vertices[i3];
 
         var currTriangle = handle.DrawingInstance.TriangleBuffer.Take();
+        currTriangle.Clear();
 
         currTriangle.Triangle.p1 = TranslatedVertexes[vert1.VertexId];
         currTriangle.Triangle.p2 = TranslatedVertexes[vert2.VertexId];
         currTriangle.Triangle.p3 = TranslatedVertexes[vert3.VertexId];
-        
+
         if (face.HasTexturePos)
         {
             currTriangle.TextureId = TextureBufferCoord + face.MaterialId;
-            currTriangle.TexturePoint1 = Mesh.TextureCoords[vert1.TexPosId - 1];
-            currTriangle.TexturePoint2 = Mesh.TextureCoords[vert2.TexPosId - 1];
-            currTriangle.TexturePoint3 = Mesh.TextureCoords[vert3.TexPosId - 1];
+            currTriangle.TexturePoint1 = new Vector3(Mesh.TextureCoords[vert1.TexPosId - 1], 1f);
+            currTriangle.TexturePoint2 = new Vector3(Mesh.TextureCoords[vert2.TexPosId - 1], 1f);
+            currTriangle.TexturePoint3 = new Vector3(Mesh.TextureCoords[vert3.TexPosId - 1], 1f);
         }
         
         handle.DrawPolygon(currTriangle);

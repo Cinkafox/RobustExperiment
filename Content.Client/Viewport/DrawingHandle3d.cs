@@ -131,9 +131,14 @@ public sealed class DrawingHandle3d : IDisposable
             var z2 = clippedTriangle.Triangle.p2.Z;
             var z3 = clippedTriangle.Triangle.p3.Z;
             clippedTriangle.Triangle.ViewSpaceZ = Math.Min(z1, Math.Min(z2, z3));
-            
+
             clippedTriangle.Triangle.Transform(ProjectionMatrix);
-            
+
+            // Convert texture coordinates to screen-space perspective form (u/w, v/w, 1/w)
+            // before SetP* overwrites W with 1. This is what makes interpolation
+            // perspective-correct instead of affine.
+            clippedTriangle.TransformTexture();
+
             clippedTriangle.Triangle.SetP1(ToScreenVec(clippedTriangle.Triangle.p1));
             clippedTriangle.Triangle.SetP2(ToScreenVec(clippedTriangle.Triangle.p2));
             clippedTriangle.Triangle.SetP3(ToScreenVec(clippedTriangle.Triangle.p3));
@@ -178,12 +183,17 @@ public sealed class DrawingHandle3d : IDisposable
         DrawingInstance.DrawVertexTexturePointBuffer[1] = triangle.TexturePoint2;
         DrawingInstance.DrawVertexTexturePointBuffer[2] = triangle.TexturePoint3;
 
-        SetDrawVertexUV2D(ref DrawingInstance.DrawVertexBuffer[0], DrawingInstance.DrawVertexUntexturedBuffer[0],
-            DrawingInstance.DrawVertexTexturePointBuffer[0]);
-        SetDrawVertexUV2D(ref DrawingInstance.DrawVertexBuffer[1], DrawingInstance.DrawVertexUntexturedBuffer[1],
-            DrawingInstance.DrawVertexTexturePointBuffer[1]);
-        SetDrawVertexUV2D(ref DrawingInstance.DrawVertexBuffer[2], DrawingInstance.DrawVertexUntexturedBuffer[2],
-            DrawingInstance.DrawVertexTexturePointBuffer[2]);
+        var modulate = Color.FromSrgb(Color.White * _handleBase.Modulate);
+
+        for (var i = 0; i < 3; i++)
+        {
+            var tex = DrawingInstance.DrawVertexTexturePointBuffer[i];
+            SetDrawVertex(ref DrawingInstance.DrawVertexBuffer[i],
+                DrawingInstance.DrawVertexUntexturedBuffer[i],
+                new Vector2(tex.X, tex.Y),
+                new Vector2(tex.Z, 0f),
+                modulate);
+        }
     }
 
     private void SetVector3Data(ref Vector3 vector3, float x, float y, float z)
@@ -199,10 +209,13 @@ public sealed class DrawingHandle3d : IDisposable
         vector2.Y = y;
     }
 
-    private void SetDrawVertexUV2D(ref DrawVertexUV2D vertex, in Vector2 position, in Vector2 uv)
+    private static void SetDrawVertex(ref DrawVertexUV2DColor vertex, in Vector2 position, in Vector2 uv,
+        in Vector2 uv2, Color modulate)
     {
-        vertex.UV = uv;
         vertex.Position = position;
+        vertex.UV = uv;
+        vertex.UV2 = uv2;
+        vertex.Color = modulate;
     }
     
     private Vector3 _curNormal = Vector3.Zero;
