@@ -10,9 +10,9 @@ public sealed class Triangle : IEnumerable<Vector4>
     private Vector3 vertexNormal3;
     private bool hasVertexNormal;
     
-    public Vector4 p1;
-    public Vector4 p2;
-    public Vector4 p3;
+    public Vector4 p1 = new Vector4(0,0,0,1);
+    public Vector4 p2 = new Vector4(0,0,0,1);
+    public Vector4 p3 = new Vector4(0,0,0,1);
 
     public float Z => (p1.Z + p2.Z + p3.Z) * (1.0f / 3.0f);
     public float ViewSpaceZ;
@@ -64,7 +64,18 @@ public sealed class Triangle : IEnumerable<Vector4>
 
     public void Clear()
     {
-        p1 = p2 = p3 = new Vector4(0,0,0,1);
+        p1.X = 0;
+        p1.Y = 0;
+        p1.Z = 0;
+        p1.W = 1;
+        p2.X = 0;
+        p2.Y = 0;
+        p2.Z = 0;
+        p2.W = 1;
+        p3.X = 0;
+        p3.Y = 0;
+        p3.Z = 0;
+        p3.W = 1;
         ViewSpaceZ = 0f;
     }
 

@@ -15,7 +15,7 @@ public sealed class MeshRender
     {
         Mesh = mesh;
         TextureBufferCoord = textureBufferCoord;
-        _translatedVertexes = new Vector4[mesh.Vertexes.Count];
+        _translatedVertexes = new Vector4[mesh.Vertexes.Length];
     }
 
     private readonly Vector4[] _translatedVertexes;
@@ -31,7 +31,7 @@ public sealed class MeshRender
 
     private void TranslateMesh()
     {
-        for (var i = 0; i < Mesh.Vertexes.Count; i++)
+        for (var i = 0; i < Mesh.Vertexes.Length; i++)
         {
             _translatedVertexes[i] = Vector4.Transform(Mesh.Vertexes[i], Transform);
         }
@@ -64,7 +64,6 @@ public sealed class MeshRender
         var vert3 = face.Vertices[i3];
 
         var currTriangle = handle.DrawingInstance.TriangleBuffer.Take();
-        currTriangle.Clear();
 
         currTriangle.Triangle.p1 = TranslatedVertexes[vert1.VertexId];
         currTriangle.Triangle.p2 = TranslatedVertexes[vert2.VertexId];
@@ -73,9 +72,10 @@ public sealed class MeshRender
         if (face.HasTexturePos)
         {
             currTriangle.TextureId = TextureBufferCoord + face.MaterialId;
-            currTriangle.TexturePoint1 = new Vector3(Mesh.TextureCoords[vert1.TexPosId - 1], 1f);
-            currTriangle.TexturePoint2 = new Vector3(Mesh.TextureCoords[vert2.TexPosId - 1], 1f);
-            currTriangle.TexturePoint3 = new Vector3(Mesh.TextureCoords[vert3.TexPosId - 1], 1f);
+            currTriangle.SetTexturePoints(
+                in Mesh.TextureCoords[vert1.TexPosId - 1],
+                in Mesh.TextureCoords[vert2.TexPosId - 1], 
+                in Mesh.TextureCoords[vert3.TexPosId - 1]);
         }
         
         handle.DrawPolygon(currTriangle);

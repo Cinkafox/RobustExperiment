@@ -17,48 +17,76 @@ namespace Content.Client.DimensionEnv.ObjRes;
 
 public sealed class Mesh
 {
-    public List<Vector4> Vertexes = new();
-    public List<Vector3> Normals = new();
-    public List<Face> Faces = new();
-    public List<Vector2> TextureCoords = new();
-    public List<Material> Materials = new();
+    public readonly Vector4[] Vertexes;
+    public readonly Vector3[] Normals;
+    public readonly Face[] Faces;
+    public readonly Vector2[] TextureCoords;
+    public readonly Material[] Materials;
+
+    public Mesh(Vector4[] vertexes, Vector3[] normals, Face[] faces, Vector2[] textureCoords, Material[] materials)
+    {
+        Vertexes = vertexes;
+        Normals = normals;
+        Faces = faces;
+        TextureCoords = textureCoords;
+        Materials = materials;
+    }
+
+    public Mesh()
+    {
+        Vertexes = [];
+        Normals = [];
+        Faces = [];
+        TextureCoords = [];
+        Materials = [];
+    }
 
     public static Mesh Parse(IDependencyCollection dependencyCollection, TextReader textReader, ResPath path, Matrix4x4? matrix = null)
     {
-        var mesh = new Mesh();
         var parser = new Objparser(dependencyCollection, textReader, path);
         
         var currMaterialId = -1;
-        Dictionary<string, Material> materials = default!;
+        Dictionary<string, Material> materialsDictionary = default!;
+        
+        List<Vector4> vertexes = [];
+        List<Vector3> normals = [];
+        List<Face> faces = [];
+        List<Vector2> textureCoords = [];
+        List<Material> materials = [];
 
         foreach (var content in parser.Contents)
         {
             switch (content)
             {
                 case VertexContent vertexContent:
-                    mesh.Vertexes.Add(ShiftOrDefault(vertexContent.Vertex, matrix));
+                    vertexes.Add(ShiftOrDefault(vertexContent.Vertex, matrix));
                     break;
                 case FaceContent faceContent:
                     faceContent.Face.MaterialId = currMaterialId;
-                    mesh.Faces.Add(faceContent.Face);
+                    faces.Add(faceContent.Face);
                     break;
                 case TexturePosContent texturePosContent:
-                    mesh.TextureCoords.Add(texturePosContent.TexturePos);
+                    textureCoords.Add(texturePosContent.TexturePos);
                     break;
                 case NormalContent normalContent:
-                    mesh.Normals.Add(ShiftOrDefault(normalContent.Normal, matrix));
+                    normals.Add(ShiftOrDefault(normalContent.Normal, matrix));
                     break;
                 case MaterialContent materialContent:
-                    mesh.Materials.Add(materials[materialContent.Material]);
+                    materials.Add(materialsDictionary[materialContent.Material]);
                     currMaterialId++;
                     break;
                 case MtlLoadContent mtlLoadContent:
-                    materials = mtlLoadContent.Materials;
+                    materialsDictionary = mtlLoadContent.Materials;
                     break;
             }
         }
         
-        return mesh;
+        return new Mesh(
+            vertexes.ToArray(), 
+            normals.ToArray(),
+            faces.ToArray(),
+            textureCoords.ToArray(), 
+            materials.ToArray());
     }
 
     private static Vector4 ShiftOrDefault(Vector4 pos, Matrix4x4? matrix)
@@ -127,10 +155,6 @@ public sealed class MeshSerializer : ITypeReader<Mesh, ValueDataNode>, ITypeRead
     public void CopyTo(ISerializationManager serializationManager, Mesh source, ref Mesh target,
         IDependencyCollection dependencies, SerializationHookContext hookCtx, ISerializationContext? context = null)
     {
-        target.Materials = source.Materials.ToList();
-        target.Normals = source.Normals.ToList();
-        target.TextureCoords = source.TextureCoords.ToList();
-        target.Faces = source.Faces.ToList();
-        target.Vertexes = source.Vertexes.ToList();
+        target = new Mesh(source.Vertexes, source.Normals, source.Faces, source.TextureCoords, source.Materials);
     }
 }

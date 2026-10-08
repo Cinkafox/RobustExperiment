@@ -5,21 +5,38 @@ namespace Content.Client.Utils;
 public sealed class TexturedTriangle
 {
     public readonly Triangle Triangle = new();
-
-    /// <summary>
-    ///     Texture coordinates of the vertex.
-    ///     X/Y are the UV; Z is the perspective denominator:
-    ///     1 before projection, 1/w after projection.
-    /// </summary>
-    public Vector3 TexturePoint1;
-    public Vector3 TexturePoint2;
-    public Vector3 TexturePoint3;
+    
+    public Vector3 TexturePoint1 = new(0,0,1);
+    public Vector3 TexturePoint2 = new(0,0,1);
+    public Vector3 TexturePoint3 = new(0,0,1);
     public int TextureId;
+
+    public void SetTexturePoints(in Vector2 p1,in Vector2 p2,in Vector2 p3)
+    {
+        TexturePoint1.X = p1.X;
+        TexturePoint1.Y = p1.Y;
+        TexturePoint1.Z = 1f;
+        TexturePoint2.X = p2.X;
+        TexturePoint2.Y = p2.Y;
+        TexturePoint2.Z = 1f;
+        TexturePoint3.X = p3.X;
+        TexturePoint3.Y = p3.Y;
+        TexturePoint3.Z = 1f;
+    }
 
     public void Clear()
     {
         Triangle.Clear();
-        TexturePoint1 = TexturePoint2 = TexturePoint3 = new Vector3(0f, 0f, 1f);
+        TexturePoint1.X = 0;
+        TexturePoint1.Y = 0;
+        TexturePoint1.Z = 1;
+        TexturePoint2.X = 0;
+        TexturePoint2.Y = 0;
+        TexturePoint2.Z = 1;
+        TexturePoint3.X = 0;
+        TexturePoint3.Y = 0;
+        TexturePoint3.Z = 1;
+        
         TextureId = 0;
     }
 

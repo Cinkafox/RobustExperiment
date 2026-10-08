@@ -69,7 +69,7 @@ public sealed class DrawingInstance
         _drawnBuffer.Sort(TriangleZComparer);
     }
 
-    public int AllocTexture(List<Material> materials)
+    public int AllocTexture(Material[] materials)
     {
         var currLength = TextureBuffer.Length;
         foreach (var material in materials)
