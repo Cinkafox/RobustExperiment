@@ -56,6 +56,32 @@ public sealed class TriangleTests
     }
 
     [Test]
+    public void TestSetViewSpaceZToFarthest_UsesMaxVertexZ()
+    {
+        var tri = new Triangle();
+        tri.p1 = new Vector4(0, 0, 5, 1);
+        tri.p2 = new Vector4(0, 0, 1, 1);
+        tri.p3 = new Vector4(0, 0, 9, 1);
+
+        tri.SetViewSpaceZToFarthest();
+
+        Assert.That(tri.ViewSpaceZ, Is.EqualTo(9));
+    }
+
+    [Test]
+    public void TestSetViewSpaceZToFarthest_IgnoresW()
+    {
+        var tri = new Triangle();
+        tri.p1 = new Vector4(0, 0, 3, 1);
+        tri.p2 = new Vector4(0, 0, 7, 1);
+        tri.p3 = new Vector4(0, 0, 2, 10);
+
+        tri.SetViewSpaceZToFarthest();
+
+        Assert.That(tri.ViewSpaceZ, Is.EqualTo(7));
+    }
+
+    [Test]
     public void TestClear_ResetsPointsAndViewZ()
     {
         var tri = new Triangle();
@@ -788,6 +814,32 @@ public sealed class TriangleZComparerTests
         Assert.That(list[0].Triangle.ViewSpaceZ, Is.EqualTo(15));
         Assert.That(list[1].Triangle.ViewSpaceZ, Is.EqualTo(10));
         Assert.That(list[2].Triangle.ViewSpaceZ, Is.EqualTo(5));
+    }
+
+    [Test]
+    public void TestFloorDrawnBeforeCharacter_WhenFarther()
+    {
+        // A floor quad spanning from z = 2 (near edge) to z = 100 (far edge) must be
+        // sorted BEFORE a character standing at z = 30, otherwise it would be drawn over
+        // him. Sorting by the farthest vertex makes the floor come first.
+        var floor = new TexturedTriangle();
+        floor.Triangle.p1 = new Vector4(0, 0, 2, 1);
+        floor.Triangle.p2 = new Vector4(0, 0, 100, 1);
+        floor.Triangle.p3 = new Vector4(0, 0, 100, 1);
+        floor.Triangle.SetViewSpaceZToFarthest();
+
+        var character = new TexturedTriangle();
+        character.Triangle.p1 = new Vector4(0, 0, 30, 1);
+        character.Triangle.p2 = new Vector4(0, 0, 30, 1);
+        character.Triangle.p3 = new Vector4(0, 0, 30, 1);
+        character.Triangle.SetViewSpaceZToFarthest();
+
+        var comparer = new TriangleZComparer();
+        var list = new List<TexturedTriangle> { character, floor };
+        list.Sort(comparer);
+
+        Assert.That(list[0], Is.SameAs(floor));
+        Assert.That(list[1], Is.SameAs(character));
     }
 
     [Test]

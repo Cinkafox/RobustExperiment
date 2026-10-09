@@ -129,10 +129,7 @@ public sealed class DrawingHandle3d : IDisposable
 
         foreach (var clippedTriangle in ClippingInstance.Clipping)
         {
-            var z1 = clippedTriangle.Triangle.p1.Z;
-            var z2 = clippedTriangle.Triangle.p2.Z;
-            var z3 = clippedTriangle.Triangle.p3.Z;
-            clippedTriangle.Triangle.ViewSpaceZ = Math.Min(z1, Math.Min(z2, z3));
+            clippedTriangle.Triangle.SetViewSpaceZToFarthest();
 
             clippedTriangle.Triangle.Transform(ProjectionMatrix);
 

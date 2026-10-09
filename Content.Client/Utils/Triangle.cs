@@ -17,6 +17,11 @@ public sealed class Triangle : IEnumerable<Vector4>
     public float Z => (p1.Z + p2.Z + p3.Z) * (1.0f / 3.0f);
     public float ViewSpaceZ;
 
+    public void SetViewSpaceZToFarthest()
+    {
+        ViewSpaceZ = Math.Max(p1.Z, Math.Max(p2.Z, p3.Z));
+    }
+
     public void Transform(Matrix4x4 matrix4)
     {
         p1 = Vector4.Transform(p1, matrix4);

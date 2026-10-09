@@ -22,9 +22,7 @@
         !type:PlaneShape
         distance: 1
     - type: Model
-      currentMesh: 
-        path: "/Models/floor/floor.obj"
-        offset: 0,-2,0
+      currentMesh: "/Models/floor/floor.obj"
       
 - type: entity
   id: nyash
