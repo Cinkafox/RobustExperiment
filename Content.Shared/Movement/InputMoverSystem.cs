@@ -56,8 +56,13 @@ public sealed partial class InputMoverSystem : EntitySystem
             }
 
             var airFactor = rigidBodyComponent.IsGrounded ? 40f : 5f;
+            var normalizedPositionMovement = Vector3.Zero;
+            if (inputMover.PositionMovement != Vector3.Zero)
+            {
+                normalizedPositionMovement = Vector3.Normalize(inputMover.PositionMovement);
+            }
             
-            var shift = inputMover.PositionMovement * airFactor;
+            var shift = normalizedPositionMovement * airFactor;
             if (!TopDownMode)
             {
                 transform3dComponent.LocalRotation *= (inputMover.RotationMovement * frameTime).ToQuaternion();
@@ -68,14 +73,14 @@ public sealed partial class InputMoverSystem : EntitySystem
             }
             else
             {
-                var toYaw = Angle.FromWorldVec(new Vector2(inputMover.PositionMovement.X,
-                    -inputMover.PositionMovement.Z));
+                var toYaw = Angle.FromWorldVec(new Vector2(normalizedPositionMovement.X,
+                    -normalizedPositionMovement.Z));
                 
                 var delta = transform3dComponent.LocalAngle.Yaw - toYaw;
                 
                 delta = (delta % (MathF.PI * 2f) + MathF.PI * 3f) % (MathF.PI * 2f) - MathF.PI;
                 
-                if(inputMover.PositionMovement != Vector3.Zero)
+                if(normalizedPositionMovement != Vector3.Zero)
                     transform3dComponent.LocalAngle = new EulerAngles(transform3dComponent.WorldAngle.Pitch, 
                         transform3dComponent.WorldAngle.Yaw - delta * 0.6, 
                         transform3dComponent.WorldAngle.Roll);
@@ -86,7 +91,7 @@ public sealed partial class InputMoverSystem : EntitySystem
             if(!rigidBodyComponent.IsGrounded || !inputMover.IsJumping) 
                 continue;
                 
-            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0, 500, 0) * rigidBodyComponent.Mass * frameTime);
+            _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), new Vector3(0, 300, 0) * rigidBodyComponent.Mass * frameTime);
             inputMover.IsJumping = false;
             RaiseLocalEvent(uid, new EntityJumpedEvent());
         }
