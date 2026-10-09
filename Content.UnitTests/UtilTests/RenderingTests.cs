@@ -82,6 +82,32 @@ public sealed class TriangleTests
     }
 
     [Test]
+    public void TestSetViewSpaceZToNearest_UsesMinVertexZ()
+    {
+        var tri = new Triangle();
+        tri.p1 = new Vector4(0, 0, 5, 1);
+        tri.p2 = new Vector4(0, 0, 1, 1);
+        tri.p3 = new Vector4(0, 0, 9, 3);
+
+        tri.SetViewSpaceZToNearest();
+
+        Assert.That(tri.ViewSpaceZ, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TestSetViewSpaceZToNearest_IgnoresW()
+    {
+        var tri = new Triangle();
+        tri.p1 = new Vector4(0, 0, 3, 10);
+        tri.p2 = new Vector4(0, 0, 7, 1);
+        tri.p3 = new Vector4(0, 0, 2, 4);
+
+        tri.SetViewSpaceZToNearest();
+
+        Assert.That(tri.ViewSpaceZ, Is.EqualTo(2));
+    }
+
+    [Test]
     public void TestClear_ResetsPointsAndViewZ()
     {
         var tri = new Triangle();
@@ -849,6 +875,47 @@ public sealed class TriangleZComparerTests
         Assert.That(comparer.Compare(null, null), Is.EqualTo(0));
         Assert.That(comparer.Compare(null, new TexturedTriangle()), Is.EqualTo(0));
         Assert.That(comparer.Compare(new TexturedTriangle(), null), Is.EqualTo(0));
+    }
+
+    [Test]
+    public void TestEqualDepth_DrawOrderBreaksTieDeterministically()
+    {
+        var first = new TexturedTriangle { DrawOrder = 0 };
+        first.Triangle.ViewSpaceZ = 5;
+        var second = new TexturedTriangle { DrawOrder = 1 };
+        second.Triangle.ViewSpaceZ = 5;
+
+        var comparer = new TriangleZComparer();
+
+        Assert.That(comparer.Compare(first, second), Is.LessThan(0));
+        Assert.That(comparer.Compare(second, first), Is.GreaterThan(0));
+    }
+
+    [Test]
+    public void TestNearest_DrawsFrontShellOverInnerSurface()
+    {
+        // An outer shell triangle has a far vertex (z = 8) but its near vertices (z = 4)
+        // are in front of the inner surface at z = 5. Sorting by the farthest vertex
+        // pushes the shell behind the surface (the inner layer shows through, wrong);
+        // the nearest vertex keeps the shell in front.
+        var inner = new TexturedTriangle();
+        inner.Triangle.p1 = new Vector4(0, 0, 5, 1);
+        inner.Triangle.p2 = new Vector4(0, 0, 5, 1);
+        inner.Triangle.p3 = new Vector4(0, 0, 5, 1);
+        inner.Triangle.SetViewSpaceZToNearest();
+
+        var shell = new TexturedTriangle();
+        shell.Triangle.p1 = new Vector4(0, 0, 4, 1);
+        shell.Triangle.p2 = new Vector4(0, 0, 4, 1);
+        shell.Triangle.p3 = new Vector4(0, 0, 8, 1);
+        shell.Triangle.SetViewSpaceZToNearest();
+
+        var comparer = new TriangleZComparer();
+        var list = new List<TexturedTriangle> { shell, inner };
+        list.Sort(comparer);
+
+        Assert.That(list[0], Is.SameAs(inner));
+        Assert.That(list[1], Is.SameAs(shell));
     }
 }
 

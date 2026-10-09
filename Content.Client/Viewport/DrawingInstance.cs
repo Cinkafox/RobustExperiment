@@ -51,6 +51,7 @@ public sealed class DrawingInstance
 
     public void AddTriangleDrawn(TexturedTriangle triangle)
     {
+        triangle.DrawOrder = _drawnBuffer.Length;
         _drawnBuffer.Add(triangle);
     }
 
@@ -102,6 +103,10 @@ public sealed class TriangleZComparer : IComparer<TexturedTriangle>
     {
         if (a is null || b is null) return 0;
         
-        return b.Triangle.ViewSpaceZ.CompareTo(a.Triangle.ViewSpaceZ);
+        var byDepth = b.Triangle.ViewSpaceZ.CompareTo(a.Triangle.ViewSpaceZ);
+        if (byDepth != 0)
+            return byDepth;
+        
+        return a.DrawOrder.CompareTo(b.DrawOrder);
     }
 }

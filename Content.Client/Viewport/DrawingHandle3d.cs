@@ -8,6 +8,8 @@ namespace Content.Client.Viewport;
 
 public sealed class DrawingHandle3d : IDisposable
 {
+    private const float GroundNormalY = 0.99f;
+
     private bool Disposed { get; set; }
     
     private readonly DrawingHandleBase _handleBase;
@@ -129,7 +131,10 @@ public sealed class DrawingHandle3d : IDisposable
 
         foreach (var clippedTriangle in ClippingInstance.Clipping)
         {
-            clippedTriangle.Triangle.SetViewSpaceZToFarthest();
+            if (MathF.Abs(clippedTriangle.Normal.Y) >= GroundNormalY)
+                clippedTriangle.Triangle.SetViewSpaceZToFarthest();
+            else
+                clippedTriangle.Triangle.SetViewSpaceZToNearest();
 
             clippedTriangle.Triangle.Transform(ProjectionMatrix);
 

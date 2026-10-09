@@ -22,6 +22,11 @@ public sealed class Triangle : IEnumerable<Vector4>
         ViewSpaceZ = Math.Max(p1.Z, Math.Max(p2.Z, p3.Z));
     }
 
+    public void SetViewSpaceZToNearest()
+    {
+        ViewSpaceZ = Math.Min(p1.Z, Math.Min(p2.Z, p3.Z));
+    }
+
     public void Transform(Matrix4x4 matrix4)
     {
         p1 = Vector4.Transform(p1, matrix4);
