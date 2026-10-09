@@ -22,7 +22,9 @@
         !type:PlaneShape
         distance: 1
     - type: Model
-      currentMesh: "/Models/floor/floor.obj"
+      currentMesh:
+        path: "/Models/ohfuck/yösoghfiösbge.obj"
+        scale: 5,5,5
       
 - type: entity
   id: nyash
