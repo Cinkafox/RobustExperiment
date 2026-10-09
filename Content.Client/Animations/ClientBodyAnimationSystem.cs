@@ -9,12 +9,12 @@ using BodyAnimation = Content.Shared.Animations.Data.BodyAnimation;
 
 namespace Content.Client.Animations;
 
-public sealed class ClientBodyAnimationSystem : BodyAnimationSystem
+public sealed partial class ClientBodyAnimationSystem : BodyAnimationSystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly AnimationPlayerSystem _animationPlayer = default!;
-    [Dependency] private readonly BoneSystem _boneSystem = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private AnimationPlayerSystem _animationPlayer = default!;
+    [Dependency] private BoneSystem _boneSystem = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
 
     public override void Initialize()
     {

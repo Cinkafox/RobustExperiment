@@ -15,15 +15,15 @@ using Robust.Shared.Timing;
 
 namespace Content.Client.Game;
 
-public sealed class ContentGameState : UIState<ContentGame>
+public sealed partial class ContentGameState : UIState<ContentGame>
 {
-    [Dependency] private readonly IInputManager _inputManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IEntitySystemManager _entitySystemManager = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IClientGameStateManager _stateManager = default!;
-    [Dependency] private readonly INetManager _netManager = default!;
+    [Dependency] private IInputManager _inputManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IEntitySystemManager _entitySystemManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IClientGameStateManager _stateManager = default!;
+    [Dependency] private INetManager _netManager = default!;
 
     protected override void UIStartup()
     {

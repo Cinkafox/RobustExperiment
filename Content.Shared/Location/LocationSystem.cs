@@ -5,12 +5,12 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Location;
 
-public sealed class LocationSystem : EntitySystem
+public sealed partial class LocationSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-    [Dependency] private readonly Transform3dSystem _transform3dSystem = default!;
-    [Dependency] private readonly ISharedPlayerManager _playerManager = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private Transform3dSystem _transform3dSystem = default!;
+    [Dependency] private ISharedPlayerManager _playerManager = default!;
     
     private EntityUid? _mapUid;
     private LocationEntityEntry _playerEntitySpawn = new LocationEntityEntry()

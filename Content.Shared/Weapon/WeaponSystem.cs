@@ -10,10 +10,10 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Weapon;
 
-public sealed class WeaponSystem : EntitySystem
+public sealed partial class WeaponSystem : EntitySystem
 {
-    [Dependency] private readonly HealthSystem _healthSystem = default!;
-    [Dependency] private readonly RigidBodySystem _rigidBodySystem = default!;
+    [Dependency] private HealthSystem _healthSystem = default!;
+    [Dependency] private RigidBodySystem _rigidBodySystem = default!;
     
     public override void Initialize()
     {

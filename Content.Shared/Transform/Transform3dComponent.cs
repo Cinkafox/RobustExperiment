@@ -7,7 +7,7 @@ namespace Content.Shared.Transform;
 [RegisterComponent, NetworkedComponent]
 public sealed partial class Transform3dComponent: Component
 {
-    [Dependency] private readonly IEntityManager _entMan = default!;
+    [Dependency] private IEntityManager _entMan = default!;
     
     [DataField("parent")] private EntityUid _parent;
 

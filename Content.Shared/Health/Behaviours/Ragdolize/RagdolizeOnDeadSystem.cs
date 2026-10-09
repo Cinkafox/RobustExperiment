@@ -2,9 +2,9 @@ using Content.Shared.Bone;
 
 namespace Content.Shared.Health.Behaviours.Ragdolize;
 
-public sealed class RagdolizeOnDeadSystem : EntitySystem
+public sealed partial class RagdolizeOnDeadSystem : EntitySystem
 {
-    [Dependency] private readonly BonePhysicsSystem _bonePhysicsSystem = default!;
+    [Dependency] private BonePhysicsSystem _bonePhysicsSystem = default!;
     public override void Initialize()
     {
         SubscribeLocalEvent<RagdolizeOnDeadComponent, OnEntityHealthStatusEvent>(OnHealthStatusChange);

@@ -1,11 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Transform;
 
 namespace Content.Shared.Bone;
 
-public sealed class BoneSystem : EntitySystem
+public sealed partial class BoneSystem : EntitySystem
 {
-    [Dependency] private readonly Transform3dSystem _transform = default!;
+    [Dependency] private Transform3dSystem _transform = default!;
     
     public override void Initialize()
     {

@@ -9,9 +9,9 @@ using Robust.Shared.Input.Binding;
 
 namespace Content.Shared.Movement;
 
-public sealed class InputMoverSystem : EntitySystem
+public sealed partial class InputMoverSystem : EntitySystem
 {
-    [Dependency] private readonly RigidBodySystem _rigidBodySystem = default!;
+    [Dependency] private RigidBodySystem _rigidBodySystem = default!;
 
     public const bool TopDownMode = true;
     

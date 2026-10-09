@@ -14,13 +14,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared.Items;
 
-public sealed class ItemsSystem : EntitySystem
+public sealed partial class ItemsSystem : EntitySystem
 {
-    [Dependency] private readonly BoneSystem _boneSystem = default!;
-    [Dependency] private readonly Transform3dSystem _transform3dSystem = default!;
-    [Dependency] private readonly RigidBodySystem _rigidBodySystem = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly ConstraintSystem _constraintSystem = default!;
+    [Dependency] private BoneSystem _boneSystem = default!;
+    [Dependency] private Transform3dSystem _transform3dSystem = default!;
+    [Dependency] private RigidBodySystem _rigidBodySystem = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private ConstraintSystem _constraintSystem = default!;
     
     public override void Initialize()
     {

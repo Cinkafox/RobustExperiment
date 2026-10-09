@@ -50,10 +50,10 @@
     value:
       texture: "/Textures/Interface/Novelle/paper_background_book.svg.96dpi.png"
       mode: stretch
-      patchMarginLeft: 25.0
-      patchMarginBottom: 18.0
-      patchMarginRight: 16.0
-      patchMarginTop: 18.0
+      patchMarginLeft: 23.0
+      patchMarginBottom: 15.0
+      patchMarginRight: 14.0
+      patchMarginTop: 16.0
 
 - type: dynamicValue
   id: novelPanelHover

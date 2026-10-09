@@ -6,7 +6,7 @@ using Content.Shared.Utils;
 
 namespace Content.Client.Bone;
 
-public sealed class BoneSkinningSystem : EntitySystem
+public sealed partial class BoneSkinningSystem : EntitySystem
 {
     private void ProceedBone(Entity<BoneComponent?> entity, MeshRender mesh, Transform3dComponent parentTransform)
     {

@@ -1,6 +1,6 @@
 ﻿namespace Content.Shared.Health;
 
-public sealed class HealthSystem : EntitySystem
+public sealed partial class HealthSystem : EntitySystem
 {
     public override void Initialize()
     {

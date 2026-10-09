@@ -5,7 +5,7 @@ using Content.Shared.Physics.Components;
 
 namespace Content.Shared.DollAnimation;
 
-public sealed class DoAnimationSystem : EntitySystem
+public sealed partial class DoAnimationSystem : EntitySystem
 {
     [Dependency] private BodyAnimationSystem _animationSystem = default!;
     

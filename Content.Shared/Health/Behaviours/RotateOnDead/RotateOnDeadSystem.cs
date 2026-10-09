@@ -3,7 +3,7 @@ using Content.Shared.Utils;
 
 namespace Content.Shared.Health.Behaviours.RotateOnDead;
 
-public sealed class RotateOnDeadSystem : EntitySystem
+public sealed partial class RotateOnDeadSystem : EntitySystem
 {
     public override void Initialize()
     {

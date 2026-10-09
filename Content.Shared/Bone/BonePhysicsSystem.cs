@@ -6,11 +6,11 @@ using Robust.Shared.Physics;
 
 namespace Content.Shared.Bone;
 
-public sealed class BonePhysicsSystem : EntitySystem
+public sealed partial class BonePhysicsSystem : EntitySystem
 {
-    [Dependency] private readonly BoneSystem _boneSystem = default!;
-    [Dependency] private readonly Transform3dSystem _transform3DSystem = default!;
-    [Dependency] private readonly ConstraintSystem _constraintSystem = default!;
+    [Dependency] private BoneSystem _boneSystem = default!;
+    [Dependency] private Transform3dSystem _transform3DSystem = default!;
+    [Dependency] private ConstraintSystem _constraintSystem = default!;
     
     public override void Initialize()
     {

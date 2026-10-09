@@ -3,9 +3,9 @@ using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client.UserInterface.Controls;
 
-public sealed class ConfigurationContainer : BoxContainer
+public sealed partial class ConfigurationContainer : BoxContainer
 {
-    [Dependency] private readonly ConfigurationUIManager _configuration = default!;
+    [Dependency] private ConfigurationUIManager _configuration = default!;
     
     private ConfigurationItem? _configurationItem;
 

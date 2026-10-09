@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Content.Client.ConfigurationUI;
+﻿using Content.Client.ConfigurationUI;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
 using Content.Shared.Camera;
@@ -19,15 +17,15 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.Viewport;
 
-public sealed class GameViewport : Control
+public sealed partial class GameViewport : Control
 {
-    [Dependency] private readonly ProfManager _profManager = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IInputManager _inputManager = default!;
-    [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
-    [Dependency] private readonly ConfigurationUIManager _configuration = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private ProfManager _profManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IInputManager _inputManager = default!;
+    [Dependency] private IUserInterfaceManager _userInterfaceManager = default!;
+    [Dependency] private ConfigurationUIManager _configuration = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
     
     private CameraSystem? _cameraSystem;
 

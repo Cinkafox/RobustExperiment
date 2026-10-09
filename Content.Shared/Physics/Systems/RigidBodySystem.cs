@@ -6,8 +6,8 @@ namespace Content.Shared.Physics.Systems;
 
 public sealed partial class RigidBodySystem : EntitySystem
 {
-    [Dependency] private readonly ISandboxHelper _sandboxHelper = default!;
-    [Dependency] private readonly IReflectionManager _reflectionManager = default!;
+    [Dependency] private ISandboxHelper _sandboxHelper = default!;
+    [Dependency] private IReflectionManager _reflectionManager = default!;
     
     public override void Initialize()
     {

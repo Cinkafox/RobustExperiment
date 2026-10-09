@@ -3,9 +3,9 @@ using Content.Shared.Transform;
 
 namespace Content.Shared.Camera;
 
-public sealed class CameraSystem : EntitySystem
+public sealed partial class CameraSystem : EntitySystem
 {
-    [Dependency] private readonly Transform3dSystem _transform3dSystem = default!;
+    [Dependency] private Transform3dSystem _transform3dSystem = default!;
      
     public override void Initialize()
     {

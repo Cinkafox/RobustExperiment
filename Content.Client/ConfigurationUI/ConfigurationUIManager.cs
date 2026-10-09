@@ -8,10 +8,10 @@ using Robust.Shared.Sandboxing;
 namespace Content.Client.ConfigurationUI;
 
 [IoCRegister]
-public sealed class ConfigurationUIManager : IInitializeBehavior
+public sealed partial class ConfigurationUIManager : IInitializeBehavior
 {
-    [Dependency] private readonly IReflectionManager _reflection = default!;
-    [Dependency] private readonly ISandboxHelper _sandboxHelper = default!;
+    [Dependency] private IReflectionManager _reflection = default!;
+    [Dependency] private ISandboxHelper _sandboxHelper = default!;
 
     private readonly Dictionary<Type, IConfigurationValue> _configurationValues = new();
     private readonly Dictionary<string, ConfigurationContainer> _containers = new();

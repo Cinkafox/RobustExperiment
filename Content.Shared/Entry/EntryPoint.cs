@@ -4,10 +4,10 @@ using Robust.Shared.ContentPack;
 
 namespace Content.Shared.Entry;
 
-public sealed class EntryPoint : GameShared
+public sealed partial class EntryPoint : GameShared
 {
-    [Dependency] private readonly IComponentFactory _componentFactory = default!;
-    [Dependency] private readonly ILocalizationManager _localizationManager = default!;
+    [Dependency] private IComponentFactory _componentFactory = default!;
+    [Dependency] private ILocalizationManager _localizationManager = default!;
     
     private const string Culture = "ru-RU";
     

@@ -7,11 +7,11 @@ using Robust.Client.Input;
 
 namespace Content.Client.Entry;
 
-public sealed class EntryPoint : GameClient
+public sealed partial class EntryPoint : GameClient
 {
-    [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
-    [Dependency] private readonly IContentStyleSheetManager _styleSheetManager = default!;
-    [Dependency] private readonly IInputManager _inputManager = default!;
+    [Dependency] private IUserInterfaceManager _userInterfaceManager = default!;
+    [Dependency] private IContentStyleSheetManager _styleSheetManager = default!;
+    [Dependency] private IInputManager _inputManager = default!;
     
     public override void PreInit()
     {

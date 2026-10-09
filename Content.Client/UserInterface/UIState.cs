@@ -3,9 +3,9 @@ using Robust.Client.UserInterface;
 
 namespace Content.Client.UserInterface;
 
-public abstract class UIState<T> : State where T : UIScreen, new()
+public abstract partial class UIState<T> : State where T : UIScreen, new()
 {
-    [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
+    [Dependency] private IUserInterfaceManager _userInterfaceManager = default!;
     
     protected override void Startup()
     {

@@ -3,10 +3,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared.Animations;
 
-public abstract class BodyAnimationSystem : EntitySystem
+public abstract partial class BodyAnimationSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
     
     private readonly List<ProtoId<BodyAnimationPrototype>> _deleteQuery = [];
     

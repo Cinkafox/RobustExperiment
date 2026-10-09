@@ -9,7 +9,7 @@ namespace Content.Client.Game.UI;
 [GenerateTypedNameReferences]
 public sealed partial class ContentGame : UIScreen
 {
-    [Dependency] private readonly ConfigurationUIManager _configuration = default!;
+    [Dependency] private ConfigurationUIManager _configuration = default!;
     
     public ContentGame()
     {

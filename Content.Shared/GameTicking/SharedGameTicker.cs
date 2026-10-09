@@ -3,10 +3,10 @@ using Robust.Shared.Player;
 
 namespace Content.Shared.GameTicking;
 
-public abstract class SharedGameTicker : EntitySystem
+public abstract partial class SharedGameTicker : EntitySystem
 {
-    [Dependency] protected readonly ISharedPlayerManager PlayerManager = default!;
-    [Dependency] private readonly LocationSystem _locationSystem = default!;
+    [Dependency] protected ISharedPlayerManager PlayerManager = default!;
+    [Dependency] private LocationSystem _locationSystem = default!;
     
     public void InitializeGame()
     {

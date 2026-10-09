@@ -3,7 +3,7 @@ using Content.Shared.Weapon;
 
 namespace Content.Shared.CollideUtil;
 
-public sealed class DeleteOnCollideSystem : EntitySystem
+public sealed partial class DeleteOnCollideSystem : EntitySystem
 {
     public override void Initialize()
     {
