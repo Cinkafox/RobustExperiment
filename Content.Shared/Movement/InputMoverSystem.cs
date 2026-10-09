@@ -55,7 +55,7 @@ public sealed partial class InputMoverSystem : EntitySystem
                 rigidBodyComponent.IsGrounded = rigidBodyComponent.IsGrounding;
             }
 
-            var airFactor = rigidBodyComponent.IsGrounded ? 40f : 5f;
+            var airFactor = rigidBodyComponent.IsGrounded ? 50f : 5f;
             var normalizedPositionMovement = Vector3.Zero;
             if (inputMover.PositionMovement != Vector3.Zero)
             {

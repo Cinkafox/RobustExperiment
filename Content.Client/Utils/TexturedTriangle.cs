@@ -9,6 +9,7 @@ public sealed class TexturedTriangle
     public Vector3 TexturePoint1 = new(0,0,1);
     public Vector3 TexturePoint2 = new(0,0,1);
     public Vector3 TexturePoint3 = new(0,0,1);
+    public Vector3 Normal = Vector3.Zero;
     public int TextureId;
 
     public void SetTexturePoints(in Vector2 p1,in Vector2 p2,in Vector2 p3)
@@ -36,6 +37,7 @@ public sealed class TexturedTriangle
         TexturePoint3.X = 0;
         TexturePoint3.Y = 0;
         TexturePoint3.Z = 1;
+        Normal = Vector3.Zero;
         
         TextureId = 0;
     }

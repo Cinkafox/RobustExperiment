@@ -117,6 +117,8 @@ public sealed class DrawingHandle3d : IDisposable
         if (Vector3.Dot(normal, vCameraRay) >= 0f)
             return;
         
+        triangle.Normal = normal;
+        
         triangle.Triangle.Transform(ViewMatrix);
         
         ClippingInstance.ClipAgainstClip(
@@ -220,13 +222,15 @@ public sealed class DrawingHandle3d : IDisposable
     
     private Vector3 _curNormal = Vector3.Zero;
 
+    public Vector3 LightDirection = Vector3.Normalize(new Vector3(-2f, 3f, 0f));
+
     private void DrawPrimitiveTriangleWithClipping(TexturedTriangle triToRaster)
     {
         DrawingInstance.ListTriangles.Clear();
         
         DrawingInstance.ListTriangles.Enqueue(triToRaster);
 
-        _curNormal = triToRaster.Triangle.Normal();
+        _curNormal = triToRaster.Normal;
         
         var nNewTriangles = 1;
 
@@ -281,6 +285,7 @@ public sealed class DrawingHandle3d : IDisposable
         {
             var shaderInst = DrawingInstance.ShadersPool.Take();
             shaderInst.SetParameter("normal", _curNormal);
+            shaderInst.SetParameter("lightDir", LightDirection);
             shaderInst.SetParameter("p1", DrawingInstance.DrawVertex3dBuffer[0]);
             
             _handleBase.UseShader(shaderInst);

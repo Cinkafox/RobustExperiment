@@ -135,6 +135,7 @@ public sealed class TexturedTriangleTests
         tri.TexturePoint1 = new Vector3(0.5f, 0.5f, 1f);
         tri.TexturePoint2 = new Vector3(0.8f, 0.2f, 1f);
         tri.TexturePoint3 = new Vector3(0.1f, 0.9f, 1f);
+        tri.Normal = new Vector3(0, 1, 0);
         tri.TextureId = 5;
 
         tri.Clear();
@@ -143,6 +144,7 @@ public sealed class TexturedTriangleTests
         Assert.That(tri.TexturePoint1, Is.EqualTo(new Vector3(0, 0, 1)));
         Assert.That(tri.TexturePoint2, Is.EqualTo(new Vector3(0, 0, 1)));
         Assert.That(tri.TexturePoint3, Is.EqualTo(new Vector3(0, 0, 1)));
+        Assert.That(tri.Normal, Is.EqualTo(Vector3.Zero));
         Assert.That(tri.TextureId, Is.EqualTo(0));
     }
 
@@ -441,6 +443,50 @@ public sealed class ClippingInstanceTests
             Assert.That(clipped.Triangle.GetP1().Z, Is.GreaterThanOrEqualTo(-0.0001f));
             Assert.That(clipped.Triangle.GetP2().Z, Is.GreaterThanOrEqualTo(-0.0001f));
             Assert.That(clipped.Triangle.GetP3().Z, Is.GreaterThanOrEqualTo(-0.0001f));
+        }
+    }
+
+    [Test]
+    public void TestClipTextured_OneInsideTwoOutside_PreservesWorldNormal()
+    {
+        var tri = new TexturedTriangle();
+        tri.Triangle.p1 = new Vector4(0, 0, 1, 1);
+        tri.Triangle.p2 = new Vector4(0, 1, -1, 1);
+        tri.Triangle.p3 = new Vector4(1, 0, -1, 1);
+        tri.Normal = Vector3.Normalize(new Vector3(0, 1, 0));
+
+        _clipping.ClipAgainstClip(
+            new Vector3(0, 0, 0),
+            new Vector3(0, 0, 1),
+            tri,
+            _triPool,
+            _debugPool);
+
+        Assert.That(_clipping.Clipping.Length, Is.EqualTo(1));
+        Assert.That(_clipping.Clipping[0].Normal, Is.EqualTo(tri.Normal));
+    }
+
+    [Test]
+    public void TestClipTextured_TwoInsideOneOutside_PreservesWorldNormal()
+    {
+        var tri = new TexturedTriangle();
+        tri.Triangle.p1 = new Vector4(0, 0, 1, 1);
+        tri.Triangle.p2 = new Vector4(1, 0, 1, 1);
+        tri.Triangle.p3 = new Vector4(0.5f, 1, -1, 1);
+        tri.Normal = Vector3.Normalize(new Vector3(-1, 0, 0));
+
+        _clipping.ClipAgainstClip(
+            new Vector3(0, 0, 0),
+            new Vector3(0, 0, 1),
+            tri,
+            _triPool,
+            _debugPool);
+
+        Assert.That(_clipping.Clipping.Length, Is.EqualTo(2));
+
+        foreach (var clipped in _clipping.Clipping)
+        {
+            Assert.That(clipped.Normal, Is.EqualTo(tri.Normal));
         }
     }
 

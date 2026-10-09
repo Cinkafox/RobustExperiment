@@ -138,6 +138,7 @@ public sealed class ClippingInstance
             var outTri1 = triPool.Take();
             outTri1.Clear();
             outTri1.TextureId = inTri.TextureId;
+            outTri1.Normal = inTri.Normal;
             
             outTri1.Triangle.p1 = InsidePoints[0];
             outTri1.TexturePoint1 = InsideTex[0];
@@ -162,6 +163,8 @@ public sealed class ClippingInstance
             outTri2.Clear();
             outTri1.TextureId = inTri.TextureId;
             outTri2.TextureId = inTri.TextureId;
+            outTri1.Normal = inTri.Normal;
+            outTri2.Normal = inTri.Normal;
             
             outTri1.Triangle.p1 = InsidePoints[0];
             outTri1.Triangle.p2 = InsidePoints[1];

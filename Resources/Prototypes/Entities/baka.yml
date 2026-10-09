@@ -24,7 +24,7 @@
     - type: Model
       currentMesh: 
         path: "/Models/floor/floor.obj"
-        offset: 0,-15,0
+        offset: 0,-2,0
       
 - type: entity
   id: nyash

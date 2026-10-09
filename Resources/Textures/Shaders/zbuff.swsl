@@ -1,6 +1,7 @@
 ﻿uniform highp vec3 cameraPos;
 
 uniform highp vec3 normal;
+uniform highp vec3 lightDir;
 uniform highp vec3 p1;
 
 
@@ -16,12 +17,13 @@ void fragment() {
     highp float denom = abs(UV2.x) > 0.000001 ? UV2.x : 1.0;
     highp vec4 texCol = zTexture(UV / denom);
 
-    highp vec3 lightDir = vec3(-2,3,0);
-    highp vec3 direction = normalize(lightDir);
+    highp vec3 n = normalize(normal);
+    highp vec3 l = normalize(lightDir);
 
-    // Compute the diffuse component using the dot product
-    highp float diff = max(dot(normal, direction), 0.0);
-    highp vec3 diffuse = diff * vec3(0.5) + vec3(0.5);
+    highp float ndl = dot(n, l);
+    highp float lambert = max(ndl, 0.0);
+    highp float wrapped = ndl * 0.5 + 0.5;
+    highp float diffuse = mix(lambert, wrapped, 0.4);
 
-    COLOR = vec4(texCol.xyz * diffuse, texCol.w);
+    COLOR = vec4(texCol.xyz * (vec3(0.35) + vec3(0.65) * diffuse), texCol.w);
 }
