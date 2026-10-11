@@ -21,20 +21,61 @@
         rotation: 90,0,0
         scale: 2,2,2
     - type: RigidBody
-      friction: 3
-      restitution: 0.2
+      friction: 5
+      restitution: 1
       density: 10
       shape:
         !type:CylinderShape
         radius: 0.5
-        height: 0.5
+        height: 0.5      
+
+- type: entity
+  id: testConstr
+  components:
+    - type: Model
+      currentMesh:
+        path: "/Models/mambo/Mambo.obj"
+        rotation: 90,0,90
+        offset: 2,0,0
+        scale: 0.05,0.05,0.05
+    - type: RigidBody
+      density: 25
+      shape:
+        !type:BoxShape
+        halfExtents: 1.2, 0.2, 0.9
+    - type: EntityConstraint
+      constraints:
+        - entity: cylinder
+          bodyConstraint: !type:HingeConstraint
+            localAnchorA: 1.2, 0, 1.2
+            localAnchorB: 0, 0, 0
+            axis: 0, 0, 1
+            axisB: 0, -1, 0
+        - entity: cylinder
+          bodyConstraint: !type:HingeConstraint
+            localAnchorA: -1.2, 0, 1.2
+            localAnchorB: 0, 0, 0
+            axis: 0, 0, 1
+            axisB: 0, -1, 0
+        - entity: cylinder
+          bodyConstraint: !type:HingeConstraint
+            localAnchorA: 1.2, 0, -1.3
+            localAnchorB: 0, 0, 0
+            axis: 0, 0, 1
+            axisB: 0, 1, 0
+        - entity: cylinder
+          bodyConstraint: !type:HingeConstraint
+            localAnchorA: -1.2, 0, -1.3
+            localAnchorB: 0, 0, 0
+            axis: 0, 0, 1
+            axisB: 0, 1, 0
 
 - type: entity
   id: floor
   components:
     - type: RigidBody
       physType: Static
-      restitution: 0
+      friction: 5
       shape:
         !type:PlaneShape
         distance: 1

@@ -25,5 +25,5 @@
       position: 5,0,8
     - entity: cylinder
       position: -2,2,8
-    - entity: cylinder
-      position: -4,2,8
+    - entity: testConstr
+      position: 0,2,15

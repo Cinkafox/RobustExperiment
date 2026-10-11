@@ -1,4 +1,5 @@
 ﻿using Content.Shared.Physics.Components;
+using Content.Shared.Transform;
 using Robust.Shared.Reflection;
 using Robust.Shared.Sandboxing;
 
@@ -20,6 +21,15 @@ public sealed partial class RigidBodySystem : EntitySystem
         if(ent.Comp.PhysType == PhysType.Static) return;
         ent.Comp.LinearVelocity += force / ent.Comp.Mass;
     }
+    
+    public void ApplyRelativeTorque(Entity<RigidBodyComponent> ent, Vector3 localTorque)
+    {
+        var rotation = Comp<Transform3dComponent>(ent).LocalRotation;
+        var worldTorque = Vector3.Transform(localTorque, rotation);
+        
+        ApplyTorque(ent, worldTorque);
+    }
+
 
     public void ApplyTorque(Entity<RigidBodyComponent> ent, Vector3 torque)
     {
