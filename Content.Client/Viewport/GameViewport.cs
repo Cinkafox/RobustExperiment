@@ -149,6 +149,11 @@ public sealed partial class GameViewport : Control
                         drawHandle.DrawCircle(position, radius);
                     }
                     
+                    foreach (var (start, end) in debugHandler.LineBuffer)
+                    {
+                        drawHandle.DrawLine(start, end);
+                    }
+                    
                     foreach (var vertexes in debugHandler.VertexBuffer)
                     {
                         drawHandle.DrawDebugFace(vertexes);
@@ -165,6 +170,11 @@ public sealed partial class GameViewport : Control
                     foreach (var (radius, position) in debugHandler.SphereBuffer)
                     {
                         drawHandle.DrawCircle(position, radius);
+                    }
+
+                    foreach (var (start, end) in debugHandler.LineBuffer)
+                    {
+                        drawHandle.DrawLine(start, end);
                     }
 
                     foreach (var vertexes in debugHandler.VertexBuffer)

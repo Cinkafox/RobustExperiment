@@ -92,24 +92,66 @@ public sealed class DrawingHandle3d : IDisposable
     public void DrawCircle(Vector3 worldPosition, float worldRadius)
     {
         var clipPos = Vector4.Transform(new Vector4(worldPosition, 1.0f), ViewProjectionMatrix);
-        
-        if (MathF.Abs(clipPos.W) < 1e-5f) return;
-    
-        var ndcX = clipPos.X / clipPos.W;
-        var ndcY = clipPos.Y / clipPos.W;
-        
-        if (MathF.Abs(ndcX) > 1.0f || MathF.Abs(ndcY) > 1.0f) return;
-        
-        var screenX = (ndcX + 1.0f) * 0.5f * _width;
-        var screenY = (ndcY + 1.0f) * 0.5f * _height; 
 
-        var radiusPixels = worldRadius * ProjectionMatrix.M22 / MathF.Abs(clipPos.W) * (_height * 0.5f);
-    
+        if (clipPos.W >= 0f)
+            return;
+
+        var invW = 1f / clipPos.W;
+        var ndcX = clipPos.X * invW;
+        var ndcY = clipPos.Y * invW;
+
+        if (MathF.Abs(ndcX) > 1.0f || MathF.Abs(ndcY) > 1.0f) return;
+
+        var screenX = (ndcX + 1.0f) * 0.5f * _width;
+        var screenY = (ndcY + 1.0f) * 0.5f * _height;
+
+        var radiusPixels = worldRadius * ProjectionMatrix.M22 * -invW * (_height * 0.5f);
+
         if (radiusPixels < 0.5f) return;
-    
+
         _handleBase.DrawCircle(new Vector2(screenX, screenY), radiusPixels, Color.White, false);
     }
     
+    private const float NearPlaneZ = 0.1f;
+
+    public void DrawLine(Vector3 worldStart, Vector3 worldEnd)
+    {
+        var start = Vector4.Transform(new Vector4(worldStart, 1.0f), ViewMatrix);
+        var end = Vector4.Transform(new Vector4(worldEnd, 1.0f), ViewMatrix);
+
+        if (start.Z < NearPlaneZ && end.Z < NearPlaneZ)
+            return;
+
+        if (start.Z < NearPlaneZ)
+            start = ClipToNearPlane(start, end);
+        else if (end.Z < NearPlaneZ)
+            end = ClipToNearPlane(end, start);
+
+        var clipStart = Vector4.Transform(start, ProjectionMatrix);
+        var clipEnd = Vector4.Transform(end, ProjectionMatrix);
+
+        if (clipStart.W >= 0f || clipEnd.W >= 0f)
+            return;
+
+        var screenStart = ToScreenVec(clipStart);
+        var screenEnd = ToScreenVec(clipEnd);
+
+        _handleBase.DrawLine(
+            new Vector2(screenStart.X, screenStart.Y),
+            new Vector2(screenEnd.X, screenEnd.Y),
+            Color.White);
+    }
+
+    private static Vector4 ClipToNearPlane(Vector4 behind, Vector4 front)
+    {
+        var denominator = front.Z - behind.Z;
+        if (MathF.Abs(denominator) < 1e-6f)
+            return front;
+
+        var t = (NearPlaneZ - behind.Z) / denominator;
+        return Vector4.Lerp(behind, front, t);
+    }
+
     public void DrawPolygon(TexturedTriangle triangle)
     {
         CheckDisposed();

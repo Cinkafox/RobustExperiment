@@ -28,6 +28,11 @@ public sealed partial class RigidBodyComponent
                      box.Size.Y * box.Size.Y +
                      box.Size.Z * box.Size.Z),
 
+                Shapes.CylinderShape cylinder =>
+                    (1f / 12f) * Mass *
+                    (3f * cylinder.Radius * cylinder.Radius +
+                     cylinder.Height * cylinder.Height),
+
                 _ => Mass
             } * InertiaScale;
         }

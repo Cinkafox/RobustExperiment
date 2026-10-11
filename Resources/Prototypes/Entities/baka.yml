@@ -11,7 +11,24 @@
       shape:
         !type:BoxShape
         halfExtents: 1.2, 0.7, 0.9        
-         
+
+- type: entity
+  id: cylinder
+  components:
+    - type: Model
+      currentMesh:
+        path: "/Models/wheel/lowpoly__wheel.obj"
+        rotation: 90,0,0
+        scale: 2,2,2
+    - type: RigidBody
+      friction: 3
+      restitution: 0.2
+      density: 10
+      shape:
+        !type:CylinderShape
+        radius: 0.5
+        height: 0.5
+
 - type: entity
   id: floor
   components:
