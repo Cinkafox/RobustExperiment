@@ -1,5 +1,5 @@
 ﻿using Content.Shared.Physics.Components;
-using Content.Shared.Physics.Data;
+using Content.Shared.Physics.Constraints;
 using Content.Shared.Physics.Shapes;
 
 namespace Content.Shared.Bone;

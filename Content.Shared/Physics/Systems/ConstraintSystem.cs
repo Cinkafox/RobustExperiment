@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Physics.Components;
-using Content.Shared.Physics.Data;
+using Content.Shared.Physics.Constraints;
 
 namespace Content.Shared.Physics.Systems;
 

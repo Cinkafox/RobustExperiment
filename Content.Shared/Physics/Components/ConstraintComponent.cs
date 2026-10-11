@@ -1,4 +1,4 @@
-﻿using Content.Shared.Physics.Data;
+﻿using Content.Shared.Physics.Constraints;
 
 namespace Content.Shared.Physics.Components;
 

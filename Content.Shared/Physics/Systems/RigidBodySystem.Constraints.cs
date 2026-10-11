@@ -1,5 +1,5 @@
 ﻿using Content.Shared.Physics.Components;
-using Content.Shared.Physics.Data;
+using Content.Shared.Physics.Constraints;
 using Content.Shared.Transform;
 
 namespace Content.Shared.Physics.Systems;

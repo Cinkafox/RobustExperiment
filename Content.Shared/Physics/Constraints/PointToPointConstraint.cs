@@ -1,24 +1,9 @@
-﻿using Content.Shared.Physics.Components;
+using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Systems;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
 
-namespace Content.Shared.Physics.Data;
-
-[ImplicitDataDefinitionForInheritors]
-public partial interface IBodyConstraint
-{
-    public void Prepare(RigidBodySystem system, 
-        Entity<RigidBodyComponent, Transform3dComponent> bodyA, 
-        Entity<RigidBodyComponent?, Transform3dComponent> bodyB, 
-        float dt);
-    public void Solve(RigidBodySystem system, 
-        Entity<RigidBodyComponent, Transform3dComponent> bodyA, 
-        Entity<RigidBodyComponent?, Transform3dComponent> bodyB, 
-        float dt);
-
-    public void DrawDebug(DebugDrawingHandle handle);
-}
+namespace Content.Shared.Physics.Constraints;
 
 [DataDefinition]
 public sealed partial class PointToPointConstraint : IBodyConstraint
@@ -51,11 +36,11 @@ public sealed partial class PointToPointConstraint : IBodyConstraint
         var K = Matrix3x3.Identity * (bodyA.Comp1.InvMass + (bodyB.Comp1?.InvMass ?? 0f));
 
         K += Matrix3x3.SkewSymmetric(_rA) * bodyA.Comp1.WorldInvInertia
-                                * Matrix3x3.Transpose(Matrix3x3.SkewSymmetric(_rA));
+                                          * Matrix3x3.Transpose(Matrix3x3.SkewSymmetric(_rA));
 
         if(bodyB.Comp1 is not null)
             K += Matrix3x3.SkewSymmetric(_rB) * bodyB.Comp1.WorldInvInertia
-                                          * Matrix3x3.Transpose(Matrix3x3.SkewSymmetric(_rB));
+                                              * Matrix3x3.Transpose(Matrix3x3.SkewSymmetric(_rB));
 
         _effectiveMassMatrix = Matrix3x3.Invert(K);
     }
