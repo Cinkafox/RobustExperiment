@@ -38,6 +38,9 @@ public sealed partial class RigidBodySystem : EntitySystem
 
         if (!ent.Comp.EnableAngularVelocity)
             return;
+        
+        if(torque.LengthSquared() <= 0.01f) 
+            return;
 
         ent.Comp.AngularVelocity += torque * ent.Comp.InvInertia;
     }

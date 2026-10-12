@@ -21,14 +21,15 @@
         rotation: 90,0,0
         scale: 2,2,2
     - type: RigidBody
-      friction: 5
-      restitution: 1
-      density: 10
+      friction: 1
+      restitution: 0
+      density: 30
       shape:
         !type:CylinderShape
         radius: 0.5
         height: 0.5      
 
+# TODO: Надо найти оптимальные параметры для тестовой машинки
 - type: entity
   id: testConstr
   components:
@@ -39,7 +40,7 @@
         offset: 2,0,0
         scale: 0.05,0.05,0.05
     - type: RigidBody
-      density: 25
+      density: 75
       shape:
         !type:BoxShape
         halfExtents: 1.2, 0.2, 0.9
@@ -52,6 +53,11 @@
             axis: 0, 0, 1
             axisB: 0, -1, 0
         - entity: cylinder
+          components:
+            - type: CarWheelSteering
+            - type: CarWheel
+              direction: 0,1,0
+              speed: 0
           bodyConstraint: !type:HingeConstraint
             localAnchorA: -1.2, 0, 1.2
             localAnchorB: 0, 0, 0
@@ -61,21 +67,28 @@
           bodyConstraint: !type:HingeConstraint
             localAnchorA: 1.2, 0, -1.3
             localAnchorB: 0, 0, 0
-            axis: 0, 0, 1
-            axisB: 0, 1, 0
+            axis: 0, 0, -1
+            axisB: 0, -1, 0
         - entity: cylinder
+          components:
+            - type: CarWheelSteering
+            - type: CarWheel
+              direction: 0,-1,0
+              speed: 0
           bodyConstraint: !type:HingeConstraint
             localAnchorA: -1.2, 0, -1.3
             localAnchorB: 0, 0, 0
-            axis: 0, 0, 1
-            axisB: 0, 1, 0
+            axis: 0, 0, -1
+            axisB: 0, -1, 0
+        - entity: remote
+          offset: 5,3,0
 
 - type: entity
   id: floor
   components:
     - type: RigidBody
       physType: Static
-      friction: 5
+      friction: 1
       shape:
         !type:PlaneShape
         distance: 1

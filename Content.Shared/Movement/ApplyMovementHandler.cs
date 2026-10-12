@@ -10,13 +10,21 @@ public sealed class ApplyMovementHandler(Vector3 to) : InputCmdHandler
     {
         if (!entManager.TryGetComponent<InputMoverComponent>(session?.AttachedEntity, out var inputMover)) 
             return true;
-
-        var oldPos = inputMover.PositionMovement;
         
+        var ordinalPos = Vector3.Zero;
+
         if (message.State is BoundKeyState.Up)
-            inputMover.PositionMovement += to;
+            ordinalPos = to;
         else
-            inputMover.PositionMovement -= to;
+            ordinalPos = -to;
+        
+        var ev = new EntityMovingEvent(ordinalPos);
+        entManager.EventBus.RaiseLocalEvent(session.AttachedEntity.Value, ev);
+        if (ev.Handled)
+            return true;
+        
+        var oldPos = inputMover.PositionMovement;
+        inputMover.PositionMovement += ordinalPos;
 
         if (oldPos != inputMover.PositionMovement)
         {
@@ -39,4 +47,9 @@ public sealed class EntityStartMoveEvent : EntityEventArgs
 public sealed class EntityEndMoveEvent : EntityEventArgs
 {
     
+}
+
+public sealed class EntityMovingEvent(Vector3 positionMovement) : HandledEntityEventArgs
+{
+    public Vector3 PositionMovement = positionMovement;
 }

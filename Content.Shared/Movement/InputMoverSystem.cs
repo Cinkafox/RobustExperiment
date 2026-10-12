@@ -12,33 +12,18 @@ namespace Content.Shared.Movement;
 public sealed partial class InputMoverSystem : EntitySystem
 {
     [Dependency] private RigidBodySystem _rigidBodySystem = default!;
-
-    public const bool TopDownMode = true;
+    
     
     public override void Initialize()
     {
         base.Initialize();
-        var builder = CommandBinds.Builder
+        CommandBinds.Builder
             .Bind(EngineKeyFunctions.MoveUp, new ApplyMovementHandler(new Vector3(0, 0, -1)))
             .Bind(EngineKeyFunctions.MoveDown, new ApplyMovementHandler(new Vector3(0, 0, 1)))
-            .Bind(ContentKeyFunctions.PlayerJumpAction, new ApplyJumpHandler());
-
-        if (TopDownMode)
-        {
-            builder
-                .Bind(EngineKeyFunctions.MoveLeft, new ApplyMovementHandler(new Vector3(-1, 0, 0)))
-                .Bind(EngineKeyFunctions.MoveRight, new ApplyMovementHandler(new Vector3(1, 0, 0)));
-        }
-        else
-        {
-            builder
-                .Bind(EngineKeyFunctions.MoveLeft,
-                    new ApplyRotationMovementHandler(new EulerAngles(0, Angle.FromDegrees(100), 0)))
-                .Bind(EngineKeyFunctions.MoveRight,
-                    new ApplyRotationMovementHandler(new EulerAngles(0, Angle.FromDegrees(-100), 0)));
-        }
-        
-        builder.Register<InputMoverSystem>();
+            .Bind(EngineKeyFunctions.MoveLeft, new ApplyMovementHandler(new Vector3(-1, 0, 0)))
+            .Bind(EngineKeyFunctions.MoveRight, new ApplyMovementHandler(new Vector3(1, 0, 0)))
+            .Bind(ContentKeyFunctions.PlayerJumpAction, new ApplyJumpHandler())
+            .Register<InputMoverSystem>();
     }
     
     public override void FrameUpdate(float frameTime)
@@ -54,8 +39,8 @@ public sealed partial class InputMoverSystem : EntitySystem
                 RaiseLocalEvent(uid, new EntityGroundStatusChangedEvent(rigidBodyComponent.IsGrounded));
                 rigidBodyComponent.IsGrounded = rigidBodyComponent.IsGrounding;
             }
-
-            var airFactor = rigidBodyComponent.IsGrounded ? 150f : 5f;
+            
+            var airFactor = rigidBodyComponent.IsGrounded ? 65f : 5f;
             var normalizedPositionMovement = Vector3.Zero;
             if (inputMover.PositionMovement != Vector3.Zero)
             {
@@ -63,28 +48,17 @@ public sealed partial class InputMoverSystem : EntitySystem
             }
             
             var shift = normalizedPositionMovement * airFactor;
-            if (!TopDownMode)
-            {
-                transform3dComponent.LocalRotation *= (inputMover.RotationMovement * frameTime).ToQuaternion();
+            var toYaw = Angle.FromWorldVec(new Vector2(normalizedPositionMovement.X,
+                -normalizedPositionMovement.Z));
                 
-                shift = 
-                    Vector3.Transform(shift, 
-                        Matrix4Helpers.CreateRotationY(transform3dComponent.WorldAngle.Yaw));
-            }
-            else
-            {
-                var toYaw = Angle.FromWorldVec(new Vector2(normalizedPositionMovement.X,
-                    -normalizedPositionMovement.Z));
+            var delta = transform3dComponent.LocalAngle.Yaw - toYaw;
                 
-                var delta = transform3dComponent.LocalAngle.Yaw - toYaw;
+            delta = (delta % (MathF.PI * 2f) + MathF.PI * 3f) % (MathF.PI * 2f) - MathF.PI;
                 
-                delta = (delta % (MathF.PI * 2f) + MathF.PI * 3f) % (MathF.PI * 2f) - MathF.PI;
-                
-                if(normalizedPositionMovement != Vector3.Zero)
-                    transform3dComponent.LocalAngle = new EulerAngles(transform3dComponent.WorldAngle.Pitch, 
-                        transform3dComponent.WorldAngle.Yaw - delta * 0.6, 
-                        transform3dComponent.WorldAngle.Roll);
-            }
+            if(normalizedPositionMovement != Vector3.Zero)
+                transform3dComponent.LocalAngle = new EulerAngles(transform3dComponent.WorldAngle.Pitch, 
+                    transform3dComponent.WorldAngle.Yaw - delta * 0.6, 
+                    transform3dComponent.WorldAngle.Roll);
             
             _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), shift * rigidBodyComponent.Mass * frameTime);
             

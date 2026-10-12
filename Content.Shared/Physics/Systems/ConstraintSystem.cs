@@ -29,10 +29,15 @@ public sealed class ConstraintSystem : EntitySystem
             RemComp<ConstraintComponent>(bodyA);
     }
 
-    public bool TryGetConstraint(EntityUid bodyA, EntityUid bodyB,[NotNullWhen(true)] out IBodyConstraint? constraint)
+    public bool TryGetConstraint<T>(EntityUid bodyA, EntityUid bodyB,[NotNullWhen(true)] out T? constraint) where T : IBodyConstraint
     {
-        constraint = null;
-        return TryComp<ConstraintComponent>(bodyA, out var constraintComponent) && 
-               constraintComponent.Constraints.TryGetValue(bodyB, out constraint);
+        constraint = default;
+        if (!TryComp<ConstraintComponent>(bodyA, out var constraintComponent) ||
+            !constraintComponent.Constraints.TryGetValue(bodyB, out var rawConstraint) ||
+            rawConstraint is not T correctConstraint)
+            return false;
+        
+        constraint = correctConstraint;
+        return true;
     }
 }
