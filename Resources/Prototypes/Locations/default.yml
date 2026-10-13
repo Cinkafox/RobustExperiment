@@ -7,15 +7,11 @@
   entities:
     - entity: alexandra
       position: 0,3,0
-    - entity: alexandra
-      position: -3,3,0
     - entity: floor
       position: 0,-2,0
     - entity: pistol
       position: 3,0,8
     - entity: sword
       position: 5,0,8
-    - entity: cylinder
-      position: -2,2,8
     - entity: testConstr
       position: 0,2,15

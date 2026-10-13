@@ -91,7 +91,7 @@
             axis: 0, 0, -1
             axisB: 0, -1, 0
         - entity: remote
-          offset: 5,3,0
+          offset: 0,3,5
 
 - type: entity
   id: floor
