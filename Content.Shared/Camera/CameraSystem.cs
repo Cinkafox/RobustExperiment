@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Content.Shared.Transform;
+using Content.Shared.Utils;
 
 namespace Content.Shared.Camera;
 
@@ -18,9 +20,34 @@ public sealed partial class CameraSystem : EntitySystem
         EnsureComp<CameraComponent>(camUid);
         EnsureComp<CameraProxyComponent>(ent).CameraUid = camUid;
         var followComp = EnsureComp<FollowCameraComponent>(camUid);
-        followComp.EntityUid = ent;
-        followComp.Offset = ent.Comp.Offset;
-        followComp.Rotation = ent.Comp.Rotation;
+        followComp.CameraQueue.Add(ent, new FollowCameraEntry()
+        {
+            Offset = ent.Comp.Offset,
+            Rotation = ent.Comp.Rotation,
+        });
+    }
+
+    public void AddFollowEntity(EntityUid uid, EntityUid follow, Vector3 offset, EulerAngles rotation, bool rotateByEntity = false)
+    {
+        if (!TryComp<CameraProxyComponent>(uid, out var cameraProxyComponent) ||
+            !TryComp<FollowCameraComponent>(cameraProxyComponent.CameraUid, out var followComp))
+            return;
+
+        followComp.CameraQueue.Add(follow, new FollowCameraEntry()
+        {
+            Offset = offset,
+            Rotation = rotation,
+            RotateByEntity = rotateByEntity
+        });
+    }
+
+    public void RemoveFollowEntity(EntityUid uid, EntityUid follow)
+    {
+        if (!TryComp<CameraProxyComponent>(uid, out var cameraProxyComponent) ||
+            !TryComp<FollowCameraComponent>(cameraProxyComponent.CameraUid, out var followComp))
+            return;
+        
+        followComp.CameraQueue.Remove(follow);
     }
 
     public bool TryGetCamera(EntityUid? uid, [NotNullWhen(true)] out Entity<CameraComponent, Transform3dComponent>? camera)
@@ -46,19 +73,38 @@ public sealed partial class CameraSystem : EntitySystem
         var query = EntityQueryEnumerator<FollowCameraComponent, Transform3dComponent>();
         while (query.MoveNext(out var uid, out var followComp, out var transform3DComponent))
         {
-            var entTransform = Comp<Transform3dComponent>(followComp.EntityUid);
+            if(followComp.CameraQueue.Count < 1) 
+                continue;
+
+            var (followEntity, followEntry) = followComp.CameraQueue.Last();
+            
+            var entTransform = Comp<Transform3dComponent>(followEntity);
             if(transform3DComponent.ParentUid != entTransform.ParentUid)
             {
                 _transform3dSystem.SetParent(uid, entTransform.ParentUid);
-                transform3DComponent.LocalAngle = followComp.Rotation;
             }
             
-            var moveTo = entTransform.LocalPosition + followComp.Offset;
-            var moveFrom = transform3DComponent.LocalPosition;
+            if (followEntry.RotateByEntity)
+            {
+                var moveTo = entTransform.LocalPosition + Vector3.Transform(followEntry.Offset, entTransform.LocalRotation);
+                var moveFrom = transform3DComponent.LocalPosition;
             
-            var delta = moveFrom - moveTo;
+                var delta = moveFrom - moveTo;
+                
+                transform3DComponent.LocalAngle = followEntry.Rotation;
+                transform3DComponent.LocalPosition -= delta;
+                transform3DComponent.LocalRotation = entTransform.LocalRotation * followEntry.Rotation.ToQuaternion();
+            }
+            else
+            {
+                var moveTo = entTransform.LocalPosition + followEntry.Offset;
+                var moveFrom = transform3DComponent.LocalPosition;
             
-            transform3DComponent.LocalPosition -= delta;
+                var delta = moveFrom - moveTo;
+                
+                transform3DComponent.LocalAngle = followEntry.Rotation;
+                transform3DComponent.LocalPosition -= delta;
+            }
         }
     }
 }

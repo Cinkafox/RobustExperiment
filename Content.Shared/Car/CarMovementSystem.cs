@@ -1,10 +1,12 @@
 using System.Numerics;
+using Content.Shared.Camera;
 using Content.Shared.EntityConstraint;
 using Content.Shared.Items;
 using Content.Shared.Movement;
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Constraints;
 using Content.Shared.Physics.Systems;
+using Content.Shared.Utils;
 
 namespace Content.Shared.Car;
 
@@ -12,6 +14,7 @@ public sealed partial class CarMovementSystem : EntitySystem
 {
     [Dependency] private RigidBodySystem _rigidBodySystem = default!;
     [Dependency] private ConstraintSystem _constraintSystem = default!;
+    [Dependency] private CameraSystem _cameraSystem = default!;
 
     [SubscribeLocalEvent]
     private void OnWheelSteeringInit(EntityUid uid, CarWheelSteeringComponent component, ComponentInit args)
@@ -32,11 +35,19 @@ public sealed partial class CarMovementSystem : EntitySystem
     [SubscribeLocalEvent]
     private void OnControllerUse(EntityUid uid, CarRemoteControllerComponent component, ItemUseEvent args)
     {
-        if(!TryComp<EntityConstraintChildComponent>(uid, out var constraint)) return;
+        if(!TryComp<EntityConstraintChildComponent>(uid, out var constraint)) 
+            return;
+        
         if (!HasComp<PlayerActiveCarRemoteControlComponent>(args.UsedBy))
+        {
             AddComp<PlayerActiveCarRemoteControlComponent>(args.UsedBy).Car = constraint.ParentUid;
+            _cameraSystem.AddFollowEntity(args.UsedBy, constraint.ParentUid, new Vector3(6,3,2), new EulerAngles(Angle.FromDegrees(15),Angle.FromDegrees(-100),0), true);
+        }
         else
+        {
             RemComp<PlayerActiveCarRemoteControlComponent>(args.UsedBy);
+            _cameraSystem.RemoveFollowEntity(args.UsedBy, constraint.ParentUid);
+        }
     }
     
     [SubscribeLocalEvent]
@@ -45,8 +56,6 @@ public sealed partial class CarMovementSystem : EntitySystem
     {
         if(!TryComp<CarComponent>(component.Car, out var carComp)) 
             return;
-        
-        Log.Debug(args.PositionMovement + " MOVEMENT " + component.Car);
 
         if (args.PositionMovement.X != 0)
         {
@@ -60,7 +69,7 @@ public sealed partial class CarMovementSystem : EntitySystem
         {
             foreach (var rotatingWheels in carComp.Wheels)
             {
-               SpeedupWheel(rotatingWheels, component.Car, args.PositionMovement.Z * 15);
+               SpeedupWheel(rotatingWheels, component.Car, -args.PositionMovement.Z * 15);
             }
         }
         
