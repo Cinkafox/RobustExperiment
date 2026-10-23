@@ -11,7 +11,7 @@ public sealed class ApplyMovementHandler(Vector3 to) : InputCmdHandler
         if (!entManager.TryGetComponent<InputMoverComponent>(session?.AttachedEntity, out var inputMover)) 
             return true;
         
-        var ordinalPos = Vector3.Zero;
+        Vector3 ordinalPos;
 
         if (message.State is BoundKeyState.Up)
             ordinalPos = to;
@@ -20,21 +20,26 @@ public sealed class ApplyMovementHandler(Vector3 to) : InputCmdHandler
         
         var ev = new EntityMovingEvent(ordinalPos);
         entManager.EventBus.RaiseLocalEvent(session.AttachedEntity.Value, ev);
+        
         if (ev.Handled)
             return true;
         
+        SetEntityMoving(entManager, session.AttachedEntity.Value, inputMover, ordinalPos);
+        return true;
+    }
+
+    private void SetEntityMoving(IEntityManager entManager, EntityUid attachedUid, InputMoverComponent inputMover, Vector3 ordinalPos)
+    {
         var oldPos = inputMover.PositionMovement;
         inputMover.PositionMovement += ordinalPos;
 
         if (oldPos != inputMover.PositionMovement)
         {
             if (inputMover.PositionMovement.Equals(Vector3.Zero))
-                entManager.EventBus.RaiseLocalEvent(session.AttachedEntity.Value, new EntityEndMoveEvent());
+                entManager.EventBus.RaiseLocalEvent(attachedUid, new EntityEndMoveEvent());
             else
-                entManager.EventBus.RaiseLocalEvent(session.AttachedEntity.Value, new EntityStartMoveEvent());
+                entManager.EventBus.RaiseLocalEvent(attachedUid, new EntityStartMoveEvent());
         }
-        
-        return true;
     }
 }
 

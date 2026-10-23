@@ -286,3 +286,19 @@ binds:
   - function: PlayerDropItemAction
     type: State
     key: Q
+  # Car
+  - function: CarMoveForwardAction
+    type: State
+    key: W
+  - function: CarMoveLeftAction
+    type: State
+    key: A
+  - function: CarMoveRightAction
+    type: State
+    key: D
+  - function: CarMoveBackwardAction
+    type: State
+    key: S
+  - function: CarBreakAction
+    type: State
+    key: Space

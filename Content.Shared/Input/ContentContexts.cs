@@ -6,19 +6,22 @@ public sealed class ContentContexts
 {
     public static void SetupContexts(IInputContextContainer contexts)
     {
-        var viewer = contexts.GetContext("human");
-        viewer.AddFunction(EngineKeyFunctions.GuiTabNavigateNext);
-        viewer.AddFunction(EngineKeyFunctions.GuiTabNavigatePrev);
-        viewer.AddFunction(EngineKeyFunctions.UIClick);
-        viewer.AddFunction(EngineKeyFunctions.EscapeMenu);
-        viewer.AddFunction(EngineKeyFunctions.MoveUp);
-        viewer.AddFunction(EngineKeyFunctions.MoveDown);
-        viewer.AddFunction(EngineKeyFunctions.MoveLeft);
-        viewer.AddFunction(EngineKeyFunctions.MoveRight);
-        viewer.AddFunction(EngineKeyFunctions.Walk);
-        viewer.AddFunction(ContentKeyFunctions.PlayerJumpAction);
-        viewer.AddFunction(ContentKeyFunctions.PlayerDropItemAction);
-        viewer.AddFunction(EngineKeyFunctions.Use);
-        viewer.AddFunction(EngineKeyFunctions.UseSecondary);
+        var human = contexts.GetContext("human"); 
+        human.AddFunction(EngineKeyFunctions.MoveUp);
+        human.AddFunction(EngineKeyFunctions.MoveDown);
+        human.AddFunction(EngineKeyFunctions.MoveLeft);
+        human.AddFunction(EngineKeyFunctions.MoveRight);
+        human.AddFunction(EngineKeyFunctions.Walk);
+        human.AddFunction(ContentKeyFunctions.PlayerJumpAction);
+        human.AddFunction(ContentKeyFunctions.PlayerDropItemAction);
+        human.AddFunction(EngineKeyFunctions.Use);
+        human.AddFunction(EngineKeyFunctions.UseSecondary);
+        
+        var car = contexts.New("car", "common");
+        car.AddFunction(ContentKeyFunctions.CarMoveForwardAction);
+        car.AddFunction(ContentKeyFunctions.CarMoveBackwardAction);
+        car.AddFunction(ContentKeyFunctions.CarMoveLeftAction);
+        car.AddFunction(ContentKeyFunctions.CarMoveRightAction);
+        car.AddFunction(ContentKeyFunctions.CarBreak);
     }
 } 

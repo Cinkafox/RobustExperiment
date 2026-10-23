@@ -1,12 +1,16 @@
 using System.Numerics;
 using Content.Shared.Camera;
 using Content.Shared.EntityConstraint;
+using Content.Shared.Input;
 using Content.Shared.Items;
 using Content.Shared.Movement;
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Constraints;
 using Content.Shared.Physics.Systems;
 using Content.Shared.Utils;
+using Robust.Shared.Input;
+using Robust.Shared.Input.Binding;
+using Robust.Shared.Player;
 
 namespace Content.Shared.Car;
 
@@ -15,6 +19,17 @@ public sealed partial class CarMovementSystem : EntitySystem
     [Dependency] private RigidBodySystem _rigidBodySystem = default!;
     [Dependency] private ConstraintSystem _constraintSystem = default!;
     [Dependency] private CameraSystem _cameraSystem = default!;
+
+    public override void Initialize()
+    {
+        CommandBinds.Builder
+            .Bind(ContentKeyFunctions.CarMoveForwardAction, new SpeedupWheelCarHandler(1, this))
+            .Bind(ContentKeyFunctions.CarMoveBackwardAction, new SpeedupWheelCarHandler(-1 , this))
+            .Bind(ContentKeyFunctions.CarMoveLeftAction, new RotateWheelCarHandler(-1f, this))
+            .Bind(ContentKeyFunctions.CarMoveRightAction, new RotateWheelCarHandler(1f, this))
+            //.Bind(ContentKeyFunctions.CarBreak, new ApplyBreakHandler())
+            .Register<CarMovementSystem>();
+    }
 
     [SubscribeLocalEvent]
     private void OnWheelSteeringInit(EntityUid uid, CarWheelSteeringComponent component, ComponentInit args)
@@ -51,32 +66,19 @@ public sealed partial class CarMovementSystem : EntitySystem
     }
     
     [SubscribeLocalEvent]
-    private void OnPlayerCarControl(EntityUid uid, PlayerActiveCarRemoteControlComponent component,
-        EntityMovingEvent args)
+    private void OnItemThrown(EntityUid uid, CarRemoteControllerComponent component, ItemDropEvent args)
     {
-        if(!TryComp<CarComponent>(component.Car, out var carComp)) 
+        if(!TryComp<EntityConstraintChildComponent>(uid, out var constraint)) 
             return;
-
-        if (args.PositionMovement.X != 0)
-        {
-            foreach (var steeringWheel in carComp.Steering)
-            {
-                RotateWheel(steeringWheel, component.Car, args.PositionMovement.X);
-            }
-        }
         
-        if (args.PositionMovement.Z != 0)
+        if (HasComp<PlayerActiveCarRemoteControlComponent>(args.DroppedBy))
         {
-            foreach (var rotatingWheels in carComp.Wheels)
-            {
-               SpeedupWheel(rotatingWheels, component.Car, -args.PositionMovement.Z * 15);
-            }
+            RemComp<PlayerActiveCarRemoteControlComponent>(args.DroppedBy);
+            _cameraSystem.RemoveFollowEntity(args.DroppedBy, constraint.ParentUid);
         }
-        
-        args.Handled = true;
     }
 
-    private void RotateWheel(EntityUid wheelUid, EntityUid carUid, float dir)
+    public void RotateWheel(EntityUid wheelUid, EntityUid carUid, float dir)
     {
         if(!TryComp<CarWheelSteeringComponent>(wheelUid, out var steering)) 
             return;
@@ -89,7 +91,7 @@ public sealed partial class CarMovementSystem : EntitySystem
         constraint.AxisB = Vector3.Transform(constraint.AxisB, rotationMatrix);
     }
 
-    private void SpeedupWheel(EntityUid wheelUid, EntityUid carUid, float dir)
+    public void SpeedupWheel(EntityUid wheelUid, EntityUid carUid, float dir)
     {
         if(!TryComp<CarWheelComponent>(wheelUid, out var wheel))
             return;
@@ -104,5 +106,42 @@ public sealed partial class CarMovementSystem : EntitySystem
         {
             _rigidBodySystem.ApplyRelativeTorque(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), carWheelComp.Velocity);
         }
+    }
+}
+
+
+public sealed class SpeedupWheelCarHandler(float direction, CarMovementSystem carSystem) : InputCmdHandler
+{
+    public override bool HandleCmdMessage(IEntityManager entManager, ICommonSession? session, IFullInputCmdMessage message)
+    {
+        if(!entManager.TryGetComponent<PlayerActiveCarRemoteControlComponent>(session?.AttachedEntity, out var playerActiveCarRemoteControl) ||
+           !entManager.TryGetComponent<CarComponent>(playerActiveCarRemoteControl.Car, out var carComp)) 
+            return false;
+        
+        var rotSpeed = direction * (message.State is BoundKeyState.Up ?  1 : -1);
+        foreach (var rotatingWheels in carComp.Wheels)
+        {
+            carSystem.SpeedupWheel(rotatingWheels, playerActiveCarRemoteControl.Car, rotSpeed * 15);
+        }
+
+        return true;
+    }
+}
+
+public sealed class RotateWheelCarHandler(float direction, CarMovementSystem carSystem) : InputCmdHandler
+{
+    public override bool HandleCmdMessage(IEntityManager entManager, ICommonSession? session, IFullInputCmdMessage message)
+    {
+        if(!entManager.TryGetComponent<PlayerActiveCarRemoteControlComponent>(session?.AttachedEntity, out var playerActiveCarRemoteControl) ||
+           !entManager.TryGetComponent<CarComponent>(playerActiveCarRemoteControl.Car, out var carComp)) 
+            return false;
+        
+        var rotSpeed = direction * (message.State is BoundKeyState.Up ?  1 : -1);
+        foreach (var rotatingWheels in carComp.Wheels)
+        {
+            carSystem.RotateWheel(rotatingWheels, playerActiveCarRemoteControl.Car, rotSpeed);
+        }
+
+        return true;
     }
 }

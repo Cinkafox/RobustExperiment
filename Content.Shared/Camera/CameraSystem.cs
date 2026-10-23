@@ -32,6 +32,11 @@ public sealed partial class CameraSystem : EntitySystem
         if (!TryComp<CameraProxyComponent>(uid, out var cameraProxyComponent) ||
             !TryComp<FollowCameraComponent>(cameraProxyComponent.CameraUid, out var followComp))
             return;
+        
+        RaiseLocalEvent(uid, new FollowEntityEvent()
+        {
+            FollowBy = follow,
+        });
 
         followComp.CameraQueue.Add(follow, new FollowCameraEntry()
         {
@@ -46,6 +51,11 @@ public sealed partial class CameraSystem : EntitySystem
         if (!TryComp<CameraProxyComponent>(uid, out var cameraProxyComponent) ||
             !TryComp<FollowCameraComponent>(cameraProxyComponent.CameraUid, out var followComp))
             return;
+        
+        RaiseLocalEvent(uid, new UnFollowEntityEvent()
+        {
+            FollowBy = follow,
+        });
         
         followComp.CameraQueue.Remove(follow);
     }
@@ -107,4 +117,14 @@ public sealed partial class CameraSystem : EntitySystem
             }
         }
     }
+}
+
+public sealed class FollowEntityEvent : EntityEventArgs
+{
+    public EntityUid FollowBy;
+}
+
+public sealed class UnFollowEntityEvent : EntityEventArgs
+{
+    public EntityUid FollowBy;
 }

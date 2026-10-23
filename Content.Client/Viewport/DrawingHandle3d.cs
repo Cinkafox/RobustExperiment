@@ -2,6 +2,7 @@
 using Content.Client.Utils;
 using Content.Shared.Utils;
 using Robust.Client.Graphics;
+using Robust.Shared.Physics;
 using Robust.Shared.Profiling;
 
 namespace Content.Client.Viewport;
@@ -25,9 +26,10 @@ public sealed class DrawingHandle3d : IDisposable
 
     private readonly CameraProperties _cameraProperties;
 
-    private Matrix4x4 ViewMatrix { get; }
-    private Matrix4x4 ProjectionMatrix { get; }
-    private Matrix4x4 ViewProjectionMatrix { get; } 
+    private Matrix4x4 ViewMatrix;
+    private Matrix4x4 ProjectionMatrix;
+    private Matrix4x4 ViewProjectionMatrix;
+    private Matrix4x4 InverseViewProjectionMatrix;
     
     private Vector3 ToScreenVec(Vector4 clipPos)
     {
@@ -55,6 +57,15 @@ public sealed class DrawingHandle3d : IDisposable
 
             DrawDebugTriangle(triangle);
         }
+    }
+    
+    public Ray3D GetMouseRay(Vector2 ndc)
+    {
+        var farPoint4 = Vector4.Transform(new Vector3(ndc.X, ndc.Y, 1.0f), InverseViewProjectionMatrix);
+        var farPoint = new Vector3(farPoint4.X, farPoint4.Y, farPoint4.Z) / farPoint4.W;
+        var direction = Vector3.Normalize(farPoint - _cameraProperties.Position);
+
+        return new Ray3D { Origin = _cameraProperties.Position, Direction = direction };
     }
 
     public void DrawDebugTriangle(Triangle triangle)
@@ -391,6 +402,7 @@ public sealed class DrawingHandle3d : IDisposable
         );
         
         ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
+        Matrix4x4.Invert(ViewProjectionMatrix, out InverseViewProjectionMatrix);
 
         DrawingInstance.ShaderInstance.SetParameter("cameraPos", _cameraProperties.Position);
     }
@@ -414,4 +426,10 @@ public struct CameraProperties(Vector3 position, EulerAngles angle, float foV)
     public Vector3 Position = position;
     public EulerAngles Angle = angle;
     public float FoV = foV;
+}
+
+public struct Ray3D
+{
+    public Vector3 Origin;
+    public Vector3 Direction;
 }

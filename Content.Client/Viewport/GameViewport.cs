@@ -98,7 +98,10 @@ public sealed partial class GameViewport : Control
         
         if (_configuration.GetValue<bool>("render_debug"))
             drawHandle.DrawDebug = true;
-        
+
+        //var ray = drawHandle.GetMouseRay(UserInterfaceManager.MousePositionScaled.Position);
+        //TODO: ray item selection
+                
         if (!_configuration.GetValue<bool>("render_lighting"))
             drawHandle.DrawLighting = false;
 
