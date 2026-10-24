@@ -1,5 +1,4 @@
 ﻿using Robust.Client;
-using Robust.Shared.Utility;
 
 namespace Content.Client;
 

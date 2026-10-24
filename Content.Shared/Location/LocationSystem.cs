@@ -52,6 +52,7 @@ public sealed partial class LocationSystem : EntitySystem
         _transform3dSystem.SetParent(ent, MapUid);
         _transform3dSystem.SetWorldPosition(ent, entity.Position);
         _transform3dSystem.SetWorldRotation(ent, entity.Rotation);
+        EnsureComp<Transform3dComponent>(ent);
         return ent;
     }
 }

@@ -16,6 +16,7 @@ public sealed class ConstraintSystem : EntitySystem
         
         var bodyAConstr = EnsureComp<ConstraintComponent>(bodyA);
         bodyAConstr.Constraints[bodyB] = constraint;
+        Dirty(bodyA, bodyAConstr);
     }
 
     public void RemoveConstraint(EntityUid bodyA, EntityUid bodyB)
@@ -27,6 +28,8 @@ public sealed class ConstraintSystem : EntitySystem
 
         if (constraint.Constraints.Count == 0)
             RemComp<ConstraintComponent>(bodyA);
+        else
+            Dirty(bodyA, constraint);
     }
 
     public bool TryGetConstraint<T>(EntityUid bodyA, EntityUid bodyB,[NotNullWhen(true)] out T? constraint) where T : IBodyConstraint

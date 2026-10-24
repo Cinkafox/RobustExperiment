@@ -3,7 +3,7 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client.Car;
 
-public sealed class ClientCarMovementSystem : EntitySystem
+public sealed partial class ClientCarMovementSystem : EntitySystem
 {
     [Dependency] private InputSystem _inputSystem = default!;
     

@@ -24,6 +24,7 @@ public sealed class ApplyMovementHandler(Vector3 to) : InputCmdHandler
         if (ev.Handled)
             return true;
         
+        Logger.Debug("MEOW");
         SetEntityMoving(entManager, session.AttachedEntity.Value, inputMover, ordinalPos);
         return true;
     }

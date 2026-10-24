@@ -18,7 +18,9 @@ public sealed partial class CameraSystem : EntitySystem
     {
         var camUid = Spawn();
         EnsureComp<CameraComponent>(camUid);
-        EnsureComp<CameraProxyComponent>(ent).CameraUid = camUid;
+        var camProxComp = EnsureComp<CameraProxyComponent>(ent);
+        camProxComp.CameraUid = camUid;
+        //Dirty(ent, camProxComp);
         var followComp = EnsureComp<FollowCameraComponent>(camUid);
         followComp.CameraQueue.Add(ent, new FollowCameraEntry()
         {

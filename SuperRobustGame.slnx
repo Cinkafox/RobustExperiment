@@ -14,6 +14,7 @@
     <Project Path="RobustToolbox/Robust.Client/Robust.Client.csproj" />
     <Project Path="RobustToolbox/Robust.Packaging/Robust.Packaging.csproj" />
     <Project Path="RobustToolbox/Robust.Serialization.Generator/Robust.Serialization.Generator.csproj" />
+    <Project Path="RobustToolbox/Robust.Server/Robust.Server.csproj" />
     <Project Path="RobustToolbox/Robust.Shared.CompNetworkGenerator/Robust.Shared.CompNetworkGenerator.csproj" />
     <Project Path="RobustToolbox/Robust.Shared.EntitySystemSubscriptionsGenerator/Robust.Shared.EntitySystemSubscriptionsGenerator.csproj">
       <BuildType Solution="DebugOpt|*" Project="Debug" />
@@ -36,14 +37,19 @@
     <Project Path="RobustToolbox/XamlX/src/XamlX/XamlX.csproj" />
   </Folder>
   <Folder Name="/StyleSheet/">
-    <Project Path="StyleSheetify\Content.StyleSheetify.Client\Content.StyleSheetify.Client.csproj" Type="C#" />
-    <Project Path="StyleSheetify\Content.StyleSheetify.Shared\Content.StyleSheetify.Shared.csproj" Type="C#" />
+    <Project Path="StyleSheetify\Content.StyleSheetify.Client\Content.StyleSheetify.Client.csproj" />
+    <Project Path="StyleSheetify\Content.StyleSheetify.Shared\Content.StyleSheetify.Shared.csproj" />
   </Folder>
   <Project Path="Content.Client\Content.Client.csproj" />
-  <Project Path="Content.Packaging\Content.Packaging.csproj" Type="C#">
+  <Project Path="Content.Packaging\Content.Packaging.csproj">
     <Configuration Solution="DebugOpt|Any CPU" Project="Debug|Any CPU" />
     <Configuration Solution="Tools|Any CPU" Project="Debug|Any CPU" />
   </Project>
+  <Project Path="Content.Server/Content.Server.csproj">
+    <BuildType Solution="DebugOpt|*" Project="Debug" />
+    <BuildType Solution="Tools|*" Project="Debug" />
+  </Project>
   <Project Path="Content.Shared\Content.Shared.csproj" />
-  <Project Path="Content.UnitTests\Content.UnitTests.csproj" Type="C#" />
+  <Project Path="Content.UnitTests\Content.UnitTests.csproj" />
+  <Project Path="StyleSheetify/Content.StyleSheetify.Server/Content.StyleSheetify.Server.csproj" />
 </Solution>

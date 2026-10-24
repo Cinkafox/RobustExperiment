@@ -12,6 +12,16 @@ public sealed partial class RigidBodySystem : EntitySystem
     
     public override void Initialize()
     {
+        EntityManager.ComponentFactory.RegisterNetworkedFields<RigidBodyComponent>(
+            nameof(RigidBodyComponent.LinearVelocity),
+            nameof(RigidBodyComponent.PhysType),
+            nameof(RigidBodyComponent.Density),
+            nameof(RigidBodyComponent.AngularVelocity),
+            nameof(RigidBodyComponent.EnableAngularVelocity),
+            nameof(RigidBodyComponent.Friction),
+            nameof(RigidBodyComponent.Restitution),
+            nameof(RigidBodyComponent.RollingResistance));
+        
         InitializeColliders();
         //SimulateStep(5000f, 100);
     }

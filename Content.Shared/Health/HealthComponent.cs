@@ -1,13 +1,12 @@
-﻿namespace Content.Shared.Health;
+﻿using Robust.Shared.GameStates;
 
-[RegisterComponent]
-public sealed partial class HealthComponent: Component
+namespace Content.Shared.Health;
+
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
+public sealed partial class HealthComponent : Component
 {
-    [DataField] public float MaxHealth = 100;
-    [DataField] public float CurrentHealth
-    {
-        get => field;
-        set => field = Math.Clamp(value, 0, MaxHealth);
-    }
+    [DataField, AutoNetworkedField] public float MaxHealth = 100;
+    [DataField, AutoNetworkedField] public float CurrentHealth = 100;
+
     [ViewVariables(VVAccess.ReadOnly)] public bool IsDead => CurrentHealth <= 0;
 }

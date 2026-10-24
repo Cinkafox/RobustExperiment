@@ -118,6 +118,8 @@ public sealed partial class RigidBodySystem
                 xform.LocalRotation = Quaternion.Normalize(
                     deltaRotation * xform.LocalRotation);
             }
+            
+            Dirty(uid, body);
         }
     }
     

@@ -3,7 +3,7 @@
 public sealed partial class Transform3dSystem : EntitySystem
 {
     private EntityQuery<Transform3dComponent> _xformQuery;
-    
+
     public override void Initialize()
     {
         _xformQuery = GetEntityQuery<Transform3dComponent>();

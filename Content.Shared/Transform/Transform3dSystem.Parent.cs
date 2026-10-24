@@ -43,25 +43,24 @@ public sealed partial class Transform3dSystem
             return;
         }
 
-        if (!xformQuery.Resolve(parent, ref parentXform))
-            return;
-        
+        parentXform = EnsureComp<Transform3dComponent>(parent);
+
         RaiseLocalEvent(uid, new OnEntityAttachingEvent());
-        
+
         var parRot = parentXform.WorldAngle;
         var parInvMatrix = parentXform.InvWorldMatrix;
         var (pos, rot) = GetWorldPositionRotation(xform, xformQuery);
-        var newPos = Vector3.Transform(pos, parInvMatrix);
-        var newRot = rot - parRot;
+        var localPos = Vector3.Transform(pos, parInvMatrix);
+        var localRot = rot - parRot;
 
         xform.ParentUid = parent;
-        
+
         RaiseLocalEvent(uid, new OnEntityAttachedEvent()
         {
             To = parent,
         });
-        
-        SetWorldPositionRotationInternal(uid, newPos, newRot);
+
+        SetWorldPositionRotationInternal(uid, localPos, localRot);
     }
     
     public void DetachEntity(EntityUid uid, Transform3dComponent xform)

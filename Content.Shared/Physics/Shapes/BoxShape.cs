@@ -1,9 +1,11 @@
 ﻿using Content.Shared.Physics.Data;
 using Content.Shared.Utils;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Physics.Shapes;
 
 [DataDefinition]
+[Serializable, NetSerializable]
 public sealed partial class BoxShape : IPhysicShape
 {
     [DataField] public Vector3 HalfExtents = new(0.5f, 0.5f, 0.5f);

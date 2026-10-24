@@ -1,14 +1,16 @@
 using Content.Shared.Physics.Constraints;
 using Content.Shared.Utils;
+using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.EntityConstraint;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class EntityConstraintComponent : Component
 {
     [DataField] public List<EntityConstraint> Constraints = [];
-    [ViewVariables] public List<EntityUid> ActiveConstraints = [];
+    [ViewVariables, AutoNetworkedField] public List<EntityUid> ActiveConstraints = [];
 }
 
 [RegisterComponent]

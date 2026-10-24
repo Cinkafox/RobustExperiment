@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
-using Content.Shared.IoC;
+using Robust.Shared;
+using Robust.Shared.Configuration;
 using Robust.Shared.ContentPack;
 
 namespace Content.Shared.Entry;
@@ -8,15 +9,14 @@ public sealed partial class EntryPoint : GameShared
 {
     [Dependency] private IComponentFactory _componentFactory = default!;
     [Dependency] private ILocalizationManager _localizationManager = default!;
+    [Dependency] private IConfigurationManager _configurationManager = default!;
     
     private const string Culture = "ru-RU";
     
     public override void PreInit()
     {
-        IoCExt.AutoRegisterWithAttr();
         IoCManager.BuildGraph();
         IoCManager.InjectDependencies(this);
-        IoCExt.Behaviors.Resolve();
         
         _localizationManager.LoadCulture(new CultureInfo(Culture));
     }
@@ -26,12 +26,10 @@ public sealed partial class EntryPoint : GameShared
         _componentFactory.DoAutoRegistrations();
         _componentFactory.IgnoreMissingComponents();
         _componentFactory.GenerateNetIds();
-        
-        IoCExt.Behaviors.Initialize<IInitializeBehavior>();
     }
 
     public override void PostInit()
     {
-        IoCExt.Behaviors.Initialize<IPostInitializeBehavior>();
+        _configurationManager.SetCVar("net.pvs", false); //TODO: PVS for 3d think
     }
 }

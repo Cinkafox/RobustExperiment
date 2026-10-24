@@ -2,20 +2,22 @@ using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Systems;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Physics.Constraints;
 
 [DataDefinition]
+[Serializable, NetSerializable]
 public sealed partial class PointToPointConstraint : IBodyConstraint
 {
     [DataField] public Vector3 LocalAnchorA;
     [DataField] public Vector3 LocalAnchorB;
     
-    private Vector3 _rA, _rB;
-    private Matrix3x3 _effectiveMassMatrix; 
-    private Vector3 _bias;
+    [NonSerialized] private Vector3 _rA, _rB;
+    [NonSerialized] private Matrix3x3 _effectiveMassMatrix; 
+    [NonSerialized] private Vector3 _bias;
     
-    private Vector3 _worldA, _worldB;
+    [NonSerialized] private Vector3 _worldA, _worldB;
     
     public void Prepare(
         RigidBodySystem system, 

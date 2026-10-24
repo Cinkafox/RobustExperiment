@@ -2,10 +2,12 @@ using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Systems;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Physics.Constraints;
 
 [DataDefinition]
+[Serializable, NetSerializable]
 public sealed partial class HingeConstraint : IBodyConstraint
 {
     [DataField] public Vector3 LocalAnchorA;
@@ -13,15 +15,15 @@ public sealed partial class HingeConstraint : IBodyConstraint
     [DataField] public Vector3 Axis = Vector3.UnitX;
     [DataField] public Vector3 AxisB = Vector3.UnitX;
 
-    private const float Beta = 0.2f; // Baumgarte factor
+    [NonSerialized] private const float Beta = 0.2f; // Baumgarte factor
 
-    private Vector3 _rA, _rB;
-    private Vector3 _u, _v;
-    private Vector3 _worldA, _worldB;
-    private Vector3 _axisA, _axisB;
+    [NonSerialized] private Vector3 _rA, _rB;
+    [NonSerialized] private Vector3 _u, _v;
+    [NonSerialized] private Vector3 _worldA, _worldB;
+    [NonSerialized] private Vector3 _axisA, _axisB;
 
-    private readonly float[,] _invK = new float[5, 5];
-    private readonly float[] _bias = new float[5];
+    [NonSerialized] private readonly float[,] _invK = new float[5, 5];
+    [NonSerialized] private readonly float[] _bias = new float[5];
 
     public void Prepare(
         RigidBodySystem system,
@@ -29,16 +31,30 @@ public sealed partial class HingeConstraint : IBodyConstraint
         Entity<RigidBodyComponent?, Transform3dComponent> bodyB,
         float dt)
     {
+        if (bodyA.Comp1 == null || bodyA.Comp2 == null)
+            return;
+        if (bodyB.Comp2 == null)
+            return;
+        if (bodyA.Comp1.WorldInvInertia.Equals(Matrix3x3.Zero))
+            bodyA.Comp1.UpdateWorldInertia(bodyA.Comp2.WorldRotation);
+        if (bodyB.Comp1 != null && bodyB.Comp1.WorldInvInertia.Equals(Matrix3x3.Zero))
+            bodyB.Comp1.UpdateWorldInertia(bodyB.Comp2.WorldRotation);
+
+        if (dt <= 0f || _invK == null)
+            return;
+
+        var xformB = bodyB.Comp2;
+        var rotB = xformB.WorldRotation;
         _rA = Vector3.Transform(LocalAnchorA, bodyA.Comp2.WorldRotation);
-        _rB = Vector3.Transform(LocalAnchorB, bodyB.Comp2.WorldRotation);
+        _rB = Vector3.Transform(LocalAnchorB, rotB);
 
         _worldA = bodyA.Comp2.WorldPosition + _rA;
-        _worldB = bodyB.Comp2.WorldPosition + _rB;
+        _worldB = xformB.WorldPosition + _rB;
 
         var axisA = Vector3.Transform(Axis, bodyA.Comp2.WorldRotation);
         _axisA = axisA.LengthSquared() > 1e-6f ? Vector3.Normalize(axisA) : Vector3.UnitX;
 
-        var axisB = Vector3.Transform(AxisB, bodyB.Comp2.WorldRotation);
+        var axisB = Vector3.Transform(AxisB, rotB);
         _axisB = axisB.LengthSquared() > 1e-6f ? Vector3.Normalize(axisB) : _axisA;
         
         var reference = MathF.Abs(_axisA.Y) < 0.99f ? Vector3.UnitY : Vector3.UnitX;
@@ -81,11 +97,14 @@ public sealed partial class HingeConstraint : IBodyConstraint
         k[3, 3] = kRR00; k[3, 4] = kRR01;
         k[4, 3] = kRR10; k[4, 4] = kRR11;
 
-        if (!Invert5x5(k, _invK))
+        if (_invK == null || !Invert5x5(k, _invK))
         {
-            for (var i = 0; i < 5; i++)
-            for (var j = 0; j < 5; j++)
-                _invK[i, j] = 0f;
+            if (_invK != null)
+            {
+                for (var i = 0; i < 5; i++)
+                for (var j = 0; j < 5; j++)
+                    _invK[i, j] = 0f;
+            }
         }
 
         var betaDt = Beta / dt;
@@ -105,6 +124,11 @@ public sealed partial class HingeConstraint : IBodyConstraint
         Entity<RigidBodyComponent?, Transform3dComponent> bodyB,
         float dt)
     {
+        if (_invK == null)
+            return;
+        if (_invK[0,0] == 0f && _invK[1,1] == 0f && _invK[2,2] == 0f)
+            return;
+
         var vA = bodyA.Comp1.LinearVelocity;
         var wA = bodyA.Comp1.AngularVelocity;
         var vB = bodyB.Comp1?.LinearVelocity ?? Vector3.Zero;
@@ -154,6 +178,9 @@ public sealed partial class HingeConstraint : IBodyConstraint
 
     private static bool Invert5x5(float[,] m, float[,] inv)
     {
+        if (m == null || inv == null)
+            return false;
+
         const int n = 5;
         var a = new float[n, 2 * n];
         for (var i = 0; i < n; i++)

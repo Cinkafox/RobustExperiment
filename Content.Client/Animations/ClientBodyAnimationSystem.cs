@@ -38,7 +38,8 @@ public sealed partial class ClientBodyAnimationSystem : BodyAnimationSystem
            (_gameTiming.CurTime >= animationSpan)) 
             return;
         
-        _animationPlayer.Play(ent, ent.Comp.CurrentAnimation, args.Key);
+        if(!_animationPlayer.HasRunningAnimation(ent, args.Key))
+            _animationPlayer.Play(ent, ent.Comp.CurrentAnimation, args.Key);
     }
 
     public override void Play(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
@@ -79,7 +80,8 @@ public sealed partial class ClientBodyAnimationSystem : BodyAnimationSystem
         activeComp.CurrentAnimation = property.Animation;
         activeComp.AnimationId = animationId;
         
-        _animationPlayer.Play(property.EntityUid, property.Animation, animationId);
+        if(!_animationPlayer.HasRunningAnimation(property.EntityUid, animationId))
+            _animationPlayer.Play(property.EntityUid, property.Animation, animationId);
     }
 
     public override void Stop(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)

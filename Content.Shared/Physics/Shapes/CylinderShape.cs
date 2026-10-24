@@ -1,8 +1,10 @@
 using Content.Shared.Physics.Data;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Physics.Shapes;
 
 [DataDefinition]
+[Serializable, NetSerializable]
 public sealed partial class CylinderShape : IPhysicShape
 {
     [DataField] public float Radius = 0.5f;

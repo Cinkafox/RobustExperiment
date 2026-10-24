@@ -1,19 +1,20 @@
-﻿using Robust.Shared.Prototypes;
+﻿using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.Physics.Components;
 
-[RegisterComponent]
-public sealed partial class RigidBodyComponent: Component
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
+public sealed partial class RigidBodyComponent : Component
 {
-    [DataField] public Vector3 LinearVelocity = Vector3.Zero;
-    [DataField] public PhysType PhysType = PhysType.Dynamic;
+    [DataField, AutoNetworkedField] public Vector3 LinearVelocity = Vector3.Zero;
+    [DataField, AutoNetworkedField] public PhysType PhysType = PhysType.Dynamic;
 
-    [DataField] public Shapes.IPhysicShape Shape = new Shapes.SphereShape();
-    [DataField] public float Density = 1f;
-    [DataField] public float Friction = 0.8f;
-    [DataField] public float Restitution = 0.3f;
-    [DataField] public float RollingResistance = 0.015f;
+    [DataField, AutoNetworkedField] public Shapes.IPhysicShape Shape = new Shapes.SphereShape();
+    [DataField, AutoNetworkedField] public float Density = 1f;
+    [DataField, AutoNetworkedField] public float Friction = 0.8f;
+    [DataField, AutoNetworkedField] public float Restitution = 0.3f;
+    [DataField, AutoNetworkedField] public float RollingResistance = 0.015f;
     
     [ViewVariables(VVAccess.ReadOnly)] public float Mass => Shape.Area * Density;
     [ViewVariables(VVAccess.ReadOnly)] public float InvMass => (PhysType == PhysType.Dynamic) ? 1f / Mass : 0f;
@@ -68,6 +69,7 @@ public enum PhysType
 }
 
 [DataDefinition]
+[Serializable, NetSerializable]
 public partial struct PhysicsProperty
 {
     [DataField] public Shapes.IPhysicShape Shape = new Shapes.SphereShape();
@@ -87,7 +89,8 @@ public sealed partial class SurfacePrototype : IPrototype
 }
 
 [DataDefinition]
-public partial struct FrictionData
+[Serializable, NetSerializable]
+public partial record struct FrictionData
 {
     [DataField("static")] public float StaticFriction = 0.8f;
     [DataField("dynamic")] public float DynamicFriction = 0.6f;

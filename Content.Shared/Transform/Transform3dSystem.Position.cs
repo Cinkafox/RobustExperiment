@@ -5,24 +5,22 @@ namespace Content.Shared.Transform;
 
 public sealed partial class Transform3dSystem
 {
-    private void SetWorldPositionRotationInternal(EntityUid uid, Vector3 worldPos, EulerAngles? worldRot = null, Transform3dComponent? component = null)
+    private void SetWorldPositionRotationInternal(EntityUid uid, Vector3 localPos, EulerAngles? localRot = null, Transform3dComponent? component = null)
     {
         if (!_xformQuery.Resolve(uid, ref component))
             return;
 
-        // If no worldRot supplied then default the new rotation to 0.
-
         if (!component.ParentUid.IsValid())
         {
-            DebugTools.Assert("Parent is invalid while attempting to set WorldPosition - did you try to move root node?");
+            DebugTools.Assert($"Parent is invalid while attempting to set position - did you try to move root node? EntityUid: {uid}");
             return;
         }
 
-        component.WorldPosition = worldPos;
-        
-        if (worldRot.HasValue)
+        component.LocalPosition = localPos;
+
+        if (localRot.HasValue)
         {
-            component.WorldAngle = worldRot.Value;
+            component.LocalAngle = localRot.Value;
         }
     }
 
@@ -33,17 +31,20 @@ public sealed partial class Transform3dSystem
 
     public void SetWorldPosition(EntityUid uid, Vector3 position)
     {
-        _xformQuery.Comp(uid).WorldPosition = position;
+        var comp = _xformQuery.Comp(uid);
+        comp.WorldPosition = position;
     }
-    
+
     public void SetWorldRotation(EntityUid uid, EulerAngles angles)
     {
-        _xformQuery.Comp(uid).WorldAngle = angles;
+        var comp = _xformQuery.Comp(uid);
+        comp.WorldAngle = angles;
     }
 
     public void SetWorldRotation(EntityUid uid, Quaternion orientation)
     {
-        _xformQuery.Comp(uid).WorldRotation = orientation;
+        var comp = _xformQuery.Comp(uid);
+        comp.WorldRotation = orientation;
     }
 
     public Vector3 GetWorldPosition(EntityUid uid)

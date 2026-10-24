@@ -1,14 +1,11 @@
-﻿using Content.Client.Game;
-using Content.Shared.GameTicking;
+﻿using Content.Shared.GameTicking;
 using Robust.Client;
-using Robust.Client.State;
 using Robust.Shared.Timing;
 
 namespace Content.Client.GameTicking;
 
 public sealed partial class GameTicker : SharedGameTicker
 {
-    [Dependency] private IStateManager _stateManager = default!;
     [Dependency] private IBaseClient _baseClient = default!;
     
     public override void Initialize()
@@ -24,6 +21,5 @@ public sealed partial class GameTicker : SharedGameTicker
     {
         InitializeGame();
         AttachSession(PlayerManager.LocalSession ?? throw new InvalidOperationException());
-        _stateManager.RequestStateChange<ContentGameState>();
     }
 }

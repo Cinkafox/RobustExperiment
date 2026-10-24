@@ -28,40 +28,42 @@ public partial class Transform3dComponent
 
     [ViewVariables(VVAccess.ReadWrite)]
     [Animatable]
+    [AutoNetworkedField]
     public Vector3 LocalScale
     {
         get => _localScale;
         set
         {
-            if(IsRooted)
+            if (IsRooted)
                 return;
-            
+
             if (Vector3.DistanceSquared(_localScale, value) < 1e-8f)
                 return;
 
             _localScale = value;
-            MarkDirtyRecursive();
+            MarkDirtyRecursive(nameof(LocalScale));
         }
     }
-    
+
     [ViewVariables(VVAccess.ReadWrite)]
     [Animatable]
+    [AutoNetworkedField]
     public Quaternion LocalRotation
     {
         get => _localRotation;
         set
         {
-            if(IsRooted)
+            if (IsRooted)
                 return;
 
             if (value.Equals(_localRotation))
                 return;
-            
+
             _localRotation = Quaternion.Normalize(value);
-            MarkDirtyRecursive();
+            MarkDirtyRecursive(nameof(LocalRotation));
         }
     }
-    
+
     [ViewVariables(VVAccess.ReadWrite)]
     [Animatable]
     public Vector3 LocalAngleAsVector
@@ -81,9 +83,10 @@ public partial class Transform3dComponent
         get => LocalRotation.ToEulerAngle();
         set => LocalRotation = value.ToQuaternion();
     }
-    
+
     [Animatable]
     [ViewVariables(VVAccess.ReadWrite)]
+    [AutoNetworkedField]
     public Vector3 LocalPosition
     {
         get => _localPosition;
@@ -93,7 +96,7 @@ public partial class Transform3dComponent
                 return;
 
             _localPosition = value;
-            MarkDirtyRecursive();
+            MarkDirtyRecursive(nameof(LocalPosition));
         }
     }
 }

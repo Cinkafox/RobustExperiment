@@ -1,9 +1,10 @@
 ﻿using Content.Shared.Physics.Constraints;
+using Robust.Shared.GameStates;
 
 namespace Content.Shared.Physics.Components;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class ConstraintComponent : Component
 {
-    [ViewVariables] public Dictionary<EntityUid, IBodyConstraint> Constraints = [];
+    [ViewVariables, AutoNetworkedField] public Dictionary<EntityUid, IBodyConstraint> Constraints = [];
 }

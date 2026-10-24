@@ -1,5 +1,8 @@
+using Robust.Shared.Serialization;
+
 namespace Content.Shared.Utils;
 
+[Serializable, NetSerializable]
 public readonly struct EulerAngles : IApproxEquatable<EulerAngles>, IEquatable<EulerAngles>
 {
     public readonly Angle Pitch = Angle.Zero;

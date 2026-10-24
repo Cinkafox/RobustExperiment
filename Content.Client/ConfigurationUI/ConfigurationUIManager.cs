@@ -1,5 +1,4 @@
 ﻿using Content.Client.UserInterface.Controls;
-using Content.Shared.IoC;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Reflection;
@@ -7,8 +6,7 @@ using Robust.Shared.Sandboxing;
 
 namespace Content.Client.ConfigurationUI;
 
-[IoCRegister]
-public sealed partial class ConfigurationUIManager : IInitializeBehavior
+public sealed partial class ConfigurationUIManager 
 {
     [Dependency] private IReflectionManager _reflection = default!;
     [Dependency] private ISandboxHelper _sandboxHelper = default!;
