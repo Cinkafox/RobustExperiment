@@ -1,4 +1,6 @@
+using System.Numerics;
 using Content.Shared.Transform;
+using Content.Shared.Utils;
 
 namespace Content.Shared.Bone;
 
@@ -35,7 +37,13 @@ public sealed partial class BoneSystem : EntitySystem
         if (compound == null)
             return;
         
-        skeletonComponent.Root = CreateBone(compound, ent.Owner, ent.Comp.Offset, new Entity<SkeletonComponent>(ent, skeletonComponent));
+        var restTransform = Comp<Transform3dComponent>(ent);
+        var restWorld = restTransform.WorldMatrix;
+        var restRotation = restTransform.WorldRotation;
+
+        skeletonComponent.OriginalWorldMatrix = restWorld;
+        skeletonComponent.Root = CreateBone(compound, ent.Owner, ent.Comp.Offset,
+            new Entity<SkeletonComponent>(ent, skeletonComponent), restWorld, restRotation);
     }
 
     public BoneCompound? GetCompoundRecursive(EntityUid uid)
@@ -66,12 +74,12 @@ public sealed partial class BoneSystem : EntitySystem
     }
 
     private EntityUid CreateBone(BoneCompound boneCompound, EntityUid parent, Vector3 offset,
-        Entity<SkeletonComponent> skeleton)
+        Entity<SkeletonComponent> skeleton, Matrix4x4 restWorld, Quaternion restRotation)
     {
         var bone = Spawn();
         _transform.SetParent(bone, parent);
-        _transform.SetWorldPosition(bone, boneCompound.Position + offset);
-        _transform.SetWorldRotation(bone, boneCompound.Rotation);
+        _transform.SetWorldPosition(bone, Vector3.Transform(boneCompound.Position + offset, restWorld));
+        _transform.SetWorldRotation(bone, Quaternion.Multiply(restRotation, boneCompound.Rotation.ToQuaternion()));
         var boneComp = AddComp<BoneComponent>(bone);
         boneComp.Skeleton = skeleton;
         
@@ -86,7 +94,7 @@ public sealed partial class BoneSystem : EntitySystem
         
         foreach (var child in boneCompound.Child)
         {
-            boneComp.Children.Add(CreateBone(child, bone, offset, skeleton));
+            boneComp.Children.Add(CreateBone(child, bone, offset, skeleton, restWorld, restRotation));
         }
 
         return bone;

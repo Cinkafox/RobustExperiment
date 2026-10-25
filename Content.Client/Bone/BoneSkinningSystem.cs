@@ -1,4 +1,5 @@
-﻿using Content.Client.DimensionEnv;
+﻿using System.Numerics;
+using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
 using Content.Shared.Bone;
 using Content.Shared.Transform;
@@ -8,7 +9,7 @@ namespace Content.Client.Bone;
 
 public sealed partial class BoneSkinningSystem : EntitySystem
 {
-    private void ProceedBone(Entity<BoneComponent?> entity, MeshRender mesh, Transform3dComponent parentTransform)
+    private void ProceedBone(Entity<BoneComponent?> entity, MeshRender mesh, Matrix4x4 restWorld)
     {
         if (!Resolve(entity, ref entity.Comp))
             return;
@@ -33,8 +34,8 @@ public sealed partial class BoneSkinningSystem : EntitySystem
         {
             var index = data.BoneIndices;
             var v = mesh.Mesh.Vertexes[index];
-            var pos = new Vector3(v.X, v.Y, v.Z);
-            
+            var pos = Vector3.Transform(new Vector3(v.X, v.Y, v.Z), restWorld);
+
             pos -= originalPos;
             pos = Matrix4Helpers.TransformVector(pos, deltaRotation);
             pos += originalPos;
@@ -45,7 +46,7 @@ public sealed partial class BoneSkinningSystem : EntitySystem
         
         foreach (var child in entity.Comp.Children)
         {
-            ProceedBone(child, mesh, boneTransform);
+            ProceedBone(child, mesh, restWorld);
         }
     }
     
@@ -56,7 +57,7 @@ public sealed partial class BoneSkinningSystem : EntitySystem
         {
             if(!model.MeshRenderInitialized) continue;
             
-            ProceedBone(skeleton.Root, model.MeshRender, transform);
+            ProceedBone(skeleton.Root, model.MeshRender, skeleton.OriginalWorldMatrix);
         }
     }
 }

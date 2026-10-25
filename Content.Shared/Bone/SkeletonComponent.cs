@@ -1,4 +1,5 @@
-﻿using Robust.Shared.GameStates;
+﻿using System.Numerics;
+using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Bone;
@@ -7,6 +8,7 @@ namespace Content.Shared.Bone;
 public sealed partial class SkeletonComponent : Component
 {
     [ViewVariables] public EntityUid Root;
+    [ViewVariables] public Matrix4x4 OriginalWorldMatrix = Matrix4x4.Identity;
     [ViewVariables] public readonly Dictionary<string, EntityUid> BonesDictionary = [];
 }
 
