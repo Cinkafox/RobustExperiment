@@ -20,7 +20,7 @@ public sealed partial class EntryPoint : GameClient
     [Dependency] private IGameController _gameController = default!;
     [Dependency] private ConfigurationUIManager _configurationUiManager = default!;
     
-    public bool IsSingleplayer = true;
+    public bool IsSingleplayer = false;
     
     public override void PreInit()
     {
@@ -61,18 +61,10 @@ public sealed partial class EntryPoint : GameClient
             state.Message("Disconnected..");
             return;
         }
-
+        
         if (_gameController.LaunchState.FromLauncher) 
             return;
 
-        if (IsSingleplayer)
-        {
-            state.Message("Start singleplayer..");
-            _baseClient.StartSinglePlayer();
-        }
-        else
-        {
-            state.ConnectToLocal();
-        }
+        state.InvokeStartEntry();
     }
 }

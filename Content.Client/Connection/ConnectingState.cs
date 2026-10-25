@@ -4,8 +4,6 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Configuration;
 using Robust.Shared.Network;
-using Robust.Shared.Prototypes;
-using Robust.Shared.Random;
 
 namespace Content.Client.Connection;
 
@@ -15,13 +13,11 @@ public sealed partial class ConnectingState : State
     [Dependency] private IClientNetManager _clientNetManager = default!;
     [Dependency] private IGameController _gameController = default!;
     [Dependency] private IBaseClient _baseClient = default!;
-    [Dependency] private IRobustRandom _random = default!;
-    [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
-    
-    public const string LOCAL_ADDRESS = "ss14://localhost:1212/";
+
+    private static readonly string LocalAddress = "ss14://localhost:1212/";
     public string? Address => _gameController.LaunchState.Ss14Address 
-                              ?? _gameController.LaunchState.ConnectAddress ?? LOCAL_ADDRESS;
+                              ?? _gameController.LaunchState.ConnectAddress ?? LocalAddress;
     
     public BoxContainer MessageContainer = new BoxContainer()
     {
@@ -43,6 +39,57 @@ public sealed partial class ConnectingState : State
         _clientNetManager.ClientConnectStateChanged -= OnConnectStateChanged;
         
         _userInterfaceManager.StateRoot.RemoveChild(MessageContainer);
+    }
+
+    private Button? _startSingleplayerButton;
+    private Button? _connectToServerButton;
+    
+    public void InvokeStartEntry()
+    {
+        CleanupButtons();
+        var btnGroup = new BoxContainer()
+        {
+            Margin = new Thickness(12),
+            Orientation = BoxContainer.LayoutOrientation.Horizontal
+        };
+
+        _startSingleplayerButton = new Button()
+        {
+            Text = "Start Singleplayer",
+        };
+        
+        _connectToServerButton = new Button()
+        {
+            Text = "Connect to the server",
+        };
+
+        _startSingleplayerButton.OnPressed += OnStartSingleplayerButtonPressed;
+        _connectToServerButton.OnPressed += OnConnectToServerButtonPressed;
+
+        btnGroup.AddChild(_startSingleplayerButton);
+        btnGroup.AddChild(_connectToServerButton);  
+        
+        MessageContainer.AddChild(btnGroup);
+    }
+
+    private void OnConnectToServerButtonPressed(BaseButton.ButtonEventArgs obj)
+    {
+        ConnectToServer();
+        CleanupButtons();
+    }
+
+    private void OnStartSingleplayerButtonPressed(BaseButton.ButtonEventArgs obj)
+    {
+        StartSingleplayer();
+        CleanupButtons();
+    }
+
+    private void CleanupButtons()
+    {
+        _startSingleplayerButton?.OnPressed -= OnStartSingleplayerButtonPressed;
+        _connectToServerButton?.OnPressed -= OnConnectToServerButtonPressed;
+        _startSingleplayerButton?.Disabled = true;
+        _connectToServerButton?.Disabled = true;
     }
     
     private void OnConnectStateChanged(ClientConnectionState state)
@@ -73,6 +120,7 @@ public sealed partial class ConnectingState : State
             Redial();
         }
         Message($"Error while connecting to the server. Reason: {args.Reason}" );
+        InvokeStartEntry();
     }
     
     public void Message(string message)
@@ -105,10 +153,23 @@ public sealed partial class ConnectingState : State
         return false;
     }
 
-    public void ConnectToLocal()
+    public void StartSingleplayer()
+    {
+        Message("Start singleplayer..");
+        _baseClient.StartSinglePlayer();
+    }
+
+    public void ConnectToServer()
     {
         try
         {
+            if (_gameController.LaunchState.ConnectEndpoint != null)
+            {
+                Message("Connect to " + _gameController.LaunchState.ConnectEndpoint);
+                _baseClient.ConnectToServer(_gameController.LaunchState.ConnectEndpoint);
+                return;
+            }
+
             Message("Connect to local server..");
             _baseClient.ConnectToServer("127.0.0.1",1212);
         }
