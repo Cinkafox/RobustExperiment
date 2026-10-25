@@ -19,11 +19,11 @@ public sealed partial class CollectibleComponent : Component
     [ViewVariables] public PhysicsProperty? TakenProperties;
 }
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class ItemCollectorComponent : Component
 {
     [DataField] public string BoneName;
-    [DataField] public EntityUid? CurrentItem;
+    [DataField, AutoNetworkedField] public EntityUid? CurrentItem;
     [ViewVariables(VVAccess.ReadOnly)] public bool IsEmpty => CurrentItem == null;
 }
 

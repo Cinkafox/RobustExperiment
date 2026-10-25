@@ -54,7 +54,7 @@ public sealed partial class ItemsSystem : EntitySystem
         if(!collector.Comp.IsEmpty) 
             Drop(collector);
         
-        ent.Comp.TakenBy = ent;
+        ent.Comp.TakenBy = collector.Owner;
 
         if (ent.Comp.TakeAsItem)
         {
@@ -84,6 +84,7 @@ public sealed partial class ItemsSystem : EntitySystem
         }
 
         collector.Comp.CurrentItem = ent;
+        Dirty(collector, collector.Comp);
         
         RaiseLocalEvent(ent, new ItemPickupEvent(collector));
     }
@@ -127,10 +128,46 @@ public sealed partial class ItemsSystem : EntitySystem
         }
         
         collector.Comp.CurrentItem = null;
+        Dirty(collector, collector.Comp);
         itemComp.TakenBy = null;
         itemComp.CollideDelay = _gameTiming.CurTime + TimeSpan.FromSeconds(0.5);
         
         RaiseLocalEvent(itemToDrop, new ItemDropEvent(collector));
+    }
+
+    public override void Update(float frameTime)
+    {
+        var itemQuery = EntityQueryEnumerator<CollectibleComponent>();
+        while (itemQuery.MoveNext(out var itemUid, out var item))
+        {
+            if (item.TakenBy is not { } collectorUid ||
+                !TryComp<ItemCollectorComponent>(collectorUid, out var collector) ||
+                collector.CurrentItem != itemUid)
+            {
+                item.TakenBy = null;
+            }
+        }
+
+        var collectorQuery = EntityQueryEnumerator<ItemCollectorComponent>();
+        while (collectorQuery.MoveNext(out var collectorUid, out var collector))
+        {
+            if (collector.CurrentItem is not { } itemUid ||
+                !TryComp<CollectibleComponent>(itemUid, out var item) ||
+                !TryComp<Transform3dComponent>(itemUid, out var itemTransform))
+                continue;
+
+            item.TakenBy = collectorUid;
+
+            if (!item.TakeAsItem ||
+                !_boneSystem.TryGetBone(collectorUid, collector.BoneName, out var bone) ||
+                itemTransform.ParentUid == bone)
+                continue;
+
+            _transform3dSystem.SetParent(itemUid, itemTransform, bone);
+            itemTransform.LocalPosition = item.Position;
+            itemTransform.LocalAngle = item.Rotation;
+            itemTransform.LocalScale = item.Scale;
+        }
     }
 
     public void UseCurrentItem(Entity<ItemCollectorComponent?> collector)
