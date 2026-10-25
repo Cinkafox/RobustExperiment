@@ -32,6 +32,12 @@ public sealed class ConstraintSystem : EntitySystem
             Dirty(bodyA, constraint);
     }
 
+    public void UpdateConstraint(EntityUid bodyA)
+    {
+        if (TryComp<ConstraintComponent>(bodyA, out var constraint))
+            Dirty(bodyA, constraint);
+    }
+
     public bool TryGetConstraint<T>(EntityUid bodyA, EntityUid bodyB,[NotNullWhen(true)] out T? constraint) where T : IBodyConstraint
     {
         constraint = default;

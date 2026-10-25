@@ -22,8 +22,11 @@ public sealed partial class HingeConstraint : IBodyConstraint
     [NonSerialized] private Vector3 _worldA, _worldB;
     [NonSerialized] private Vector3 _axisA, _axisB;
 
-    [NonSerialized] private readonly float[,] _invK = new float[5, 5];
-    [NonSerialized] private readonly float[] _bias = new float[5];
+    // These buffers must not be serialized, but they still have to be allocated on the client:
+    // NetSerializer creates deserialized instances via GetUninitializedObject(), which skips
+    // field initializers. Allocate lazily instead of relying on the initializer.
+    [NonSerialized] private float[,]? _invK;
+    [NonSerialized] private float[]? _bias;
 
     public void Prepare(
         RigidBodySystem system,
@@ -40,8 +43,11 @@ public sealed partial class HingeConstraint : IBodyConstraint
         if (bodyB.Comp1 != null && bodyB.Comp1.WorldInvInertia.Equals(Matrix3x3.Zero))
             bodyB.Comp1.UpdateWorldInertia(bodyB.Comp2.WorldRotation);
 
-        if (dt <= 0f || _invK == null)
+        if (dt <= 0f)
             return;
+
+        var invK = _invK ??= new float[5, 5];
+        _bias ??= new float[5];
 
         var xformB = bodyB.Comp2;
         var rotB = xformB.WorldRotation;
@@ -97,14 +103,11 @@ public sealed partial class HingeConstraint : IBodyConstraint
         k[3, 3] = kRR00; k[3, 4] = kRR01;
         k[4, 3] = kRR10; k[4, 4] = kRR11;
 
-        if (_invK == null || !Invert5x5(k, _invK))
+        if (!Invert5x5(k, invK))
         {
-            if (_invK != null)
-            {
-                for (var i = 0; i < 5; i++)
-                for (var j = 0; j < 5; j++)
-                    _invK[i, j] = 0f;
-            }
+            for (var i = 0; i < 5; i++)
+            for (var j = 0; j < 5; j++)
+                invK[i, j] = 0f;
         }
 
         var betaDt = Beta / dt;
@@ -124,7 +127,7 @@ public sealed partial class HingeConstraint : IBodyConstraint
         Entity<RigidBodyComponent?, Transform3dComponent> bodyB,
         float dt)
     {
-        if (_invK == null)
+        if (_invK == null || _bias == null)
             return;
         if (_invK[0,0] == 0f && _invK[1,1] == 0f && _invK[2,2] == 0f)
             return;

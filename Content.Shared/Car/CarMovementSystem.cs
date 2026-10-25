@@ -92,6 +92,7 @@ public sealed partial class CarMovementSystem : EntitySystem
             
         constraint.Axis = Vector3.Transform(constraint.Axis, rotationMatrix);
         constraint.AxisB = Vector3.Transform(constraint.AxisB, rotationMatrix);
+        _constraintSystem.UpdateConstraint(carUid);
     }
 
     public void SpeedupWheel(EntityUid wheelUid, EntityUid carUid, float dir)
