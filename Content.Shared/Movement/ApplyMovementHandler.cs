@@ -9,7 +9,7 @@ public sealed class ApplyMovementHandler(Vector3 to) : InputCmdHandler
     public override bool HandleCmdMessage(IEntityManager entManager, ICommonSession? session, IFullInputCmdMessage message)
     {
         if (!entManager.TryGetComponent<InputMoverComponent>(session?.AttachedEntity, out var inputMover)) 
-            return true;
+            return false;
         
         Vector3 ordinalPos;
 
@@ -22,11 +22,10 @@ public sealed class ApplyMovementHandler(Vector3 to) : InputCmdHandler
         entManager.EventBus.RaiseLocalEvent(session.AttachedEntity.Value, ev);
         
         if (ev.Handled)
-            return true;
+            return false;
         
-        Logger.Debug("MEOW");
         SetEntityMoving(entManager, session.AttachedEntity.Value, inputMover, ordinalPos);
-        return true;
+        return false;
     }
 
     private void SetEntityMoving(IEntityManager entManager, EntityUid attachedUid, InputMoverComponent inputMover, Vector3 ordinalPos)
@@ -41,6 +40,8 @@ public sealed class ApplyMovementHandler(Vector3 to) : InputCmdHandler
             else
                 entManager.EventBus.RaiseLocalEvent(attachedUid, new EntityStartMoveEvent());
         }
+        
+        entManager.Dirty(attachedUid, inputMover);
     }
 }
 

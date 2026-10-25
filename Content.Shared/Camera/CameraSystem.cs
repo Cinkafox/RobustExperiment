@@ -2,12 +2,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
+using Robust.Shared.Timing;
 
 namespace Content.Shared.Camera;
 
 public sealed partial class CameraSystem : EntitySystem
 {
     [Dependency] private Transform3dSystem _transform3dSystem = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
      
     public override void Initialize()
     {
@@ -20,17 +22,22 @@ public sealed partial class CameraSystem : EntitySystem
         EnsureComp<CameraComponent>(camUid);
         var camProxComp = EnsureComp<CameraProxyComponent>(ent);
         camProxComp.CameraUid = camUid;
-        //Dirty(ent, camProxComp);
+        Dirty(ent, camProxComp);
         var followComp = EnsureComp<FollowCameraComponent>(camUid);
         followComp.CameraQueue.Add(ent, new FollowCameraEntry()
         {
             Offset = ent.Comp.Offset,
             Rotation = ent.Comp.Rotation,
         });
+        
+        Dirty(camUid, followComp);
     }
 
     public void AddFollowEntity(EntityUid uid, EntityUid follow, Vector3 offset, EulerAngles rotation, bool rotateByEntity = false)
     {
+        if(!_gameTiming.IsFirstTimePredicted)
+            return;
+        
         if (!TryComp<CameraProxyComponent>(uid, out var cameraProxyComponent) ||
             !TryComp<FollowCameraComponent>(cameraProxyComponent.CameraUid, out var followComp))
             return;
@@ -46,6 +53,8 @@ public sealed partial class CameraSystem : EntitySystem
             Rotation = rotation,
             RotateByEntity = rotateByEntity
         });
+        
+        Dirty(cameraProxyComponent.CameraUid, followComp);
     }
 
     public void RemoveFollowEntity(EntityUid uid, EntityUid follow)

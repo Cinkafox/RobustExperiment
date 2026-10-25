@@ -20,7 +20,7 @@ public sealed partial class EntryPoint : GameClient
     [Dependency] private IGameController _gameController = default!;
     [Dependency] private ConfigurationUIManager _configurationUiManager = default!;
     
-    public bool IsSingleplayer = false;
+    public bool IsSingleplayer = true;
     
     public override void PreInit()
     {

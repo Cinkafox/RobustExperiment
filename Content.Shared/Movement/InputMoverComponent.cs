@@ -3,10 +3,10 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared.Movement;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class InputMoverComponent : Component
 {
-    [ViewVariables] public EulerAngles RotationMovement = EulerAngles.Zero;
-    [ViewVariables] public Vector3 PositionMovement = Vector3.Zero;
-    [ViewVariables] public bool IsJumping = false;
+    [ViewVariables, AutoNetworkedField] public EulerAngles RotationMovement = EulerAngles.Zero;
+    [ViewVariables, AutoNetworkedField] public Vector3 PositionMovement = Vector3.Zero;
+    [ViewVariables, AutoNetworkedField] public bool IsJumping = false;
 }

@@ -2,34 +2,34 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared.Car;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class CarWheelComponent : Component
 {
-    [DataField] public Vector3 Direction;
-    [DataField] public float Speed;
+    [DataField, AutoNetworkedField] public Vector3 Direction;
+    [DataField, AutoNetworkedField] public float Speed;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 Velocity => Direction * Speed;
 }
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class CarWheelSteeringComponent : Component
 {
-    [DataField] public Angle SteeringAngle = Angle.FromDegrees(30);
+    [DataField, AutoNetworkedField] public Angle SteeringAngle = Angle.FromDegrees(30);
 }
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class CarComponent : Component
 {
-    [ViewVariables] public readonly List<EntityUid> Steering = [];
-    [ViewVariables] public readonly List<EntityUid> Wheels = [];
+    [ViewVariables, AutoNetworkedField] public readonly List<EntityUid> Steering = [];
+    [ViewVariables, AutoNetworkedField] public readonly List<EntityUid> Wheels = [];
 }
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent]
 public sealed partial class CarRemoteControllerComponent : Component
 {
 }
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class PlayerActiveCarRemoteControlComponent : Component
 {
-    [ViewVariables] public EntityUid Car;
+    [ViewVariables, AutoNetworkedField] public EntityUid Car;
 }

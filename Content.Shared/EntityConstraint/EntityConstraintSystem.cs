@@ -43,6 +43,8 @@ public sealed partial class EntityConstraintSystem : EntitySystem
             if (constraint.BodyConstraint != null)
                 _constraintSystem.AddConstraint(uid, constrEnt, constraint.BodyConstraint);
             component.ActiveConstraints.Add(constrEnt);
+            
+            Dirty(constrEnt, constrParentComp);
         }
         Dirty(uid, component);
     }

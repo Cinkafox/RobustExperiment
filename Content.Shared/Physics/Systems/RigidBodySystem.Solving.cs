@@ -118,8 +118,16 @@ public sealed partial class RigidBodySystem
                 xform.LocalRotation = Quaternion.Normalize(
                     deltaRotation * xform.LocalRotation);
             }
-            
+        }
+    }
+
+    private void DirtyPhysics()
+    {
+        var query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
+        while (query.MoveNext(out var uid, out var body, out var transform3DComponent))
+        {
             Dirty(uid, body);
+            Dirty(uid, transform3DComponent);
         }
     }
     
@@ -173,5 +181,7 @@ public sealed partial class RigidBodySystem
             UpdateGroundStates(stepDt);
             IntegratePositions(stepDt);
         }
+        
+        DirtyPhysics();
     }
 }

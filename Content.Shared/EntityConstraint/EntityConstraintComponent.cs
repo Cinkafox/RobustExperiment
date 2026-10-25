@@ -13,10 +13,10 @@ public sealed partial class EntityConstraintComponent : Component
     [ViewVariables, AutoNetworkedField] public List<EntityUid> ActiveConstraints = [];
 }
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class EntityConstraintChildComponent : Component
 {
-    [ViewVariables] public EntityUid ParentUid;
+    [ViewVariables, AutoNetworkedField] public EntityUid ParentUid;
 }
 
 [DataDefinition]

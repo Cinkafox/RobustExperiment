@@ -1,5 +1,6 @@
 ﻿using Content.Shared.Physics.Components;
 using Content.Shared.Transform;
+using Robust.Shared.Network;
 using Robust.Shared.Reflection;
 using Robust.Shared.Sandboxing;
 
@@ -72,8 +73,8 @@ public sealed partial class RigidBodySystem : EntitySystem
         ApplyTorque(ent, torque);
     }
 
-    public override void FrameUpdate(float frameTime)
+    public override void Update(float frameTime)
     {
-        SimulateStep(frameTime, 4);
+        SimulateStep(frameTime, 8);
     }
 }

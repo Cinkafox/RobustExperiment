@@ -1,19 +1,17 @@
 ﻿using System.Numerics;
 using Content.Shared.Utils;
 using Robust.Shared.GameStates;
-using Robust.Shared.Timing;
 
 namespace Content.Shared.Transform;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
-public sealed partial class Transform3dComponent : Component, IComponentDelta
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas:true)]
+public sealed partial class Transform3dComponent : Component
 {
     [Dependency] private IEntityManager _entMan = default!;
 
     [DataField("parent")] private EntityUid _parent;
 
     [DataField("pos")] private Vector3 _localPosition = Vector3.Zero;
-
     [DataField("rot")] private Quaternion _localRotation = Quaternion.Identity;
     [DataField("scale")] private Vector3 _localScale = Vector3.One;
 
@@ -51,8 +49,7 @@ public sealed partial class Transform3dComponent : Component, IComponentDelta
                 IsRooted = true;
             }
 
-            if (_entMan.TryGetComponent<MetaDataComponent>(Owner, out var meta))
-                _entMan.DirtyField(Owner, this, nameof(ParentUid), meta);
+            _entMan.DirtyField(Owner, this, nameof(ParentUid));
         }
     }
 
@@ -64,10 +61,12 @@ public sealed partial class Transform3dComponent : Component, IComponentDelta
             return;
 
         MatricesDirty = true;
-        
-        if(fieldName != null)
-            _entMan.DirtyField(Owner, this, fieldName);
 
+        if(fieldName != null)
+        {
+            _entMan.DirtyField(Owner, this, fieldName);
+        }
+        
         foreach (var child in _children)
         {
             _entMan.GetComponent<Transform3dComponent>(child).MarkDirtyRecursive(fieldName);
@@ -90,8 +89,5 @@ public sealed partial class Transform3dComponent : Component, IComponentDelta
         _localMatrix = Matrix4Helpers.CreateTransform(_localPosition, rotation, _localScale);
         _invLocalMatrix = Matrix4Helpers.CreateInverseTransform(_localPosition, rotation, _localScale);
     }
-
-    GameTick IComponentDelta.LastUnclassifiedDirty { get; set; }
-    GameTick[] IComponentDelta.LastModifiedFields { get; set; } = default!;
 }
 

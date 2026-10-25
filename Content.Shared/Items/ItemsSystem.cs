@@ -168,7 +168,7 @@ public sealed class ItemDropKeyHandler(ItemsSystem itemsSystem) : InputCmdHandle
     {
         if (message.State is BoundKeyState.Down && session is { AttachedEntity: not null }) 
             itemsSystem.Drop(session.AttachedEntity.Value);
-        return true;
+        return false;
     }
 }
 
@@ -178,6 +178,6 @@ public sealed class UseItemHandler(ItemsSystem itemsSystem) : InputCmdHandler
     {
         if (message.State is BoundKeyState.Down && session is { AttachedEntity: not null }) 
             itemsSystem.UseCurrentItem(session.AttachedEntity.Value);
-        return true;
+        return false;
     }
 }

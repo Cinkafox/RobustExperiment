@@ -26,9 +26,8 @@ public partial class Transform3dComponent
         }
     }
 
-    [ViewVariables(VVAccess.ReadWrite)]
+    [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
     [Animatable]
-    [AutoNetworkedField]
     public Vector3 LocalScale
     {
         get => _localScale;
@@ -45,9 +44,8 @@ public partial class Transform3dComponent
         }
     }
 
-    [ViewVariables(VVAccess.ReadWrite)]
+    [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
     [Animatable]
-    [AutoNetworkedField]
     public Quaternion LocalRotation
     {
         get => _localRotation;
@@ -85,8 +83,7 @@ public partial class Transform3dComponent
     }
 
     [Animatable]
-    [ViewVariables(VVAccess.ReadWrite)]
-    [AutoNetworkedField]
+    [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
     public Vector3 LocalPosition
     {
         get => _localPosition;

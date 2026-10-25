@@ -9,10 +9,10 @@ public sealed class ApplyJumpHandler : InputCmdHandler
     public override bool HandleCmdMessage(IEntityManager entManager, ICommonSession? session, IFullInputCmdMessage message)
     {
         if (!entManager.TryGetComponent<InputMoverComponent>(session?.AttachedEntity, out var inputMover)) 
-            return true;
+            return false;
 
         inputMover.IsJumping = message.State is BoundKeyState.Down;
         
-        return true;
+        return false;
     }
 }

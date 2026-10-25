@@ -37,6 +37,7 @@ public sealed partial class CarMovementSystem : EntitySystem
         if(!TryComp<EntityConstraintChildComponent>(uid, out var constraint)) return;
         var carComp = EnsureComp<CarComponent>(constraint.ParentUid);
         carComp.Steering.Add(uid);
+        Dirty(constraint.ParentUid, carComp);
     }
 
     [SubscribeLocalEvent]
@@ -45,6 +46,7 @@ public sealed partial class CarMovementSystem : EntitySystem
         if(!TryComp<EntityConstraintChildComponent>(uid, out var constraint)) return;
         var carComp = EnsureComp<CarComponent>(constraint.ParentUid);
         carComp.Wheels.Add(uid);
+        Dirty(constraint.ParentUid, carComp);
     }
 
     [SubscribeLocalEvent]
@@ -53,6 +55,7 @@ public sealed partial class CarMovementSystem : EntitySystem
         if(!TryComp<EntityConstraintChildComponent>(uid, out var constraint)) 
             return;
         
+        Log.Debug("TEST MEOW " + args.UsedBy + " " + HasComp<PlayerActiveCarRemoteControlComponent>(args.UsedBy));
         if (!HasComp<PlayerActiveCarRemoteControlComponent>(args.UsedBy))
         {
             AddComp<PlayerActiveCarRemoteControlComponent>(args.UsedBy).Car = constraint.ParentUid;
@@ -84,7 +87,7 @@ public sealed partial class CarMovementSystem : EntitySystem
             return;
         if(!_constraintSystem.TryGetConstraint<HingeConstraint>(carUid, wheelUid, out var constraint)) 
             return;
-            
+        
         var rotationMatrix = Matrix4x4.CreateRotationY((float)(steering.SteeringAngle * dir));
             
         constraint.Axis = Vector3.Transform(constraint.Axis, rotationMatrix);
@@ -124,7 +127,7 @@ public sealed class SpeedupWheelCarHandler(float direction, CarMovementSystem ca
             carSystem.SpeedupWheel(rotatingWheels, playerActiveCarRemoteControl.Car, rotSpeed * 15);
         }
 
-        return true;
+        return false;
     }
 }
 
@@ -142,6 +145,6 @@ public sealed class RotateWheelCarHandler(float direction, CarMovementSystem car
             carSystem.RotateWheel(rotatingWheels, playerActiveCarRemoteControl.Car, rotSpeed);
         }
 
-        return true;
+        return false;
     }
 }

@@ -26,9 +26,9 @@ public sealed partial class InputMoverSystem : EntitySystem
             .Register<InputMoverSystem>();
     }
     
-    public override void FrameUpdate(float frameTime)
+    public override void Update(float frameTime)
     {
-        base.FrameUpdate(frameTime);
+        base.Update(frameTime);
 
         var query = EntityQueryEnumerator<InputMoverComponent, Transform3dComponent, RigidBodyComponent>();
 

@@ -1,4 +1,7 @@
-﻿namespace Content.Shared.Transform;
+﻿using Robust.Shared.GameStates;
+using Robust.Shared.Serialization;
+
+namespace Content.Shared.Transform;
 
 public sealed partial class Transform3dSystem : EntitySystem
 {
@@ -6,6 +9,7 @@ public sealed partial class Transform3dSystem : EntitySystem
 
     public override void Initialize()
     {
+        base.Initialize();
         _xformQuery = GetEntityQuery<Transform3dComponent>();
         EntityManager.ComponentAdded += EntityManagerOnComponentAdded;
     }
