@@ -7,9 +7,7 @@
   entities:
     - entity: floor
       position: 0,-2,0
-    - entity: pistol
-      position: 3,0,8
-    - entity: sword
-      position: 5,0,8
     - entity: testConstr
-      position: 0,2,15
+      position: 0,3,15
+    - entity: testConstr
+      position: 15,3,135
