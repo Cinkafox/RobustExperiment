@@ -3,7 +3,6 @@ using Content.Shared.Camera;
 using Content.Shared.EntityConstraint;
 using Content.Shared.Input;
 using Content.Shared.Items;
-using Content.Shared.Movement;
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Constraints;
 using Content.Shared.Physics.Systems;
@@ -11,6 +10,7 @@ using Content.Shared.Utils;
 using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Shared.Car;
 
@@ -19,6 +19,7 @@ public sealed partial class CarMovementSystem : EntitySystem
     [Dependency] private RigidBodySystem _rigidBodySystem = default!;
     [Dependency] private ConstraintSystem _constraintSystem = default!;
     [Dependency] private CameraSystem _cameraSystem = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
     {
@@ -35,6 +36,8 @@ public sealed partial class CarMovementSystem : EntitySystem
     private void OnWheelSteeringInit(EntityUid uid, CarWheelSteeringComponent component, ComponentInit args)
     {
         if(!TryComp<EntityConstraintChildComponent>(uid, out var constraint)) return;
+        if (!_timing.IsFirstTimePredicted)
+            return;
         var carComp = EnsureComp<CarComponent>(constraint.ParentUid);
         carComp.Steering.Add(uid);
         Dirty(constraint.ParentUid, carComp);
@@ -44,6 +47,8 @@ public sealed partial class CarMovementSystem : EntitySystem
     private void OnWheelInit(EntityUid uid, CarWheelComponent component, ComponentInit args)
     {
         if(!TryComp<EntityConstraintChildComponent>(uid, out var constraint)) return;
+        if (!_timing.IsFirstTimePredicted)
+            return;
         var carComp = EnsureComp<CarComponent>(constraint.ParentUid);
         carComp.Wheels.Add(uid);
         Dirty(constraint.ParentUid, carComp);
@@ -55,7 +60,6 @@ public sealed partial class CarMovementSystem : EntitySystem
         if(!TryComp<EntityConstraintChildComponent>(uid, out var constraint)) 
             return;
         
-        Log.Debug("TEST MEOW " + args.UsedBy + " " + HasComp<PlayerActiveCarRemoteControlComponent>(args.UsedBy));
         if (!HasComp<PlayerActiveCarRemoteControlComponent>(args.UsedBy))
         {
             AddComp<PlayerActiveCarRemoteControlComponent>(args.UsedBy).Car = constraint.ParentUid;
@@ -83,6 +87,9 @@ public sealed partial class CarMovementSystem : EntitySystem
 
     public void RotateWheel(EntityUid wheelUid, EntityUid carUid, float dir)
     {
+        if (!_timing.IsFirstTimePredicted)
+            return;
+
         if(!TryComp<CarWheelSteeringComponent>(wheelUid, out var steering)) 
             return;
         if(!_constraintSystem.TryGetConstraint<HingeConstraint>(carUid, wheelUid, out var constraint)) 
@@ -97,6 +104,9 @@ public sealed partial class CarMovementSystem : EntitySystem
 
     public void SpeedupWheel(EntityUid wheelUid, EntityUid carUid, float dir)
     {
+        if (!_timing.IsFirstTimePredicted)
+            return;
+
         if(!TryComp<CarWheelComponent>(wheelUid, out var wheel))
             return;
 
