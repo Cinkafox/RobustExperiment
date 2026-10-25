@@ -3,6 +3,7 @@ using Content.Shared.Camera;
 using Content.Shared.EntityConstraint;
 using Content.Shared.Input;
 using Content.Shared.Items;
+using Content.Shared.Movement;
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Constraints;
 using Content.Shared.Physics.Systems;
@@ -72,6 +73,12 @@ public sealed partial class CarMovementSystem : EntitySystem
         }
     }
     
+    [SubscribeLocalEvent]
+    private void OnEntityMoving(EntityUid uid, PlayerActiveCarRemoteControlComponent component, EntityMovingEvent args)
+    {
+        args.Handled = true;
+    }
+
     [SubscribeLocalEvent]
     private void OnItemThrown(EntityUid uid, CarRemoteControllerComponent component, ItemDropEvent args)
     {
