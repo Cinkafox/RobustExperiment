@@ -34,11 +34,6 @@ public abstract partial class BodyAnimationSystem : EntitySystem
             
             bodyAnimationComp.ActiveAnimations.Add(animationId, _gameTiming.CurTime + animation.Animation.Length);
         }
-        
-        RaiseLocalEvent(uid, new AnimationStartEvent()
-        {
-            AnimationId = animationId,
-        });
     }
 
     public virtual void Stop(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
@@ -48,11 +43,6 @@ public abstract partial class BodyAnimationSystem : EntitySystem
 
         bodyAnimationComp.ActiveAnimations.Remove(animationId);
         bodyAnimationComp.ActiveLoopedAnimation.Remove(animationId);
-        
-        RaiseLocalEvent(uid, new AnimationStopEvent()
-        {
-            AnimationId = animationId,
-        });
     }
    
     public override void Update(float frameTime)
@@ -76,14 +66,4 @@ public abstract partial class BodyAnimationSystem : EntitySystem
             _deleteQuery.Clear();
         }
     }
-}
-
-public sealed class AnimationStartEvent : EntityEventArgs
-{
-    public ProtoId<BodyAnimationPrototype> AnimationId;
-}
-
-public sealed class AnimationStopEvent : EntityEventArgs
-{
-    public ProtoId<BodyAnimationPrototype> AnimationId;
 }

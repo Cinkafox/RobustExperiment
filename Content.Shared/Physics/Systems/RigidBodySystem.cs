@@ -1,6 +1,5 @@
 ﻿using Content.Shared.Physics.Components;
 using Content.Shared.Transform;
-using Robust.Shared.Network;
 using Robust.Shared.Reflection;
 using Robust.Shared.Sandboxing;
 
@@ -10,7 +9,7 @@ public sealed partial class RigidBodySystem : EntitySystem
 {
     [Dependency] private ISandboxHelper _sandboxHelper = default!;
     [Dependency] private IReflectionManager _reflectionManager = default!;
-    
+
     public override void Initialize()
     {
         InitializePrediction();
@@ -23,7 +22,7 @@ public sealed partial class RigidBodySystem : EntitySystem
         if (ent.Comp.PhysType == PhysType.Static || !ShouldPredict(ent.Owner)) return;
         ent.Comp.LinearVelocity += force / ent.Comp.Mass;
     }
-    
+
     public void ApplyRelativeTorque(Entity<RigidBodyComponent> ent, Vector3 localTorque)
     {
         if (!ShouldPredict(ent.Owner))
@@ -31,7 +30,7 @@ public sealed partial class RigidBodySystem : EntitySystem
 
         var rotation = Comp<Transform3dComponent>(ent).LocalRotation;
         var worldTorque = Vector3.Transform(localTorque, rotation);
-        
+
         ApplyTorque(ent, worldTorque);
     }
 
@@ -43,13 +42,13 @@ public sealed partial class RigidBodySystem : EntitySystem
 
         if (!ent.Comp.EnableAngularVelocity)
             return;
-        
-        if(torque.LengthSquared() <= 0.01f) 
+
+        if (torque.LengthSquared() <= 0.01f)
             return;
 
         ent.Comp.AngularVelocity += torque * ent.Comp.InvInertia;
     }
-    
+
     public void ApplyForceAtPoint(
         Entity<RigidBodyComponent> ent,
         Vector3 force,
@@ -72,6 +71,7 @@ public sealed partial class RigidBodySystem : EntitySystem
         if (_netManager.IsClient)
             RebuildPredictionSet();
 
+        RebuildBodyCache();
         PrepareNetSnapshots();
         SimulateStep(frameTime, 8);
     }

@@ -1,6 +1,5 @@
 using Content.Shared.Car;
 using Content.Shared.Physics.Components;
-using Content.Shared.Physics.Data;
 using Content.Shared.Transform;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
@@ -153,15 +152,15 @@ public sealed partial class RigidBodySystem
 
     private void PrepareNetSnapshots()
     {
-        var query = AllEntityQuery<RigidBodyComponent, Transform3dComponent>();
-        while (query.MoveNext(out var uid, out var body, out var xform))
+        for (var i = 0; i < _bodyCount; i++)
         {
-            var predicted = ShouldPredict(uid);
+            ref var entry = ref _bodyCache[i];
+            var body = entry.Body;
 
-            if (predicted && (!body.WasPredicted || !body.HasNetSnapshot))
-                CaptureNetSnapshot(body, xform);
+            if (entry.Predicted && (!body.WasPredicted || !body.HasNetSnapshot))
+                CaptureNetSnapshot(body, entry.Xform);
 
-            body.WasPredicted = predicted;
+            body.WasPredicted = entry.Predicted;
         }
     }
 

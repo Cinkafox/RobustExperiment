@@ -1,6 +1,5 @@
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Data;
-using Content.Shared.Transform;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Physics.Systems;
@@ -8,8 +7,7 @@ namespace Content.Shared.Physics.Systems;
 public sealed partial class RigidBodySystem
 {
     private readonly Dictionary<(Type, Type), ICollider> _colliderRegistry = new();
-    private readonly List<(EntityUid, RigidBodyComponent, Transform3dComponent)> _dynamicBodies = new();
-    
+
     private readonly List<ContactManifold> _contacts = new();
 
     private void InitializeColliders()
@@ -19,9 +17,9 @@ public sealed partial class RigidBodySystem
 
         foreach (var type in colliderTypes)
         {
-            if(!type.TryGetCustomAttribute<ColliderRegisterAttribute>(out var attr)) 
+            if (!type.TryGetCustomAttribute<ColliderRegisterAttribute>(out var attr))
                 continue;
-            
+
             try
             {
                 var instance = (ICollider)_sandboxHelper.CreateInstance(type);
@@ -35,7 +33,7 @@ public sealed partial class RigidBodySystem
             }
         }
     }
-    
+
     private void RegisterCollider(Type a, Type b, ICollider collider)
     {
         var key = (a, b);
@@ -44,111 +42,119 @@ public sealed partial class RigidBodySystem
             Log.Warning($"Duplicate collider registration for ({a.Name}, {b.Name})");
             return;
         }
+
         _colliderRegistry[key] = collider;
         Log.Debug($"Registered collider for ({a.Name}, {b.Name})");
     }
-    
-    private void ResolveCollisions(float deltaTime)
+
+    private void ResolveCollisions()
     {
-        var query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
-        _dynamicBodies.Clear();
+        UpdateBroadphase();
         _contacts.Clear();
-        
-        while (query.MoveNext(out var uid, out var body, out var xform))
-        {
-            _dynamicBodies.Add((uid, body, xform));
-        }
 
-        // O(n^2) broadphase (replace with spatial partitioning in production)
-        for (var i = 0; i < _dynamicBodies.Count; i++)
+        // Sweep-and-prune broadphase over cached body bounds.
+        for (var i = 0; i < _bodyCount; i++)
         {
-            var (uidA, bodyA, xformA) = _dynamicBodies[i];
-            for (var j = i + 1; j < _dynamicBodies.Count; j++)
+            var sweepA = _sweepEntries[i];
+            ref var a = ref _bodyCache[sweepA.BodyIndex];
+
+            for (var j = i + 1; j < _bodyCount; j++)
             {
-                var (uidB, bodyB, xformB) = _dynamicBodies[j];
+                var sweepB = _sweepEntries[j];
 
-                var predictA = ShouldPredict(uidA);
-                var predictB = ShouldPredict(uidB);
+                if (sweepB.MinX > a.AabbMax.X)
+                    break;
 
-                if (!predictA && !predictB)
+                ref var b = ref _bodyCache[sweepB.BodyIndex];
+
+                if ((!a.Dynamic && !b.Dynamic) || (!a.Predicted && !b.Predicted))
                     continue;
 
-                var contact = SolveCollision(uidA, bodyA, xformA, uidB, bodyB, xformB, deltaTime);
-                
-                if (contact is null)
+                if (!AabbOverlaps(in a, in b))
+                    continue;
+
+                var contact = SolveCollision(in a, in b);
+
+                if (contact is not { } manifold)
                     continue;
 
                 CollideObjectEvent? evA = null;
                 CollideObjectEvent? evB = null;
 
-                if (predictA)
+                if (a.Predicted)
                 {
-                    evA = new CollideObjectEvent(contact.BodyB);
-                    RaiseLocalEvent(uidA, evA);
+                    evA = new CollideObjectEvent(manifold.BodyB);
+                    RaiseLocalEvent(a.Uid, evA);
                 }
 
-                if (predictB)
+                if (b.Predicted)
                 {
-                    evB = new CollideObjectEvent(contact.BodyA);
-                    RaiseLocalEvent(uidB, evB);
+                    evB = new CollideObjectEvent(manifold.BodyA);
+                    RaiseLocalEvent(b.Uid, evB);
                 }
-                
-                if(evA?.Cancelled == true || evB?.Cancelled == true) 
+
+                if (evA?.Cancelled == true || evB?.Cancelled == true)
                     continue;
-                
-                ResolveContact(uidA, bodyA, xformA, uidB, bodyB, xformB, contact.Points, deltaTime, predictA, predictB);
-                
-                _contacts.Add(contact);
+
+                ResolveContact(ref a, ref b, ref manifold.Points);
+
+                _contacts.Add(manifold);
             }
         }
     }
-    
-    private ContactManifold? SolveCollision(
-        EntityUid uidA, RigidBodyComponent bodyA, Transform3dComponent xformA,
-        EntityUid uidB, RigidBodyComponent bodyB, Transform3dComponent xformB,
-        float deltaTime)
+
+    private ContactManifold? SolveCollision(in BodyCacheEntry a, in BodyCacheEntry b)
     {
-        var shapeTypeA = bodyA.Shape.GetType();
-        var shapeTypeB = bodyB.Shape.GetType();
-        
+        var bodyA = a.Body;
+        var bodyB = b.Body;
+        var shapeTypeA = a.ShapeType;
+        var shapeTypeB = b.ShapeType;
+
         if (!_colliderRegistry.TryGetValue((shapeTypeA, shapeTypeB), out var collider))
             throw new Exception($"Collision could not be found: {shapeTypeA}, {shapeTypeB}");
-        
+
         var contact = collider.ProcessCollision(
-            new TransformedPhysicShape(xformA, bodyA.Shape),
-            new TransformedPhysicShape(xformB, bodyB.Shape));
-        
+            new TransformedPhysicShape(bodyA.Shape, a.WorldPosition, a.WorldRotation, a.WorldScale),
+            new TransformedPhysicShape(bodyB.Shape, b.WorldPosition, b.WorldRotation, b.WorldScale));
+
         if (!contact.HasContact)
             return null;
-        
-        return new ContactManifold(contact, 
-            new Entity<RigidBodyComponent>(uidA, bodyA), 
-            new Entity<RigidBodyComponent>(uidB, bodyB));
+
+        return new ContactManifold(contact,
+            new Entity<RigidBodyComponent>(a.Uid, bodyA),
+            new Entity<RigidBodyComponent>(b.Uid, bodyB),
+            a.Predicted,
+            b.Predicted);
     }
-    
-    private void ResolveContact(
-        EntityUid uidA, RigidBodyComponent bodyA, Transform3dComponent xformA,
-        EntityUid uidB, RigidBodyComponent bodyB, Transform3dComponent xformB,
-        ManifoldPoints contact, float deltaTime, bool predictA, bool predictB)
+
+    private static void ResolveContact(
+        ref BodyCacheEntry a,
+        ref BodyCacheEntry b,
+        ref ManifoldPoints contact)
     {
-        var dynamicA = predictA && bodyA.PhysType == PhysType.Dynamic;
-        var dynamicB = predictB && bodyB.PhysType == PhysType.Dynamic;
+        var bodyA = a.Body;
+        var bodyB = b.Body;
+        var xformA = a.Xform;
+        var xformB = b.Xform;
+
+        var dynamicA = a.Predicted && a.Dynamic;
+        var dynamicB = b.Predicted && b.Dynamic;
 
         if (!dynamicA && !dynamicB)
             return;
 
-        var invMassA = dynamicA ? bodyA.InvMass : 0f;
-        var invMassB = dynamicB ? bodyB.InvMass : 0f;
-        var invInertiaA = dynamicA ? bodyA.InvInertia : 0f;
-        var invInertiaB = dynamicB ? bodyB.InvInertia : 0f;
+        var invMassA = dynamicA ? a.InvMass : 0f;
+        var invMassB = dynamicB ? b.InvMass : 0f;
+        var invInertiaA = dynamicA ? a.InvInertia : 0f;
+        var invInertiaB = dynamicB ? b.InvInertia : 0f;
 
         var ra = contact.A - xformA.LocalPosition;
         var rb = contact.B - xformB.LocalPosition;
-        
-        
-        var restitution = float.Max(bodyA.Restitution, bodyB.Restitution);
-        var friction = float.Max(bodyA.Friction, bodyB.Friction);
-        
+
+
+        var restitution = float.Max(a.Restitution, b.Restitution);
+        var friction = float.Max(a.Friction, b.Friction);
+
         var warmImpulse = contact.Normal * contact.NormalImpulse;
 
         if (dynamicA)
@@ -174,7 +180,7 @@ public sealed partial class RigidBodySystem
                     invInertiaB;
             }
         }
-        
+
         var warmTangent = contact.TangentImpulse;
 
         if (dynamicA)
@@ -186,7 +192,7 @@ public sealed partial class RigidBodySystem
         {
             bodyB.LinearVelocity += warmTangent * invMassB;
         }
-        
+
         var velA =
             bodyA.LinearVelocity +
             Vector3.Cross(bodyA.AngularVelocity, ra);
@@ -196,11 +202,11 @@ public sealed partial class RigidBodySystem
             Vector3.Cross(bodyB.AngularVelocity, rb);
 
         var relativeVelocity = velB - velA;
-        
+
         var velocityAlongNormal = Vector3.Dot(relativeVelocity, contact.Normal);
-        
+
         if (velocityAlongNormal > 0f) return;
-        
+
         var raCrossN = Vector3.Cross(ra, contact.Normal);
         var rbCrossN = Vector3.Cross(rb, contact.Normal);
 
@@ -212,21 +218,21 @@ public sealed partial class RigidBodySystem
             invMassA +
             invMassB +
             angularFactor;
-        
+
         const float maxImpulse = 50f;
-        
+
         var impulseMagnitude = -(1f + restitution) * velocityAlongNormal;
         impulseMagnitude /= impulseDenom;
         impulseMagnitude = Math.Clamp(impulseMagnitude, 0f, maxImpulse);
-        
+
         var impulse = contact.Normal * impulseMagnitude;
-        
+
         var tangent = relativeVelocity - contact.Normal * velocityAlongNormal;
-        
+
         if (tangent.LengthSquared() > 1e-6f)
         {
             tangent = Vector3.Normalize(tangent);
-            
+
             var raCrossT = Vector3.Cross(ra, tangent);
             var rbCrossT = Vector3.Cross(rb, tangent);
 
@@ -236,33 +242,33 @@ public sealed partial class RigidBodySystem
                 Vector3.Dot(raCrossT, raCrossT) * invInertiaA +
                 Vector3.Dot(rbCrossT, rbCrossT) * invInertiaB;
 
-            
+
             var jt = -Vector3.Dot(relativeVelocity, tangent);
-            
+
             var frictionImpulse = jt / frictionDenom;
-            
+
             var maxFriction = friction * impulseMagnitude;
             frictionImpulse = Math.Clamp(frictionImpulse, -maxFriction, maxFriction);
-            
+
             var frictionVector = tangent * frictionImpulse;
-            
+
             if (dynamicA)
                 bodyA.LinearVelocity -= frictionVector * invMassA;
-            
+
             if (dynamicB)
                 bodyB.LinearVelocity += frictionVector * invMassB;
-            
+
             contact.TangentImpulse += frictionVector;
             contact.TangentImpulse = Vector3.Clamp(
                 contact.TangentImpulse,
                 new Vector3(-maxFriction),
                 new Vector3(maxFriction));
         }
-        
+
         contact.NormalImpulse += impulseMagnitude;
         contact.NormalImpulse =
             MathF.Max(0f, contact.NormalImpulse);
-        
+
         if (dynamicA)
         {
             bodyA.LinearVelocity -= impulse * invMassA;
@@ -286,38 +292,38 @@ public sealed partial class RigidBodySystem
                     invInertiaB;
             }
         }
-        
-        var correctionPercent = 0.05f;
+
+        const float correctionPercent = 0.05f;
         const float slop = 0.03f;
-        
-        // Reduce correction when bodies are grounded to prevent shaking
-        if (bodyA.IsGrounded || bodyB.IsGrounded)
-        {
-            correctionPercent = 0.05f; // Much gentler correction when grounded
-        }
-        
+
         var invMassSum = invMassA + invMassB;
-        
+
         var correction = MathF.Max(contact.Depth - slop, 0f) / invMassSum * correctionPercent * contact.Normal;
-        
+
         if (dynamicA)
+        {
             xformA.SetLocalPositionNoDirty(xformA.LocalPosition - correction * invMassA);
+            UpdateBodyPosition(ref a);
+        }
 
         if (dynamicB)
+        {
             xformB.SetLocalPositionNoDirty(xformB.LocalPosition + correction * invMassB);
+            UpdateBodyPosition(ref b);
+        }
     }
 }
 
 internal sealed class RevCollider : ICollider
 {
     private readonly ICollider _inner;
-    
+
     public RevCollider(ICollider inner) => _inner = inner;
-    
+
     public ManifoldPoints ProcessCollision(TransformedPhysicShape a, TransformedPhysicShape b)
     {
         var result = _inner.ProcessCollision(b, a);
-        result.Normal = -result.Normal; 
+        result.Normal = -result.Normal;
         return result;
     }
 }

@@ -27,6 +27,10 @@ public sealed partial class HingeConstraint : IBodyConstraint
     // field initializers. Allocate lazily instead of relying on the initializer.
     [NonSerialized] private float[,]? _invK;
     [NonSerialized] private float[]? _bias;
+    [NonSerialized] private float[,]? _k;
+    [NonSerialized] private float[,]? _work;
+    [NonSerialized] private float[]? _rhs;
+    [NonSerialized] private float[]? _lambda;
 
     public void Prepare(
         RigidBodySystem system,
@@ -48,6 +52,8 @@ public sealed partial class HingeConstraint : IBodyConstraint
 
         var invK = _invK ??= new float[5, 5];
         _bias ??= new float[5];
+        var k = _k ??= new float[5, 5];
+        var work = _work ??= new float[5, 10];
 
         var xformB = bodyB.Comp2;
         var rotB = xformB.WorldRotation;
@@ -90,7 +96,6 @@ public sealed partial class HingeConstraint : IBodyConstraint
         var colV = -(Vector3.Cross(_rA, Matrix3x3.Transform(_v, iA)) +
                      Vector3.Cross(_rB, Matrix3x3.Transform(_v, iB)));
 
-        var k = new float[5, 5];
         k[0, 0] = kLL.M11; k[0, 1] = kLL.M12; k[0, 2] = kLL.M13;
         k[1, 0] = kLL.M21; k[1, 1] = kLL.M22; k[1, 2] = kLL.M23;
         k[2, 0] = kLL.M31; k[2, 1] = kLL.M32; k[2, 2] = kLL.M33;
@@ -103,7 +108,7 @@ public sealed partial class HingeConstraint : IBodyConstraint
         k[3, 3] = kRR00; k[3, 4] = kRR01;
         k[4, 3] = kRR10; k[4, 4] = kRR11;
 
-        if (!Invert5x5(k, invK))
+        if (!Invert5x5(k, invK, work))
         {
             for (var i = 0; i < 5; i++)
             for (var j = 0; j < 5; j++)
@@ -140,14 +145,14 @@ public sealed partial class HingeConstraint : IBodyConstraint
         var cdotLin = (vB + Vector3.Cross(wB, _rB)) - (vA + Vector3.Cross(wA, _rA));
         var wRel = wB - wA;
 
-        var rhs = new float[5];
+        var rhs = _rhs ??= new float[5];
         rhs[0] = -cdotLin.X - _bias[0];
         rhs[1] = -cdotLin.Y - _bias[1];
         rhs[2] = -cdotLin.Z - _bias[2];
         rhs[3] = -Vector3.Dot(wRel, _u) - _bias[3];
         rhs[4] = -Vector3.Dot(wRel, _v) - _bias[4];
 
-        var lambda = new float[5];
+        var lambda = _lambda ??= new float[5];
         for (var i = 0; i < 5; i++)
         {
             var sum = 0f;
@@ -179,18 +184,15 @@ public sealed partial class HingeConstraint : IBodyConstraint
         handle.DrawLine(_worldB, _worldB + _axisB);
     }
 
-    private static bool Invert5x5(float[,] m, float[,] inv)
+    private static bool Invert5x5(float[,] m, float[,] inv, float[,] work)
     {
-        if (m == null || inv == null)
-            return false;
-
         const int n = 5;
-        var a = new float[n, 2 * n];
+        var a = work;
+
         for (var i = 0; i < n; i++)
         {
-            for (var j = 0; j < n; j++)
-                a[i, j] = m[i, j];
-            a[i, n + i] = 1f;
+            for (var j = 0; j < 2 * n; j++)
+                a[i, j] = j < n ? m[i, j] : j == n + i ? 1f : 0f;
         }
 
         for (var col = 0; col < n; col++)

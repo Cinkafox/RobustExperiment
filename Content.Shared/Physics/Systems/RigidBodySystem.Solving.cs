@@ -12,59 +12,69 @@ public sealed partial class RigidBodySystem
 
     private void ApplyGlobalForces(float deltaTime)
     {
-        var query = AllEntityQuery<RigidBodyComponent>();
-        while (query.MoveNext(out var uid, out var body))
+        var gravityDelta = 9.81f * deltaTime;
+
+        for (var i = 0; i < _bodyCount; i++)
         {
-            if (body.PhysType == PhysType.Static || !ShouldPredict(uid)) continue;
-            
-            var gravityForce = new Vector3(0, -9.81f, 0) * body.Mass * deltaTime;
-            ApplyForce(new Entity<RigidBodyComponent>(uid, body), gravityForce);
+            ref var entry = ref _bodyCache[i];
+            if (!entry.Dynamic || !entry.Predicted)
+                continue;
+
+            entry.Body.LinearVelocity.Y -= gravityDelta;
         }
     }
-    
+
     private void IntegrateVelocities(float deltaTime)
     {
-        var query = AllEntityQuery<RigidBodyComponent, Transform3dComponent>();
-        while (query.MoveNext(out var uid, out var body, out var transform))
+        var groundDamping = MathF.Pow(0.1f, deltaTime);
+        var groundYDamping = MathF.Pow(0.3f, deltaTime);
+        var groundAngularDamping = MathF.Pow(0.85f, deltaTime);
+
+        for (var i = 0; i < _bodyCount; i++)
         {
-            if (body.PhysType == PhysType.Static || !ShouldPredict(uid)) continue;
-        
-            body.UpdateWorldInertia(transform.WorldRotation);
-            
-            var linearSpeed = body.LinearVelocity.Length();
-            
+            ref var entry = ref _bodyCache[i];
+            if (!entry.Dynamic || !entry.Predicted)
+                continue;
+
+            var body = entry.Body;
+            var transform = entry.Xform;
+
+            if (entry.HasConstraints)
+                body.UpdateWorldInertia(transform.WorldRotation);
+
             // ===== GROUNDED DAMPING =====
             // Apply stronger damping when grounded to prevent shaking
             if (body.IsGrounded)
             {
                 // Strong damping on X/Z when grounded to prevent sliding jitter
-                var groundDamping = MathF.Pow(0.1f, deltaTime); // Very strong damping
                 body.LinearVelocity.X *= groundDamping;
                 body.LinearVelocity.Z *= groundDamping;
-                
+
                 // Dampen small Y movements when grounded
                 if (MathF.Abs(body.LinearVelocity.Y) < 0.5f)
                 {
-                    body.LinearVelocity.Y *= MathF.Pow(0.3f, deltaTime);
+                    body.LinearVelocity.Y *= groundYDamping;
                 }
-                
-                body.AngularVelocity *= MathF.Pow(0.85f, deltaTime);
+
+                body.AngularVelocity *= groundAngularDamping;
             }
             else
             {
                 // ===== LINEAR DAMPING (airborne) =====
+                var linearSpeed = body.LinearVelocity.Length();
+
                 if (linearSpeed > 0.001f)
                 {
                     const float linearDrag = 0.2f;
                     const float quadraticDrag = 0.02f;
-                
-                    var dragForce = body.LinearVelocity * linearDrag + 
+
+                    var dragForce = body.LinearVelocity * linearDrag +
                                     (body.LinearVelocity * linearSpeed) * quadraticDrag;
-                
+
                     body.LinearVelocity -= dragForce * deltaTime;
                 }
             }
-        
+
             // ===== ANGULAR DAMPING =====
             if (!body.EnableAngularVelocity)
             {
@@ -82,34 +92,34 @@ public sealed partial class RigidBodySystem
                     body.AngularVelocity -= dragTorque * deltaTime;
                 }
             }
-            
+
             const float maxAngularSpeed = 50f;
 
             var speed = body.AngularVelocity.Length();
             if (speed > maxAngularSpeed)
-            {
-                body.AngularVelocity =
-                    Vector3.Normalize(body.AngularVelocity) *
-                    maxAngularSpeed;
-            }
+                body.AngularVelocity *= maxAngularSpeed / speed;
         }
     }
-    
+
     private void IntegratePositions(float deltaTime)
     {
-        var query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
-        while (query.MoveNext(out var uid, out var body, out var xform))
+        for (var i = 0; i < _bodyCount; i++)
         {
-            if (body.PhysType == PhysType.Static || !ShouldPredict(uid)) continue;
-            
+            ref var entry = ref _bodyCache[i];
+            if (!entry.Dynamic || !entry.Predicted)
+                continue;
+
+            var body = entry.Body;
+            var xform = entry.Xform;
+
             xform.SetLocalPositionNoDirty(xform.LocalPosition + body.LinearVelocity * deltaTime);
-            
+
             if (!body.EnableAngularVelocity)
             {
                 body.AngularVelocity = Vector3.Zero;
                 continue;
             }
-            
+
             var angVel = body.AngularVelocity;
             var angVelSq = angVel.LengthSquared();
 
@@ -118,7 +128,7 @@ public sealed partial class RigidBodySystem
                 var angVelLen = MathF.Sqrt(angVelSq);
                 var axis = angVel / angVelLen;
                 var angle = angVelLen * deltaTime;
-                
+
                 var deltaRotation = Quaternion.CreateFromAxisAngle(axis, angle);
                 xform.SetLocalRotationNoDirty(Quaternion.Normalize(
                     deltaRotation * xform.LocalRotation));
@@ -131,11 +141,15 @@ public sealed partial class RigidBodySystem
         if (_netManager.IsClient && !_gameTiming.InPrediction)
             return;
 
-        var query = AllEntityQuery<RigidBodyComponent>();
-        while (query.MoveNext(out var uid, out var body))
+        for (var i = 0; i < _bodyCount; i++)
         {
-            if (!ShouldPredict(uid) || !TryComp<Transform3dComponent>(uid, out var xform))
+            ref var entry = ref _bodyCache[i];
+            if (!entry.Predicted)
                 continue;
+
+            var uid = entry.Uid;
+            var body = entry.Body;
+            var xform = entry.Xform;
 
             if (!body.HasNetSnapshot)
             {
@@ -168,47 +182,44 @@ public sealed partial class RigidBodySystem
             }
         }
     }
-    
-    private void UpdateGroundStates(float deltaTime)
-    {
-        const float UP_THRESHOLD = 0.7f;
-        const float VELOCITY_THRESHOLD = 0.5f;
-        
-        var query = AllEntityQuery<RigidBodyComponent>();
-        while (query.MoveNext(out var uid, out var body))
-        {
-            if (!ShouldPredict(uid))
-                continue;
 
-            body.ResetGroundState();
+    private void UpdateGroundStates()
+    {
+        const float upThreshold = 0.7f;
+        const float velocityThreshold = 0.5f;
+
+        for (var i = 0; i < _bodyCount; i++)
+        {
+            ref var entry = ref _bodyCache[i];
+            if (entry.Predicted)
+                entry.Body.ResetGroundState();
         }
-        
+
         foreach (var manifold in _contacts)
         {
             var contact = manifold.Points;
-            
+
             var bodyA = manifold.BodyA.Comp;
             var bodyB = manifold.BodyB.Comp;
-        
-            var normalDotUpA = Vector3.Dot(contact.Normal, Vector3.UnitY);
-            var normalDotUpB = Vector3.Dot(contact.Normal, Vector3.UnitY);
-            
+
+            var normalDotUp = Vector3.Dot(contact.Normal, Vector3.UnitY);
+
             if (bodyA.PhysType == PhysType.Dynamic &&
-                ShouldPredict(manifold.BodyA.Owner) &&
-                normalDotUpA > UP_THRESHOLD)
+                manifold.PredictedA &&
+                normalDotUp > upThreshold)
             {
                 var relVel = Vector3.Dot(bodyA.LinearVelocity, contact.Normal);
-                if (relVel <= VELOCITY_THRESHOLD)
-                    bodyA.AddGroundContact(normalDotUpA);
+                if (relVel <= velocityThreshold)
+                    bodyA.AddGroundContact(normalDotUp);
             }
-        
+
             if (bodyB.PhysType == PhysType.Dynamic &&
-                ShouldPredict(manifold.BodyB.Owner) &&
-                normalDotUpB > UP_THRESHOLD)
+                manifold.PredictedB &&
+                normalDotUp > upThreshold)
             {
                 var relVel = Vector3.Dot(bodyB.LinearVelocity, -contact.Normal);
-                if (relVel <= VELOCITY_THRESHOLD)
-                    bodyB.AddGroundContact(normalDotUpB);
+                if (relVel <= velocityThreshold)
+                    bodyB.AddGroundContact(normalDotUp);
             }
         }
     }
@@ -221,12 +232,12 @@ public sealed partial class RigidBodySystem
             ApplyGlobalForces(stepDt);
             IntegrateVelocities(stepDt);
             PrepareConstraints(stepDt);
-            ResolveCollisions(stepDt);
+            ResolveCollisions();
             SolveConstraints(stepDt);
-            UpdateGroundStates(stepDt);
+            UpdateGroundStates();
             IntegratePositions(stepDt);
         }
-        
+
         DirtyPhysics();
     }
 }

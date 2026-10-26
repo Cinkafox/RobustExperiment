@@ -23,14 +23,12 @@ public static class CylinderShapeExtensions
         return cylinder.Shape.HalfHeight * MathF.Abs(cylinder.Scale.Y);
     }
 
-    public static Vector3[] GetCylinderBoxAxes(this TransformedPhysicShape<CylinderShape> cylinder)
+    public static BoxAxes GetCylinderBoxAxes(this TransformedPhysicShape<CylinderShape> cylinder)
     {
-        return
-        [
+        return new BoxAxes(
             Vector3.Normalize(cylinder.RotateVector(Vector3.UnitX)),
             cylinder.GetCylinderAxis(),
-            Vector3.Normalize(cylinder.RotateVector(Vector3.UnitZ))
-        ];
+            Vector3.Normalize(cylinder.RotateVector(Vector3.UnitZ)));
     }
 }
 
@@ -188,8 +186,8 @@ internal static class OrientedBoxSat
     private const float MaxDepth = 10f;
 
     public static ManifoldPoints Collide(
-        Vector3 aPos, Vector3[] aAxes, Vector3 aExtents,
-        Vector3 bPos, Vector3[] bAxes, Vector3 bExtents)
+        Vector3 aPos, BoxAxes aAxes, Vector3 aExtents,
+        Vector3 bPos, BoxAxes bAxes, Vector3 bExtents)
     {
         var ab = bPos - aPos;
 
@@ -258,7 +256,7 @@ internal static class OrientedBoxSat
     }
 
     private static (float Min, float Max) Project(
-        Vector3 center, Vector3[] axes, Vector3 extents, Vector3 axis)
+        Vector3 center, in BoxAxes axes, Vector3 extents, Vector3 axis)
     {
         var centerProjection = Vector3.Dot(center, axis);
 
@@ -269,7 +267,7 @@ internal static class OrientedBoxSat
         return (centerProjection - radius, centerProjection + radius);
     }
 
-    private static Vector3 Support(Vector3 center, Vector3[] axes, Vector3 extents, Vector3 direction)
+    private static Vector3 Support(Vector3 center, in BoxAxes axes, Vector3 extents, Vector3 direction)
     {
         var offset = Vector3.Zero;
 

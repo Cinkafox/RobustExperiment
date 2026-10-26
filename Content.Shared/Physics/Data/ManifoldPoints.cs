@@ -1,18 +1,17 @@
-﻿
-using Content.Shared.Physics.Components;
+﻿using Content.Shared.Physics.Components;
 
 namespace Content.Shared.Physics.Data;
 
 [DataDefinition]
-public sealed partial class ManifoldPoints
+public partial struct ManifoldPoints
 {
     // Empty manifold with negative depth to indicate no contact
     public static readonly ManifoldPoints Empty = new() { Depth = -1f };
 
-    [DataField] public Vector3 A = Vector3.Zero;      // Contact point on shape A (world space)
-    [DataField] public Vector3 B = Vector3.Zero;      // Contact point on shape B (world space)
+    [DataField] public Vector3 A = Vector3.Zero; // Contact point on shape A (world space)
+    [DataField] public Vector3 B = Vector3.Zero; // Contact point on shape B (world space)
     [DataField] public Vector3 Normal = Vector3.Zero; // Unit normal pointing FROM A TO B
-    [DataField] public float Depth = -1f;             // Penetration depth (positive = overlap)
+    [DataField] public float Depth = -1f; // Penetration depth (positive = overlap)
 
     /// <summary>
     /// Whether this manifold represents an actual collision.
@@ -20,11 +19,9 @@ public sealed partial class ManifoldPoints
     /// </summary>
     [ViewVariables]
     public bool HasContact => Depth > 1e-4f;
-    
+
     [ViewVariables] public float NormalImpulse;
     [ViewVariables] public Vector3 TangentImpulse;
-
-    public ManifoldPoints() {}
 
     /// <summary>
     /// Primary constructor for collision detection systems.
@@ -71,27 +68,36 @@ public sealed partial class ManifoldPoints
 }
 
 [DataDefinition]
-public sealed partial class ContactManifold
+public partial struct ContactManifold
 {
     [DataField] public ManifoldPoints Points;
     [ViewVariables] public Entity<RigidBodyComponent> BodyA;
     [ViewVariables] public Entity<RigidBodyComponent> BodyB;
+    [ViewVariables] public bool PredictedA;
+    [ViewVariables] public bool PredictedB;
 
-    public ContactManifold(ManifoldPoints points, Entity<RigidBodyComponent> bodyA, Entity<RigidBodyComponent> bodyB)
+    public ContactManifold(
+        ManifoldPoints points,
+        Entity<RigidBodyComponent> bodyA,
+        Entity<RigidBodyComponent> bodyB,
+        bool predictedA,
+        bool predictedB)
     {
         Points = points;
         BodyA = bodyA;
         BodyB = bodyB;
+        PredictedA = predictedA;
+        PredictedB = predictedB;
     }
 }
 
 public readonly record struct ContactKey(
     EntityUid A,
     EntityUid B);
-    
+
 public struct CachedContact
 {
     public float NormalImpulse;
     public Vector3 TangentImpulse;
     public int FramesAlive;
-}   
+}
