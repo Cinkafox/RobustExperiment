@@ -59,6 +59,29 @@ public sealed class DrawingHandle3d : IDisposable
         }
     }
     
+    public bool TryWorldToScreen(Vector3 worldPosition, out Vector2 screenPosition)
+    {
+        screenPosition = default;
+
+        var clipPos = Vector4.Transform(new Vector4(worldPosition, 1.0f), ViewProjectionMatrix);
+
+        if (clipPos.W >= 0f || MathF.Abs(clipPos.W) < 1e-6f)
+            return false;
+
+        var invW = 1f / clipPos.W;
+        var ndcX = clipPos.X * invW;
+        var ndcY = clipPos.Y * invW;
+
+        if (MathF.Abs(ndcX) > 1f || MathF.Abs(ndcY) > 1f)
+            return false;
+
+        screenPosition = new Vector2(
+            (ndcX + 1.0f) * 0.5f * _width,
+            (ndcY + 1.0f) * 0.5f * _height);
+
+        return true;
+    }
+
     public Ray3D GetMouseRay(Vector2 ndc)
     {
         var farPoint4 = Vector4.Transform(new Vector3(ndc.X, ndc.Y, 1.0f), InverseViewProjectionMatrix);

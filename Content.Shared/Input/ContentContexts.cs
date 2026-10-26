@@ -14,6 +14,7 @@ public sealed class ContentContexts
         human.AddFunction(EngineKeyFunctions.Walk);
         human.AddFunction(ContentKeyFunctions.PlayerJumpAction);
         human.AddFunction(ContentKeyFunctions.PlayerDropItemAction);
+        human.AddFunction(ContentKeyFunctions.ChatFocusAction);
         human.AddFunction(EngineKeyFunctions.Use);
         human.AddFunction(EngineKeyFunctions.UseSecondary);
         

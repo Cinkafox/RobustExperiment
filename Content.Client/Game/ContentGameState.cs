@@ -1,5 +1,6 @@
 ﻿using Content.Client.Game.UI;
 using Content.Client.UserInterface;
+using Content.Shared.Input;
 using Robust.Client.GameObjects;
 using Robust.Client.GameStates;
 using Robust.Client.Graphics;
@@ -43,6 +44,10 @@ public sealed partial class ContentGameState : UIState<ContentGame>
 
         var kArgs = args.KeyEventArgs;
         var func = kArgs.Function;
+
+        if (func == ContentKeyFunctions.ChatFocusAction)
+            return;
+
         var funcId = _inputManager.NetworkBindMap.KeyFunctionID(func);
 
         EntityCoordinates coordinates = default;

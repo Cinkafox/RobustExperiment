@@ -1,6 +1,10 @@
-﻿using Content.Client.ConfigurationUI;
+﻿using System.Numerics;
+using System.Text;
+using Content.Client.Chat;
+using Content.Client.ConfigurationUI;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
+using Content.Client.Resources;
 using Content.Client.Transform;
 using Content.Shared.Camera;
 using Content.Shared.Physics;
@@ -10,6 +14,7 @@ using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
+using Robust.Client.ResourceManagement;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -27,9 +32,12 @@ public sealed partial class GameViewport : Control
     [Dependency] private ConfigurationUIManager _configuration = default!;
     [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
     
     private CameraSystem? _cameraSystem;
     private Transform3dVisualsSystem? _transform3dVisuals;
+    private ChatSystem? _chatSystem;
+    private Font? _chatFont;
 
     private readonly Label _info;
     private readonly ShaderInstance _skyInstance;
@@ -64,6 +72,57 @@ public sealed partial class GameViewport : Control
         handle.UseShader(_skyInstance);
         handle.DrawRect(PixelRect, Color.White);
         handle.UseShader(null);
+    }
+
+    private void DrawChatBubbles(DrawingHandleScreen handle, DrawingHandle3d drawHandle)
+    {
+        var chat = _chatSystem ??= _entityManager.System<ChatSystem>();
+        var messages = chat.Messages;
+
+        if (messages.Count == 0)
+            return;
+
+        var font = _chatFont ??= _resourceCache.GetFont("/Fonts/Minecraft/minecraft.ttf", 14);
+        const float scale = 1f;
+        var lineHeight = (float) font.GetLineHeight(scale);
+        var stacks = new Dictionary<EntityUid, int>();
+
+        for (var i = messages.Count - 1; i >= 0; i--)
+        {
+            var message = messages[i];
+
+            if (!_entityManager.TryGetComponent<Transform3dComponent>(message.Source, out var transform))
+                continue;
+
+            var anchor = transform.WorldPosition + new Vector3(0f, 2.2f, 0f);
+
+            if (!drawHandle.TryWorldToScreen(anchor, out var screenPosition))
+                continue;
+
+            var stack = stacks.GetValueOrDefault(message.Source);
+            stacks[message.Source] = stack + 1;
+            screenPosition.Y -= stack * (lineHeight + 10f);
+
+            var textWidth = MeasureTextWidth(font, message.Text, scale);
+            var bubbleSize = new Vector2(MathF.Max(textWidth, 24f) + 12f, lineHeight + 8f);
+            var topLeft = screenPosition - new Vector2(bubbleSize.X * 0.5f, bubbleSize.Y);
+
+            handle.DrawRect(new UIBox2(topLeft, topLeft + bubbleSize), new Color(0.05f, 0.05f, 0.08f, 0.85f));
+            handle.DrawString(font, topLeft + new Vector2(6f, 4f), message.Text, scale, Color.White);
+        }
+    }
+
+    private static float MeasureTextWidth(Font font, string text, float scale)
+    {
+        var width = 0f;
+
+        foreach (var rune in text.EnumerateRunes())
+        {
+            if (font.TryGetCharMetrics(rune, scale, out var metrics))
+                width += metrics.Advance;
+        }
+
+        return width;
     }
     
     protected override void Draw(DrawingHandleScreen handle)
@@ -135,6 +194,11 @@ public sealed partial class GameViewport : Control
         using (_profManager.Group("Flush"))
         {
             drawHandle.Flush(_profManager);
+        }
+
+        using (_profManager.Group("DrawChatBubbles"))
+        {
+            DrawChatBubbles(handle, drawHandle);
         }
         
         if(_configuration.GetValue<bool>("transform_view_enabled"))

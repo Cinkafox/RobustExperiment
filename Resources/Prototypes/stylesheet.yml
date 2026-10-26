@@ -102,6 +102,9 @@
     .menuPanel:
       panel: novelPanel
       font-color: "#222222"
+    .chatInput:
+      font-color: "#222222"
+      cursor-color: "#222222"
     .checkBox:
       texture:
         valueType: Robust.Client.Graphics.Texture

@@ -19,6 +19,7 @@
                            <Label Text="D - поворот сюды" StyleClasses="menuPanel"/>
                            <Label Text="SPACE - прыжок" StyleClasses="menuPanel"/>
                            <Label Text="Q - выкинуть предмет с руки" StyleClasses="menuPanel"/>
+                           <Label Text="T - чат" StyleClasses="menuPanel"/>
                            <Label Text="Лагает? Похуй!" StyleClasses="menuPanel"/>
                            <Label Text="Артефакты? Поебать!" StyleClasses="menuPanel"/>
                            <Label Text="Неткод говна? Лол, насрать!" StyleClasses="menuPanel"/>
@@ -31,4 +32,12 @@
            </BoxContainer>
        </BoxContainer>
    </controls:AnchorControl>
+
+    <controls:AnchorControl LayoutPreset="Wide">
+        <BoxContainer Orientation="Vertical" Align="End" Margin="0 0 0 24">
+            <PanelContainer Name="ChatPanel" MinWidth="520" HorizontalAlignment="Center" StyleClasses="menuPanel">
+                <LineEdit Name="ChatInput" StyleClasses="chatInput" PlaceHolder="Сообщение..." HorizontalExpand="True"/>
+            </PanelContainer>
+        </BoxContainer>
+    </controls:AnchorControl>
 </ui1:ContentGame>

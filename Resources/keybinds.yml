@@ -41,6 +41,9 @@ binds:
   - function: MoveDown
     type: State
     key: S
+  - function: ChatFocusAction
+    type: State
+    key: T
   - function: Walk
     type: State
     key: Shift
