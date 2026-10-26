@@ -3,14 +3,14 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared.Animations;
 
-public abstract partial class BodyAnimationSystem : EntitySystem
+public sealed partial class BodyAnimationSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private IGameTiming _gameTiming = default!;
     
     private readonly List<ProtoId<BodyAnimationPrototype>> _deleteQuery = [];
     
-    public virtual void Play(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
+    public void Play(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
     {
         if (!_prototypeManager.TryIndex(animationId, out var animation))
         {
@@ -34,15 +34,18 @@ public abstract partial class BodyAnimationSystem : EntitySystem
             
             bodyAnimationComp.ActiveAnimations.Add(animationId, _gameTiming.CurTime + animation.Animation.Length);
         }
+        Dirty(uid, bodyAnimationComp);
     }
 
-    public virtual void Stop(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
+    public void Stop(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
     {
         if(!TryComp<BodyAnimationComponent>(uid, out var bodyAnimationComp))
             return;
 
         bodyAnimationComp.ActiveAnimations.Remove(animationId);
         bodyAnimationComp.ActiveLoopedAnimation.Remove(animationId);
+        
+        Dirty(uid, bodyAnimationComp);
     }
    
     public override void Update(float frameTime)

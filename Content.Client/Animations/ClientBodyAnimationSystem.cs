@@ -9,7 +9,7 @@ using BodyAnimation = Content.Shared.Animations.Data.BodyAnimation;
 
 namespace Content.Client.Animations;
 
-public sealed partial class ClientBodyAnimationSystem : BodyAnimationSystem
+public sealed partial class ClientBodyAnimationSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private AnimationPlayerSystem _animationPlayer = default!;
@@ -20,7 +20,14 @@ public sealed partial class ClientBodyAnimationSystem : BodyAnimationSystem
     {
         SubscribeLocalEvent<ActiveBodyAnimationComponent, AnimationCompletedEvent>(OnAnimationComplete);
         SubscribeLocalEvent<ActiveLoopedBodyAnimationComponent, AnimationCompletedEvent>(OnAnimationLoopedComplete);
+        SubscribeLocalEvent<BodyAnimationComponent, ComponentInit>(OnComponentInit);
     }
+
+    private void OnComponentInit(EntityUid uid, BodyAnimationComponent component, ComponentInit args)
+    {
+        EnsureComp<ClientBodyAnimComponent>(uid);
+    }
+
 
     private void OnAnimationLoopedComplete(Entity<ActiveLoopedBodyAnimationComponent> ent, ref AnimationCompletedEvent args)
     {
@@ -42,10 +49,8 @@ public sealed partial class ClientBodyAnimationSystem : BodyAnimationSystem
             _animationPlayer.Play(ent, ent.Comp.CurrentAnimation, args.Key);
     }
 
-    public override void Play(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
+    public void PlayClient(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
     {
-        base.Play(uid, animationId);
-        
         if(!_prototypeManager.TryIndex(animationId, out var proto))
             return;
         
@@ -61,6 +66,23 @@ public sealed partial class ClientBodyAnimationSystem : BodyAnimationSystem
             {
                 ProceedAnimationPlay<ActiveBodyAnimationComponent>(uid, animation, animationId);
             }
+        }
+    }
+    
+    public void StopClient(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
+    {
+        if(!_prototypeManager.TryIndex(animationId, out var proto))
+            return;
+        
+        var animations = GetAnimation(uid, proto.Animation);
+
+        foreach (var animation in animations)
+        {
+            _animationPlayer.Stop(animation.EntityUid, animationId);
+            if (animation.Looped)
+                RemComp<ActiveLoopedBodyAnimationComponent>(animation.EntityUid);
+            else
+                RemComp<ActiveBodyAnimationComponent>(animation.EntityUid);
         }
     }
 
@@ -82,35 +104,6 @@ public sealed partial class ClientBodyAnimationSystem : BodyAnimationSystem
         
         if(!_animationPlayer.HasRunningAnimation(property.EntityUid, animationId))
             _animationPlayer.Play(property.EntityUid, property.Animation, animationId);
-    }
-
-    public override void Stop(EntityUid uid, ProtoId<BodyAnimationPrototype> animationId)
-    {
-        base.Stop(uid, animationId);
-        if(!_prototypeManager.TryIndex(animationId, out var proto))
-            return;
-        
-        var animations = GetAnimation(uid, proto.Animation);
-
-        foreach (var animation in animations)
-        {
-            _animationPlayer.Stop(animation.EntityUid, animationId);
-            if (animation.Looped)
-                RemComp<ActiveLoopedBodyAnimationComponent>(animation.EntityUid);
-            else
-            {
-                RemComp<ActiveBodyAnimationComponent>(animation.EntityUid);
-                //ResumeLoopedAnimation(animation.EntityUid);
-            }
-        }
-    }
-
-    private void ResumeLoopedAnimation(EntityUid playingUid)
-    {
-        if(!TryComp<ActiveLoopedBodyAnimationComponent>(playingUid, out var activeComp))
-            return;
-        
-        _animationPlayer.Play(playingUid, activeComp.CurrentAnimation, activeComp.AnimationId);
     }
 
     private List<CurrentAnimationProperty> GetAnimation(EntityUid uid, BodyAnimation animation)
@@ -159,7 +152,52 @@ public sealed partial class ClientBodyAnimationSystem : BodyAnimationSystem
         
         return animaList.Select(kv => new CurrentAnimationProperty(kv.Key, kv.Value, animation.Looped)).ToList();
     }
-    
+
+    //TODO: come up with a more elegant solution to this problem
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var query = EntityQueryEnumerator<BodyAnimationComponent, ClientBodyAnimComponent>();
+        while (query.MoveNext(out var uid, out var component, out var clientBodyAnimationComp))
+        {
+            foreach (var (protoId, value) in component.ActiveAnimations)
+            {
+                if(clientBodyAnimationComp.ActiveAnimations.ContainsKey(protoId)) 
+                    continue;
+            
+                PlayClient(uid, protoId);
+                clientBodyAnimationComp.ActiveAnimations.Add(protoId, value);
+            }
+
+            foreach (var (protoId, value) in clientBodyAnimationComp.ActiveAnimations.ToDictionary(kv => kv.Key, kv => kv.Value))
+            {
+                if(component.ActiveAnimations.ContainsKey(protoId)) 
+                    continue;
+            
+                StopClient(uid, protoId);
+                clientBodyAnimationComp.ActiveAnimations.Remove(protoId);
+            }
+        
+            foreach (var protoId in component.ActiveLoopedAnimation)
+            {
+                if(clientBodyAnimationComp.ActiveLoopedAnimation.Contains(protoId)) 
+                    continue;
+            
+                PlayClient(uid, protoId);
+                clientBodyAnimationComp.ActiveLoopedAnimation.Add(protoId);
+            }
+
+            foreach (var protoId in clientBodyAnimationComp.ActiveLoopedAnimation.ToHashSet())
+            {
+                if(component.ActiveLoopedAnimation.Contains(protoId)) 
+                    continue;
+            
+                StopClient(uid, protoId);
+                clientBodyAnimationComp.ActiveLoopedAnimation.Remove(protoId);
+            }
+        }
+    }
 }
 
 public record struct CurrentAnimationProperty(EntityUid EntityUid, Animation Animation, bool Looped);

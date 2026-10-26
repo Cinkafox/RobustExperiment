@@ -3,9 +3,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Animations;
 
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class BodyAnimationComponent : Component
 {
-    [ViewVariables] public Dictionary<ProtoId<BodyAnimationPrototype>, TimeSpan> ActiveAnimations = [];
-    [ViewVariables] public HashSet<ProtoId<BodyAnimationPrototype>> ActiveLoopedAnimation = [];
+    [ViewVariables, AutoNetworkedField] public Dictionary<ProtoId<BodyAnimationPrototype>, TimeSpan> ActiveAnimations = [];
+    [ViewVariables, AutoNetworkedField] public HashSet<ProtoId<BodyAnimationPrototype>> ActiveLoopedAnimation = [];
 }
