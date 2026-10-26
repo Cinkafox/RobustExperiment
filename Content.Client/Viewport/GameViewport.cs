@@ -1,6 +1,7 @@
 ﻿using Content.Client.ConfigurationUI;
 using Content.Client.DimensionEnv;
 using Content.Client.DimensionEnv.ObjRes;
+using Content.Client.Transform;
 using Content.Shared.Camera;
 using Content.Shared.Physics;
 using Content.Shared.Physics.Components;
@@ -28,6 +29,7 @@ public sealed partial class GameViewport : Control
     [Dependency] private IPlayerManager _playerManager = default!;
     
     private CameraSystem? _cameraSystem;
+    private Transform3dVisualsSystem? _transform3dVisuals;
 
     private readonly Label _info;
     private readonly ShaderInstance _skyInstance;
@@ -82,7 +84,9 @@ public sealed partial class GameViewport : Control
         
         if(!_cameraSystem.TryGetCamera(_playerManager.LocalEntity, out var camera))
            return;
-        
+
+        var transform3dVisuals = _transform3dVisuals ??= _entityManager.System<Transform3dVisualsSystem>();
+
         if(_configuration.GetValue<bool>("render_shitty_skybox"))
         {
             using (_profManager.Group("DrawSkyBox"))
@@ -117,7 +121,7 @@ public sealed partial class GameViewport : Control
                     modelComponent.MeshRenderInitialized = true;
                 }
 
-                modelComponent.MeshRender.Transform = transform3dComponent.WorldMatrix;
+                modelComponent.MeshRender.Transform = transform3dVisuals.GetWorldMatrix(uid, transform3dComponent);
 
                 using (_profManager.Group("DrawMesh_"+uid))
                 {
@@ -199,7 +203,7 @@ public sealed partial class GameViewport : Control
         _inputManager.ViewportKeyEvent(this, args);
     }
 
-    protected  override void KeyBindUp(GUIBoundKeyEventArgs args)
+    protected override void KeyBindUp(GUIBoundKeyEventArgs args)
     {
         base.KeyBindUp(args);
 
