@@ -21,6 +21,7 @@
                            <Label Text="Q - выкинуть предмет с руки" StyleClasses="menuPanel"/>
                            <Label Text="Лагает? Похуй!" StyleClasses="menuPanel"/>
                            <Label Text="Артефакты? Поебать!" StyleClasses="menuPanel"/>
+                           <Label Text="Неткод говна? Лол, насрать!" StyleClasses="menuPanel"/>
                            <BoxContainer Orientation="Vertical" Name="ConfContainer">
                                
                            </BoxContainer>
