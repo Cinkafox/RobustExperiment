@@ -1,10 +1,12 @@
-﻿namespace Content.Shared.Physics.Components;
+﻿using Robust.Shared.GameStates;
+
+namespace Content.Shared.Physics.Components;
 
 public sealed partial class RigidBodyComponent
 {
-    [DataField] public bool EnableAngularVelocity = true;
+    [DataField, AutoNetworkedField] public bool EnableAngularVelocity = true;
     
-    [DataField] public Vector3 AngularVelocity = Vector3.Zero;
+    [DataField, AutoNetworkedField] public Vector3 AngularVelocity = Vector3.Zero;
     [ViewVariables(VVAccess.ReadOnly)] public Vector3 AngularForce => AngularVelocity * Mass;
     
     [DataField] public float InertiaScale = 0.7f;

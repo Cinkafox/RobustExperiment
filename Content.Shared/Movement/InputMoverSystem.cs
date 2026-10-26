@@ -34,6 +34,9 @@ public sealed partial class InputMoverSystem : EntitySystem
 
         while (query.MoveNext(out var uid, out var inputMover, out var transform3dComponent, out var rigidBodyComponent))
         {
+            if (!_rigidBodySystem.ShouldPredict(uid))
+                continue;
+
             if (rigidBodyComponent.IsGrounded != rigidBodyComponent.IsGrounding)
             {
                 RaiseLocalEvent(uid, new EntityGroundStatusChangedEvent(rigidBodyComponent.IsGrounded));

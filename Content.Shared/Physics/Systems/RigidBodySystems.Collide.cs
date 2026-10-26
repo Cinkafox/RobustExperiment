@@ -66,21 +66,37 @@ public sealed partial class RigidBodySystem
             for (var j = i + 1; j < _dynamicBodies.Count; j++)
             {
                 var (uidB, bodyB, xformB) = _dynamicBodies[j];
+
+                var predictA = ShouldPredict(uidA);
+                var predictB = ShouldPredict(uidB);
+
+                if (!predictA && !predictB)
+                    continue;
+
                 var contact = SolveCollision(uidA, bodyA, xformA, uidB, bodyB, xformB, deltaTime);
                 
                 if (contact is null)
                     continue;
 
-                var evA = new CollideObjectEvent(contact.BodyB);
-                var evB = new CollideObjectEvent(contact.BodyA);
+                CollideObjectEvent? evA = null;
+                CollideObjectEvent? evB = null;
+
+                if (predictA)
+                {
+                    evA = new CollideObjectEvent(contact.BodyB);
+                    RaiseLocalEvent(uidA, evA);
+                }
+
+                if (predictB)
+                {
+                    evB = new CollideObjectEvent(contact.BodyA);
+                    RaiseLocalEvent(uidB, evB);
+                }
                 
-                RaiseLocalEvent(uidA, evA);
-                RaiseLocalEvent(uidB, evB);
-                
-                if(evA.Cancelled || evB.Cancelled) 
+                if(evA?.Cancelled == true || evB?.Cancelled == true) 
                     continue;
                 
-                ResolveContact(uidA, bodyA, xformA, uidB, bodyB, xformB, contact.Points, deltaTime);
+                ResolveContact(uidA, bodyA, xformA, uidB, bodyB, xformB, contact.Points, deltaTime, predictA, predictB);
                 
                 _contacts.Add(contact);
             }
@@ -113,11 +129,19 @@ public sealed partial class RigidBodySystem
     private void ResolveContact(
         EntityUid uidA, RigidBodyComponent bodyA, Transform3dComponent xformA,
         EntityUid uidB, RigidBodyComponent bodyB, Transform3dComponent xformB,
-        ManifoldPoints contact, float deltaTime)
+        ManifoldPoints contact, float deltaTime, bool predictA, bool predictB)
     {
-        if (bodyA.PhysType == PhysType.Static && bodyB.PhysType == PhysType.Static)
+        var dynamicA = predictA && bodyA.PhysType == PhysType.Dynamic;
+        var dynamicB = predictB && bodyB.PhysType == PhysType.Dynamic;
+
+        if (!dynamicA && !dynamicB)
             return;
-        
+
+        var invMassA = dynamicA ? bodyA.InvMass : 0f;
+        var invMassB = dynamicB ? bodyB.InvMass : 0f;
+        var invInertiaA = dynamicA ? bodyA.InvInertia : 0f;
+        var invInertiaB = dynamicB ? bodyB.InvInertia : 0f;
+
         var ra = contact.A - xformA.LocalPosition;
         var rb = contact.B - xformB.LocalPosition;
         
@@ -127,40 +151,40 @@ public sealed partial class RigidBodySystem
         
         var warmImpulse = contact.Normal * contact.NormalImpulse;
 
-        if (bodyA.PhysType == PhysType.Dynamic)
+        if (dynamicA)
         {
-            bodyA.LinearVelocity -= warmImpulse * bodyA.InvMass;
+            bodyA.LinearVelocity -= warmImpulse * invMassA;
 
             if (bodyA.EnableAngularVelocity)
             {
                 bodyA.AngularVelocity -=
                     Vector3.Cross(ra, warmImpulse) *
-                    bodyA.InvInertia;
+                    invInertiaA;
             }
         }
 
-        if (bodyB.PhysType == PhysType.Dynamic)
+        if (dynamicB)
         {
-            bodyB.LinearVelocity += warmImpulse * bodyB.InvMass;
+            bodyB.LinearVelocity += warmImpulse * invMassB;
 
             if (bodyB.EnableAngularVelocity)
             {
                 bodyB.AngularVelocity +=
                     Vector3.Cross(rb, warmImpulse) *
-                    bodyB.InvInertia;
+                    invInertiaB;
             }
         }
         
         var warmTangent = contact.TangentImpulse;
 
-        if (bodyA.PhysType == PhysType.Dynamic)
+        if (dynamicA)
         {
-            bodyA.LinearVelocity -= warmTangent * bodyA.InvMass;
+            bodyA.LinearVelocity -= warmTangent * invMassA;
         }
 
-        if (bodyB.PhysType == PhysType.Dynamic)
+        if (dynamicB)
         {
-            bodyB.LinearVelocity += warmTangent * bodyB.InvMass;
+            bodyB.LinearVelocity += warmTangent * invMassB;
         }
         
         var velA =
@@ -181,12 +205,12 @@ public sealed partial class RigidBodySystem
         var rbCrossN = Vector3.Cross(rb, contact.Normal);
 
         var angularFactor =
-            Vector3.Dot(raCrossN, raCrossN) * bodyA.InvInertia +
-            Vector3.Dot(rbCrossN, rbCrossN) * bodyB.InvInertia;
+            Vector3.Dot(raCrossN, raCrossN) * invInertiaA +
+            Vector3.Dot(rbCrossN, rbCrossN) * invInertiaB;
 
         var impulseDenom =
-            bodyA.InvMass +
-            bodyB.InvMass +
+            invMassA +
+            invMassB +
             angularFactor;
         
         const float maxImpulse = 50f;
@@ -207,10 +231,10 @@ public sealed partial class RigidBodySystem
             var rbCrossT = Vector3.Cross(rb, tangent);
 
             var frictionDenom =
-                bodyA.InvMass +
-                bodyB.InvMass +
-                Vector3.Dot(raCrossT, raCrossT) * bodyA.InvInertia +
-                Vector3.Dot(rbCrossT, rbCrossT) * bodyB.InvInertia;
+                invMassA +
+                invMassB +
+                Vector3.Dot(raCrossT, raCrossT) * invInertiaA +
+                Vector3.Dot(rbCrossT, rbCrossT) * invInertiaB;
 
             
             var jt = -Vector3.Dot(relativeVelocity, tangent);
@@ -222,11 +246,11 @@ public sealed partial class RigidBodySystem
             
             var frictionVector = tangent * frictionImpulse;
             
-            if (bodyA.PhysType == PhysType.Dynamic)
-                bodyA.LinearVelocity -= frictionVector * bodyA.InvMass;
+            if (dynamicA)
+                bodyA.LinearVelocity -= frictionVector * invMassA;
             
-            if (bodyB.PhysType == PhysType.Dynamic)
-                bodyB.LinearVelocity += frictionVector * bodyB.InvMass;
+            if (dynamicB)
+                bodyB.LinearVelocity += frictionVector * invMassB;
             
             contact.TangentImpulse += frictionVector;
             contact.TangentImpulse = Vector3.Clamp(
@@ -239,27 +263,27 @@ public sealed partial class RigidBodySystem
         contact.NormalImpulse =
             MathF.Max(0f, contact.NormalImpulse);
         
-        if (bodyA.PhysType == PhysType.Dynamic)
+        if (dynamicA)
         {
-            bodyA.LinearVelocity -= impulse * bodyA.InvMass;
+            bodyA.LinearVelocity -= impulse * invMassA;
 
             if (bodyA.EnableAngularVelocity)
             {
                 bodyA.AngularVelocity -=
                     Vector3.Cross(ra, impulse) *
-                    bodyA.InvInertia;
+                    invInertiaA;
             }
         }
 
-        if (bodyB.PhysType == PhysType.Dynamic)
+        if (dynamicB)
         {
-            bodyB.LinearVelocity += impulse * bodyB.InvMass;
+            bodyB.LinearVelocity += impulse * invMassB;
 
             if (bodyB.EnableAngularVelocity)
             {
                 bodyB.AngularVelocity +=
                     Vector3.Cross(rb, impulse) *
-                    bodyB.InvInertia;
+                    invInertiaB;
             }
         }
         
@@ -272,15 +296,15 @@ public sealed partial class RigidBodySystem
             correctionPercent = 0.05f; // Much gentler correction when grounded
         }
         
-        var invMassSum = bodyA.InvMass + bodyB.InvMass;
+        var invMassSum = invMassA + invMassB;
         
         var correction = MathF.Max(contact.Depth - slop, 0f) / invMassSum * correctionPercent * contact.Normal;
         
-        if (bodyA.PhysType == PhysType.Dynamic)
-            xformA.LocalPosition -= correction * bodyA.InvMass;
+        if (dynamicA)
+            xformA.SetLocalPositionNoDirty(xformA.LocalPosition - correction * invMassA);
 
-        if (bodyB.PhysType == PhysType.Dynamic)
-            xformB.LocalPosition += correction * bodyB.InvMass;
+        if (dynamicB)
+            xformB.SetLocalPositionNoDirty(xformB.LocalPosition + correction * invMassB);
     }
 }
 

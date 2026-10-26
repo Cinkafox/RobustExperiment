@@ -27,6 +27,15 @@ public partial class RigidBodySystem
             foreach (var (bodyBUid, bodyConstraint) in constraint.Constraints)
             {
                 TryComp<RigidBodyComponent>(bodyBUid, out var rigidBodyB);
+
+                if (_netManager.IsClient)
+                {
+                    if (body.PhysType == PhysType.Dynamic && !ShouldPredict(uid))
+                        continue;
+
+                    if (rigidBodyB is { PhysType: PhysType.Dynamic } && !ShouldPredict(bodyBUid))
+                        continue;
+                }
                 
                 var bodyB = new Entity<RigidBodyComponent?, Transform3dComponent>(bodyBUid, rigidBodyB, Comp<Transform3dComponent>(bodyBUid));
                 action(bodyConstraint, bodyA, bodyB);

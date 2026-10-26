@@ -96,4 +96,23 @@ public partial class Transform3dComponent
             MarkDirtyRecursive(nameof(LocalPosition));
         }
     }
+
+    internal void SetLocalPositionNoDirty(Vector3 value)
+    {
+        if (_localPosition.Equals(value))
+            return;
+
+        _localPosition = value;
+        MarkDirtyRecursive(nameof(LocalPosition), false);
+    }
+
+    internal void SetLocalRotationNoDirty(Quaternion value)
+    {
+        var normalized = Quaternion.Normalize(value);
+        if (normalized.Equals(_localRotation))
+            return;
+
+        _localRotation = normalized;
+        MarkDirtyRecursive(nameof(LocalRotation), false);
+    }
 }

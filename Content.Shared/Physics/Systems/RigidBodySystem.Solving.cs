@@ -5,12 +5,17 @@ namespace Content.Shared.Physics.Systems;
 
 public sealed partial class RigidBodySystem
 {
+    private const float LinearVelocityEpsilonSq = 1e-4f;
+    private const float AngularVelocityEpsilonSq = 1e-4f;
+    private const float PositionEpsilonSq = 1e-6f;
+    private const float RotationDotEpsilon = 3.8e-7f;
+
     private void ApplyGlobalForces(float deltaTime)
     {
         var query = AllEntityQuery<RigidBodyComponent>();
         while (query.MoveNext(out var uid, out var body))
         {
-            if (body.PhysType == PhysType.Static) continue;
+            if (body.PhysType == PhysType.Static || !ShouldPredict(uid)) continue;
             
             var gravityForce = new Vector3(0, -9.81f, 0) * body.Mass * deltaTime;
             ApplyForce(new Entity<RigidBodyComponent>(uid, body), gravityForce);
@@ -22,7 +27,7 @@ public sealed partial class RigidBodySystem
         var query = AllEntityQuery<RigidBodyComponent, Transform3dComponent>();
         while (query.MoveNext(out var uid, out var body, out var transform))
         {
-            if (body.PhysType == PhysType.Static) continue;
+            if (body.PhysType == PhysType.Static || !ShouldPredict(uid)) continue;
         
             body.UpdateWorldInertia(transform.WorldRotation);
             
@@ -95,9 +100,9 @@ public sealed partial class RigidBodySystem
         var query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
         while (query.MoveNext(out var uid, out var body, out var xform))
         {
-            if (body.PhysType == PhysType.Static) continue;
+            if (body.PhysType == PhysType.Static || !ShouldPredict(uid)) continue;
             
-            xform.LocalPosition += body.LinearVelocity * deltaTime;
+            xform.SetLocalPositionNoDirty(xform.LocalPosition + body.LinearVelocity * deltaTime);
             
             if (!body.EnableAngularVelocity)
             {
@@ -115,19 +120,52 @@ public sealed partial class RigidBodySystem
                 var angle = angVelLen * deltaTime;
                 
                 var deltaRotation = Quaternion.CreateFromAxisAngle(axis, angle);
-                xform.LocalRotation = Quaternion.Normalize(
-                    deltaRotation * xform.LocalRotation);
+                xform.SetLocalRotationNoDirty(Quaternion.Normalize(
+                    deltaRotation * xform.LocalRotation));
             }
         }
     }
 
     private void DirtyPhysics()
     {
-        var query = EntityQueryEnumerator<RigidBodyComponent, Transform3dComponent>();
-        while (query.MoveNext(out var uid, out var body, out var transform3DComponent))
+        if (_netManager.IsClient && !_gameTiming.InPrediction)
+            return;
+
+        var query = AllEntityQuery<RigidBodyComponent>();
+        while (query.MoveNext(out var uid, out var body))
         {
-            Dirty(uid, body);
-            Dirty(uid, transform3DComponent);
+            if (!ShouldPredict(uid) || !TryComp<Transform3dComponent>(uid, out var xform))
+                continue;
+
+            if (!body.HasNetSnapshot)
+            {
+                CaptureNetSnapshot(body, xform);
+                continue;
+            }
+
+            if (Vector3.DistanceSquared(body.LinearVelocity, body.LastNetLinearVelocity) > LinearVelocityEpsilonSq)
+            {
+                DirtyField(uid, body, nameof(RigidBodyComponent.LinearVelocity));
+                body.LastNetLinearVelocity = body.LinearVelocity;
+            }
+
+            if (Vector3.DistanceSquared(body.AngularVelocity, body.LastNetAngularVelocity) > AngularVelocityEpsilonSq)
+            {
+                DirtyField(uid, body, nameof(RigidBodyComponent.AngularVelocity));
+                body.LastNetAngularVelocity = body.AngularVelocity;
+            }
+
+            if (Vector3.DistanceSquared(xform.LocalPosition, body.LastNetPosition) > PositionEpsilonSq)
+            {
+                DirtyField(uid, xform, nameof(Transform3dComponent.LocalPosition));
+                body.LastNetPosition = xform.LocalPosition;
+            }
+
+            if (1f - MathF.Abs(Quaternion.Dot(xform.LocalRotation, body.LastNetRotation)) > RotationDotEpsilon)
+            {
+                DirtyField(uid, xform, nameof(Transform3dComponent.LocalRotation));
+                body.LastNetRotation = xform.LocalRotation;
+            }
         }
     }
     
@@ -139,6 +177,9 @@ public sealed partial class RigidBodySystem
         var query = AllEntityQuery<RigidBodyComponent>();
         while (query.MoveNext(out var uid, out var body))
         {
+            if (!ShouldPredict(uid))
+                continue;
+
             body.ResetGroundState();
         }
         
@@ -152,14 +193,18 @@ public sealed partial class RigidBodySystem
             var normalDotUpA = Vector3.Dot(contact.Normal, Vector3.UnitY);
             var normalDotUpB = Vector3.Dot(contact.Normal, Vector3.UnitY);
             
-            if (bodyA.PhysType == PhysType.Dynamic && normalDotUpA > UP_THRESHOLD)
+            if (bodyA.PhysType == PhysType.Dynamic &&
+                ShouldPredict(manifold.BodyA.Owner) &&
+                normalDotUpA > UP_THRESHOLD)
             {
                 var relVel = Vector3.Dot(bodyA.LinearVelocity, contact.Normal);
                 if (relVel <= VELOCITY_THRESHOLD)
                     bodyA.AddGroundContact(normalDotUpA);
             }
         
-            if (bodyB.PhysType == PhysType.Dynamic && normalDotUpB > UP_THRESHOLD)
+            if (bodyB.PhysType == PhysType.Dynamic &&
+                ShouldPredict(manifold.BodyB.Owner) &&
+                normalDotUpB > UP_THRESHOLD)
             {
                 var relVel = Vector3.Dot(bodyB.LinearVelocity, -contact.Normal);
                 if (relVel <= VELOCITY_THRESHOLD)

@@ -55,21 +55,21 @@ public sealed partial class Transform3dComponent : Component
 
     internal bool IsRooted { get; private set; } = true;
 
-    private void MarkDirtyRecursive(string? fieldName)
+    private void MarkDirtyRecursive(string? fieldName, bool dirtyNetwork = true)
     {
+        if (fieldName != null && dirtyNetwork)
+        {
+            _entMan.DirtyField(Owner, this, fieldName);
+        }
+
         if (MatricesDirty)
             return;
 
         MatricesDirty = true;
 
-        if(fieldName != null)
-        {
-            _entMan.DirtyField(Owner, this, fieldName);
-        }
-        
         foreach (var child in _children)
         {
-            _entMan.GetComponent<Transform3dComponent>(child).MarkDirtyRecursive(fieldName);
+            _entMan.GetComponent<Transform3dComponent>(child).MarkDirtyRecursive(fieldName, dirtyNetwork);
         }
     }
 

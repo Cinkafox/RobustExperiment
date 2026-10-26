@@ -13,28 +13,22 @@ public sealed partial class RigidBodySystem : EntitySystem
     
     public override void Initialize()
     {
-        EntityManager.ComponentFactory.RegisterNetworkedFields<RigidBodyComponent>(
-            nameof(RigidBodyComponent.LinearVelocity),
-            nameof(RigidBodyComponent.PhysType),
-            nameof(RigidBodyComponent.Density),
-            nameof(RigidBodyComponent.AngularVelocity),
-            nameof(RigidBodyComponent.EnableAngularVelocity),
-            nameof(RigidBodyComponent.Friction),
-            nameof(RigidBodyComponent.Restitution),
-            nameof(RigidBodyComponent.RollingResistance));
-        
+        InitializePrediction();
         InitializeColliders();
         //SimulateStep(5000f, 100);
     }
 
     public void ApplyForce(Entity<RigidBodyComponent> ent, Vector3 force)
     {
-        if(ent.Comp.PhysType == PhysType.Static) return;
+        if (ent.Comp.PhysType == PhysType.Static || !ShouldPredict(ent.Owner)) return;
         ent.Comp.LinearVelocity += force / ent.Comp.Mass;
     }
     
     public void ApplyRelativeTorque(Entity<RigidBodyComponent> ent, Vector3 localTorque)
     {
+        if (!ShouldPredict(ent.Owner))
+            return;
+
         var rotation = Comp<Transform3dComponent>(ent).LocalRotation;
         var worldTorque = Vector3.Transform(localTorque, rotation);
         
@@ -44,7 +38,7 @@ public sealed partial class RigidBodySystem : EntitySystem
 
     public void ApplyTorque(Entity<RigidBodyComponent> ent, Vector3 torque)
     {
-        if (ent.Comp.PhysType == PhysType.Static)
+        if (ent.Comp.PhysType == PhysType.Static || !ShouldPredict(ent.Owner))
             return;
 
         if (!ent.Comp.EnableAngularVelocity)
@@ -62,7 +56,7 @@ public sealed partial class RigidBodySystem : EntitySystem
         Vector3 worldPoint,
         Vector3 centerOfMass)
     {
-        if (ent.Comp.PhysType == PhysType.Static)
+        if (ent.Comp.PhysType == PhysType.Static || !ShouldPredict(ent.Owner))
             return;
 
         ApplyForce(ent, force);
@@ -75,6 +69,10 @@ public sealed partial class RigidBodySystem : EntitySystem
 
     public override void Update(float frameTime)
     {
+        if (_netManager.IsClient)
+            RebuildPredictionSet();
+
+        PrepareNetSnapshots();
         SimulateStep(frameTime, 8);
     }
 }
