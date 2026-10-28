@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared.Camera;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
 
@@ -8,18 +9,7 @@ public sealed partial class BoneSystem : EntitySystem
 {
     [Dependency] private Transform3dSystem _transform = default!;
     
-    public override void Initialize()
-    {
-        SubscribeLocalEvent<BoneCompoundComponent, ComponentInit>(OnComponentInit);
-        SubscribeLocalEvent<BoneComponent, ComponentInit>(OnBoneInit);
-        SubscribeLocalEvent<BoneComponent, ComponentRemove>(OnRemoved);
-    }
-
-    private void OnRemoved(Entity<BoneComponent> ent, ref ComponentRemove args)
-    {
-        
-    }
-
+    [SubscribeLocalEvent]
     private void OnBoneInit(Entity<BoneComponent> ent, ref ComponentInit args)
     {
         var transform = Comp<Transform3dComponent>(ent);
@@ -27,6 +17,7 @@ public sealed partial class BoneSystem : EntitySystem
         ent.Comp.OriginalRotation = transform.WorldAngle;
     }
 
+    [SubscribeLocalEvent]
     private void OnComponentInit(Entity<BoneCompoundComponent> ent, ref ComponentInit args)
     {
         if(!TryComp<SkeletonComponent>(ent, out var skeletonComponent) || 
@@ -44,6 +35,8 @@ public sealed partial class BoneSystem : EntitySystem
         skeletonComponent.OriginalWorldMatrix = restWorld;
         skeletonComponent.Root = CreateBone(compound, ent.Owner, ent.Comp.Offset,
             new Entity<SkeletonComponent>(ent, skeletonComponent), restWorld, restRotation);
+        
+        RaiseLocalEvent(ent, new SkeletonInitializedEvent());
     }
 
     public BoneCompound? GetCompoundRecursive(EntityUid uid)
@@ -100,3 +93,5 @@ public sealed partial class BoneSystem : EntitySystem
         return bone;
     }
 }
+
+public sealed class SkeletonInitializedEvent: EntityEventArgs;

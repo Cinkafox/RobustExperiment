@@ -51,17 +51,10 @@ public sealed partial class InputMoverSystem : EntitySystem
             }
             
             var shift = normalizedPositionMovement * airFactor;
-            var toYaw = Angle.FromWorldVec(new Vector2(normalizedPositionMovement.X,
-                -normalizedPositionMovement.Z));
-                
-            var delta = transform3dComponent.LocalAngle.Yaw - toYaw;
-                
-            delta = (delta % (MathF.PI * 2f) + MathF.PI * 3f) % (MathF.PI * 2f) - MathF.PI;
-                
-            if(normalizedPositionMovement != Vector3.Zero)
-                transform3dComponent.LocalAngle = new EulerAngles(transform3dComponent.WorldAngle.Pitch, 
-                    transform3dComponent.WorldAngle.Yaw - delta * 0.6, 
-                    transform3dComponent.WorldAngle.Roll);
+            shift = 
+                Vector3.Transform(shift, 
+                    Matrix4Helpers.CreateRotationY(transform3dComponent.WorldAngle.Yaw));
+            
             
             _rigidBodySystem.ApplyForce(new Entity<RigidBodyComponent>(uid, rigidBodyComponent), shift * rigidBodyComponent.Mass * frameTime);
             

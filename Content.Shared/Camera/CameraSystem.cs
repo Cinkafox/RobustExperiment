@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Content.Shared.Bone;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Shared.Timing;
@@ -10,24 +11,42 @@ public sealed partial class CameraSystem : EntitySystem
 {
     [Dependency] private Transform3dSystem _transform3dSystem = default!;
     [Dependency] private IGameTiming _gameTiming = default!;
-     
-    public override void Initialize()
-    {
-        SubscribeLocalEvent<FollowCameraCreateComponent, ComponentInit>(OnInit);
-    }
-
-    private void OnInit(Entity<FollowCameraCreateComponent> ent, ref ComponentInit args)
+    [Dependency] private BoneSystem _boneSystem = default!;
+    
+    [SubscribeLocalEvent]
+    private void OnInit(Entity<FollowCameraCreateComponent> ent, ref SkeletonInitializedEvent args)
     {
         var camUid = Spawn();
-        EnsureComp<CameraComponent>(camUid);
+        AddComp<CameraComponent>(camUid);
+        
+        var followEnt = ent.Owner;
+
+        if (ent.Comp.Bone is not null && 
+            _boneSystem.TryGetBone(ent.Owner, ent.Comp.Bone, out var boneUid))
+        {
+            followEnt = boneUid;
+        }
+        else
+        {
+            Log.Error($"Bone {ent.Comp.Bone} not found!");   
+            if(!TryComp<SkeletonComponent>(ent.Owner, out var comp))
+                Log.Error("No skeleton!");
+            else
+            {
+                Log.Error(comp.BonesDictionary.Count + "<<");
+            }
+        }
+        
         var camProxComp = EnsureComp<CameraProxyComponent>(ent);
         camProxComp.CameraUid = camUid;
+        camProxComp.FollowUid = followEnt;
         Dirty(ent, camProxComp);
         var followComp = EnsureComp<FollowCameraComponent>(camUid);
-        followComp.CameraQueue.Add(ent, new FollowCameraEntry()
+        followComp.CameraQueue.Add(followEnt, new FollowCameraEntry()
         {
             Offset = ent.Comp.Offset,
             Rotation = ent.Comp.Rotation,
+            RotateByEntity = ent.Comp.RotateByEntity
         });
         
         Dirty(camUid, followComp);

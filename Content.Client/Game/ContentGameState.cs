@@ -2,16 +2,10 @@
 using Content.Client.UserInterface;
 using Content.Shared.Input;
 using Robust.Client.GameObjects;
-using Robust.Client.GameStates;
-using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
-using Robust.Client.State;
-using Robust.Client.UserInterface;
-using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Input;
 using Robust.Shared.Map;
-using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
 namespace Content.Client.Game;
@@ -22,9 +16,6 @@ public sealed partial class ContentGameState : UIState<ContentGame>
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IEntitySystemManager _entitySystemManager = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private IEntityManager _entityManager = default!;
-    [Dependency] private IClientGameStateManager _stateManager = default!;
-    [Dependency] private INetManager _netManager = default!;
 
     protected override void UIStartup()
     {

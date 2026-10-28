@@ -6,4 +6,5 @@ namespace Content.Shared.Camera;
 public sealed partial class CameraProxyComponent: Component
 {
     [ViewVariables, AutoNetworkedField] public EntityUid CameraUid;
+    [ViewVariables, AutoNetworkedField] public EntityUid FollowUid;
 }

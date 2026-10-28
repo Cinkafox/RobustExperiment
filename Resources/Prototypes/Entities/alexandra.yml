@@ -3,8 +3,11 @@
   id: alexandra
   components:
   - type: FollowCameraCreate
-    rotation: 45,0,0
-    offset: 0,6,-6
+    offset: 1.2,1.2,-4
+    rotation: 0,0,0
+    bone: head
+    rotateByEntity: true
+  - type: MouseCameraMove
   - type: Health
     maxHealth: 100
   - type: RigidBody

@@ -4,7 +4,7 @@
      xmlns:viewport="clr-namespace:Content.Client.Viewport"
      xmlns:ui1="clr-namespace:Content.Client.Game.UI">
     <controls:AnchorControl LayoutPreset="Wide">
-        <viewport:GameViewport/>
+        <viewport:GameViewport Name="MainViewport" Access="Public"/>
     </controls:AnchorControl>
     
    <controls:AnchorControl LayoutPreset="Wide" HorizontalExpand="True" HorizontalAlignment="Left">

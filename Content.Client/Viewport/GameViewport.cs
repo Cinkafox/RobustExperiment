@@ -7,6 +7,7 @@ using Content.Client.DimensionEnv.ObjRes;
 using Content.Client.Resources;
 using Content.Client.Transform;
 using Content.Shared.Camera;
+using Content.Shared.Mouse;
 using Content.Shared.Physics;
 using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Data;
@@ -18,8 +19,10 @@ using Robust.Client.ResourceManagement;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Input;
 using Robust.Shared.Profiling;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Client.Viewport;
 
@@ -33,6 +36,20 @@ public sealed partial class GameViewport : Control
     [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IResourceCache _resourceCache = default!;
+    [Dependency] private IClyde _clyde = default!;
+    
+    public bool RelativeMode
+    {
+        get;
+        set
+        {
+            if(value == field)
+                return;
+            
+            field = value;
+            _clyde.MainWindow.SetRelativeMouseMode(value);
+        }
+    }
     
     private CameraSystem? _cameraSystem;
     private Transform3dVisualsSystem? _transform3dVisuals;
@@ -53,6 +70,7 @@ public sealed partial class GameViewport : Control
         _info = new Label();
         _userInterfaceManager.OnScreenChanged += UserInterfaceManagerOnOnScreenChanged;
         _skyInstance = _prototypeManager.Index<ShaderPrototype>("SkyShader").InstanceUnique();
+        MouseFilter = MouseFilterMode.Stop;
     }
 
     private void UserInterfaceManagerOnOnScreenChanged((UIScreen? Old, UIScreen? New) obj)
@@ -275,5 +293,41 @@ public sealed partial class GameViewport : Control
             return;
 
         _inputManager.ViewportKeyEvent(this, args);
+    }
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+        
+        if(_userInterfaceManager.CurrentlyHovered == this)
+        {
+            if(!RelativeMode) 
+                RelativeMode = true;
+            
+            _userInterfaceManager.ControlFocused = this;
+            _userInterfaceManager.SetHovered(this);
+    
+        }
+        else
+        {
+            if(RelativeMode)
+            {
+                RelativeMode = false;
+                _userInterfaceManager.ControlFocused = null;
+            }
+        }
+    }
+
+    private const float RadiansPerPixel = 0.12f * MathF.PI / 180f;
+    
+    protected override void MouseMove(GUIMouseMoveEventArgs args)
+    {
+        base.MouseMove(args);
+        if(!RelativeMode) return;
+        
+        var relativeMovement = RadiansPerPixel * args.Relative;
+        
+        if(_playerManager.LocalEntity is not null)
+            _entityManager.EventBus.RaiseLocalEvent(_playerManager.LocalEntity.Value, new OnMouseMoveEvent(relativeMovement));
     }
 }
