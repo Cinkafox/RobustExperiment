@@ -4,15 +4,15 @@ using Content.Shared.Mouse;
 using Content.Shared.Movement;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
+using Robust.Client;
 using Robust.Client.Player;
-using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
 namespace Content.Client.Mouse;
 
 public sealed partial class PlayerMouseInputSystem : EntitySystem
 {
-    [Dependency] private INetManager _networkManager = default!;
+    [Dependency] private IBaseClient _baseClient = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private CameraMouseSystem _cameraMouse = default!;
@@ -39,7 +39,7 @@ public sealed partial class PlayerMouseInputSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        if (!_networkManager.IsConnected)
+        if (!_baseClient.RunLevel.IsInGameLike())
         {
             Reset();
             return;

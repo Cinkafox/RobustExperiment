@@ -79,10 +79,19 @@ public sealed partial class ClientBodyAnimationSystem : EntitySystem
         foreach (var animation in animations)
         {
             _animationPlayer.Stop(animation.EntityUid, animationId);
+
             if (animation.Looped)
-                RemComp<ActiveLoopedBodyAnimationComponent>(animation.EntityUid);
+            {
+                if (TryComp<ActiveLoopedBodyAnimationComponent>(animation.EntityUid, out var active) &&
+                    active.AnimationId == animationId)
+                    RemComp<ActiveLoopedBodyAnimationComponent>(animation.EntityUid);
+            }
             else
-                RemComp<ActiveBodyAnimationComponent>(animation.EntityUid);
+            {
+                if (TryComp<ActiveBodyAnimationComponent>(animation.EntityUid, out var active) &&
+                    active.AnimationId == animationId)
+                    RemComp<ActiveBodyAnimationComponent>(animation.EntityUid);
+            }
         }
     }
 
@@ -91,19 +100,30 @@ public sealed partial class ClientBodyAnimationSystem : EntitySystem
         ProtoId<BodyAnimationPrototype> animationId) 
         where T: Component, IActiveBodyAnimation, new()
     {
-        if(TryComp<T>(property.EntityUid, out var activeComp))
-        {
-            _animationPlayer.Stop(property.EntityUid, animationId);
-            RemComp<T>(property.EntityUid);
-        }
-            
-        activeComp = AddComp<T>(property.EntityUid);
+        StopActiveAnimation(property.EntityUid);
+
+        var activeComp = AddComp<T>(property.EntityUid);
         activeComp.MainUid = uid;
         activeComp.CurrentAnimation = property.Animation;
         activeComp.AnimationId = animationId;
         
         if(!_animationPlayer.HasRunningAnimation(property.EntityUid, animationId))
             _animationPlayer.Play(property.EntityUid, property.Animation, animationId);
+    }
+
+    private void StopActiveAnimation(EntityUid entityUid)
+    {
+        if (TryComp<ActiveLoopedBodyAnimationComponent>(entityUid, out var looped))
+        {
+            _animationPlayer.Stop(entityUid, looped.AnimationId);
+            RemComp<ActiveLoopedBodyAnimationComponent>(entityUid);
+        }
+
+        if (TryComp<ActiveBodyAnimationComponent>(entityUid, out var active))
+        {
+            _animationPlayer.Stop(entityUid, active.AnimationId);
+            RemComp<ActiveBodyAnimationComponent>(entityUid);
+        }
     }
 
     private List<CurrentAnimationProperty> GetAnimation(EntityUid uid, BodyAnimation animation)
