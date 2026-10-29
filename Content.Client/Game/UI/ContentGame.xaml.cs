@@ -36,6 +36,7 @@ public sealed partial class ContentGame : UIScreen
 
     public void OpenChat()
     {
+        MainViewport.EnableMouseRelative = false;
         ChatPanel.Visible = true;
         ChatInput.Clear();
         ChatInput.GrabKeyboardFocus();

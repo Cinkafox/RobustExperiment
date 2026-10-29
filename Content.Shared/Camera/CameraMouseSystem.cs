@@ -29,9 +29,9 @@ public sealed partial class CameraMouseSystem : EntitySystem
         component.CameraRotation = new EulerAngles(camPitch, camYaw, 0);
     }
 
-    public override void Update(float frameTime)
+    public override void FrameUpdate(float frameTime)
     {
-        base.Update(frameTime);
+        base.FrameUpdate(frameTime);
         
         var query = EntityQueryEnumerator<MouseCameraMoveComponent, Transform3dComponent, InputMoverComponent, CameraProxyComponent>();
 
@@ -41,7 +41,7 @@ public sealed partial class CameraMouseSystem : EntitySystem
             if (inputMover.IsMoving)
             {
                 var deltaYaw = -mouseCameraMove.CameraRotation.Yaw;
-
+                deltaYaw *= 0.15;
                 mouseCameraMove.CameraRotation = new EulerAngles(mouseCameraMove.CameraRotation.Pitch,
                     mouseCameraMove.CameraRotation.Yaw + deltaYaw, 0);
                 transform.LocalAngle = new EulerAngles(transform.LocalAngle.Pitch, transform.LocalAngle.Yaw - deltaYaw,

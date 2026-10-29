@@ -1,4 +1,3 @@
-using Content.Client.Game;
 using Content.Client.Game.UI;
 using Content.Shared.Input;
 using JetBrains.Annotations;

@@ -38,7 +38,7 @@ public sealed partial class GameViewport : Control
     [Dependency] private IResourceCache _resourceCache = default!;
     [Dependency] private IClyde _clyde = default!;
     
-    public bool RelativeMode
+    private bool RelativeMode
     {
         get;
         set
@@ -50,7 +50,17 @@ public sealed partial class GameViewport : Control
             _clyde.MainWindow.SetRelativeMouseMode(value);
         }
     }
-    
+
+    public bool EnableMouseRelative
+    {
+        get;
+        set
+        {
+            MouseFilter = value ? MouseFilterMode.Stop : MouseFilterMode.Pass;
+            field = value;
+        }
+    } = true;
+
     private CameraSystem? _cameraSystem;
     private Transform3dVisualsSystem? _transform3dVisuals;
     private ChatSystem? _chatSystem;
@@ -68,12 +78,11 @@ public sealed partial class GameViewport : Control
         DrawingInstance = new DrawingInstance(_prototypeManager);
         
         _info = new Label();
-        _userInterfaceManager.OnScreenChanged += UserInterfaceManagerOnOnScreenChanged;
+        _userInterfaceManager.OnScreenChanged += UserInterfaceManagerScreenChanged;
         _skyInstance = _prototypeManager.Index<ShaderPrototype>("SkyShader").InstanceUnique();
-        MouseFilter = MouseFilterMode.Stop;
     }
 
-    private void UserInterfaceManagerOnOnScreenChanged((UIScreen? Old, UIScreen? New) obj)
+    private void UserInterfaceManagerScreenChanged((UIScreen? Old, UIScreen? New) obj)
     {
         obj.New?.AddChild(_info);
     }
@@ -298,23 +307,22 @@ public sealed partial class GameViewport : Control
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
-        
-        if(_userInterfaceManager.CurrentlyHovered == this)
+
+        if (_userInterfaceManager.ControlFocused == this)
         {
-            if(!RelativeMode) 
+            if(!EnableMouseRelative) 
+                EnableMouseRelative = true;
+        }
+        
+        if(_userInterfaceManager.CurrentlyHovered == this && EnableMouseRelative)
+        {
+            if(!RelativeMode)
                 RelativeMode = true;
-            
-            _userInterfaceManager.ControlFocused = this;
-            _userInterfaceManager.SetHovered(this);
-    
         }
         else
         {
             if(RelativeMode)
-            {
                 RelativeMode = false;
-                _userInterfaceManager.ControlFocused = null;
-            }
         }
     }
 
