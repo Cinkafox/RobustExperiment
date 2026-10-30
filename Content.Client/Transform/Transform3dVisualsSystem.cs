@@ -36,7 +36,7 @@ public sealed partial class Transform3dVisualsSystem : EntitySystem
         while (query.MoveNext(out var uid, out var xform, out _))
         {
             // Locally predicted bodies are rendered at their predicted pose.
-            if (_rigidBodySystem.ShouldPredict(uid))
+            if (ShouldPredictVisual(uid, xform))
             {
                 _poses.Remove(uid);
                 continue;
@@ -59,7 +59,7 @@ public sealed partial class Transform3dVisualsSystem : EntitySystem
 
     public Matrix4x4 GetWorldMatrix(EntityUid uid, Transform3dComponent xform)
     {
-        if (!_poses.TryGetValue(uid, out var pose) || _rigidBodySystem.ShouldPredict(uid))
+        if (!_poses.TryGetValue(uid, out var pose) || ShouldPredictVisual(uid, xform))
             return xform.WorldMatrix;
 
         var previous = pose.Previous.Rotation;
@@ -75,6 +75,29 @@ public sealed partial class Transform3dVisualsSystem : EntitySystem
         var scale = Vector3.Lerp(pose.Previous.Scale, pose.Current.Scale, alpha);
 
         return Matrix4Helpers.CreateTransform(position, rotation, scale);
+    }
+
+    private bool ShouldPredictVisual(EntityUid uid, Transform3dComponent xform)
+    {
+        if (_rigidBodySystem.ShouldPredict(uid))
+            return true;
+
+        // Entities attached to a predicted entity (e.g. items held in a hand bone)
+        // must follow its locally predicted pose instead of being network-interpolated,
+        // otherwise they lag behind and jitter relative to the predicted parent.
+        var parent = xform.ParentUid;
+        while (parent.IsValid())
+        {
+            if (_rigidBodySystem.ShouldPredict(parent))
+                return true;
+
+            if (!TryComp<Transform3dComponent>(parent, out var parentXform))
+                break;
+
+            parent = parentXform.ParentUid;
+        }
+
+        return false;
     }
 
     private void OnEntityTerminating(ref EntityTerminatingEvent ev)
