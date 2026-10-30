@@ -84,6 +84,8 @@ public sealed partial class ItemsSystem : EntitySystem
         }
 
         collector.Comp.CurrentItem = ent;
+        
+        Dirty(ent, ent.Comp);
         Dirty(collector, collector.Comp);
         
         RaiseLocalEvent(ent, new ItemPickupEvent(collector));
@@ -131,7 +133,7 @@ public sealed partial class ItemsSystem : EntitySystem
         Dirty(collector, collector.Comp);
         itemComp.TakenBy = null;
         itemComp.CollideDelay = _gameTiming.CurTime + TimeSpan.FromSeconds(0.5);
-        
+        Dirty(itemToDrop, itemComp);
         RaiseLocalEvent(itemToDrop, new ItemDropEvent(collector));
     }
 

@@ -2,9 +2,9 @@
 
 namespace Content.Shared.Weapon;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class ActiveDamageAreaComponent : Component
 {
-    [DataField] public float Damage;
-    [ViewVariables] public EntityUid DamageSource;
+    [DataField, AutoNetworkedField] public float Damage;
+    [ViewVariables, AutoNetworkedField] public EntityUid DamageSource;
 }

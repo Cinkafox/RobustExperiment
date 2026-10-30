@@ -19,7 +19,19 @@ public sealed partial class BonePhysicsSystem : EntitySystem
         
         SubscribeLocalEvent<BonePhysicsComponent, ComponentInit>(OnInit);
         SubscribeLocalEvent<BonePhysicsComponent, ComponentRemove>(OnRemove);
+        SubscribeLocalEvent<BonePhysicsComponent, AfterAutoHandleStateEvent>(OnStateSet);
     }
+
+    private void OnStateSet(Entity<BonePhysicsComponent> ent, ref AfterAutoHandleStateEvent args)
+    {
+        if (ent.Comp.IsBonesInitialized || ent.Comp.BonesParent.Count == 0) 
+            return;
+        
+        ent.Comp.IsBonesInitialized = true;
+        InitInternal(ent);
+        MakeRagdoll(ent, Comp<Transform3dComponent>(ent).ParentUid);
+    }
+
 
     public void AddRagdoll(Entity<SkeletonComponent?> ent, Dictionary<string, BonePhysicsProperty> bonePhysics)
     {
@@ -84,6 +96,8 @@ public sealed partial class BonePhysicsSystem : EntitySystem
             
             ent.Comp.BonesParent[boneUid] = parentUid;
         }
+        
+        Dirty(ent, ent.Comp);
     }
 
     private void OnAttaching(Entity<BonePhysicsComponent> ent, ref OnEntityAttachingEvent args)
@@ -155,7 +169,9 @@ public sealed partial class BonePhysicsSystem : EntitySystem
 
             if (bonePhysicsProperty.Takeble)
             {
-                AddComp<CollectibleComponent>(bone).TakeAsItem = false;
+                var collectibleComp = AddComp<CollectibleComponent>(bone);
+                collectibleComp.TakeAsItem = false;
+                Dirty(bone, collectibleComp);
             }
         }
     }

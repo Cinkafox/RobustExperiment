@@ -11,3 +11,7 @@
       position: 0,3,15
     - entity: testConstr
       position: 15,3,135
+    - entity: pistol
+      position: 3,0,8
+    - entity: sword
+      position: 5,0,8  

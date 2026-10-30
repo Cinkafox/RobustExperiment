@@ -4,18 +4,18 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Bone;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class SkeletonComponent : Component
 {
-    [ViewVariables] public EntityUid Root;
-    [ViewVariables] public Matrix4x4 OriginalWorldMatrix = Matrix4x4.Identity;
-    [ViewVariables] public readonly Dictionary<string, EntityUid> BonesDictionary = [];
+    [ViewVariables, AutoNetworkedField] public EntityUid Root;
+    [ViewVariables, AutoNetworkedField] public Matrix4x4 OriginalWorldMatrix = Matrix4x4.Identity;
+    [ViewVariables, AutoNetworkedField] public readonly Dictionary<string, EntityUid> BonesDictionary = [];
 }
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class BoneCompoundComponent : Component
 {
-    [ViewVariables] public EntityUid? CompoundEnt;
+    [ViewVariables, AutoNetworkedField] public EntityUid? CompoundEnt;
     [DataField] public EntProtoId<BoneCompoundComponent>? CompoundEntId;
     [DataField] public BoneCompound? Compound;
     [DataField] public Vector3 Offset = Vector3.Zero;

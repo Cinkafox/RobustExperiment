@@ -7,6 +7,7 @@ using Content.Shared.Physics.Systems;
 using Content.Shared.Transform;
 using Content.Shared.Utils;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Shared.Weapon;
 
@@ -14,6 +15,7 @@ public sealed partial class WeaponSystem : EntitySystem
 {
     [Dependency] private HealthSystem _healthSystem = default!;
     [Dependency] private RigidBodySystem _rigidBodySystem = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
     
     public override void Initialize()
     {
@@ -40,6 +42,9 @@ public sealed partial class WeaponSystem : EntitySystem
 
     private void OnUse(Entity<WeaponComponent> ent, ref ItemUseEvent args)
     {
+        if(!_gameTiming.IsFirstTimePredicted)
+            return;
+        
         var userTransform = EnsureComp<Transform3dComponent>(args.UsedBy);
         var position = userTransform.WorldPosition + 
                        Matrix4Helpers.TransformVector(ent.Comp.Translation, userTransform.WorldRotation);
@@ -64,7 +69,8 @@ public sealed partial class WeaponSystem : EntitySystem
         activeArea.DamageSource = source;
         transform.ParentUid = parent;
         transform.WorldPosition = position;
-
+        
+        Dirty(ent, activeArea);
         return ent;
     }
 }

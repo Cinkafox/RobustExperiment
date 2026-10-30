@@ -8,14 +8,6 @@ namespace Content.Shared.Bone;
 public sealed partial class BoneSystem : EntitySystem
 {
     [Dependency] private Transform3dSystem _transform = default!;
-    
-    [SubscribeLocalEvent]
-    private void OnBoneInit(Entity<BoneComponent> ent, ref ComponentInit args)
-    {
-        var transform = Comp<Transform3dComponent>(ent);
-        ent.Comp.OriginalPosition = new Vector4(transform.WorldPosition, 1f);
-        ent.Comp.OriginalRotation = transform.WorldAngle;
-    }
 
     [SubscribeLocalEvent]
     private void OnComponentInit(Entity<BoneCompoundComponent> ent, ref ComponentInit args)
@@ -36,6 +28,7 @@ public sealed partial class BoneSystem : EntitySystem
         skeletonComponent.Root = CreateBone(compound, ent.Owner, ent.Comp.Offset,
             new Entity<SkeletonComponent>(ent, skeletonComponent), restWorld, restRotation);
         
+        Dirty(ent, skeletonComponent);
         RaiseLocalEvent(ent, new SkeletonInitializedEvent());
     }
 
@@ -70,10 +63,16 @@ public sealed partial class BoneSystem : EntitySystem
         Entity<SkeletonComponent> skeleton, Matrix4x4 restWorld, Quaternion restRotation)
     {
         var bone = Spawn();
+        var worldPos = Vector3.Transform(boneCompound.Position + offset, restWorld);
+        var worldRot = Quaternion.Multiply(restRotation, boneCompound.Rotation.ToQuaternion());
+        
         _transform.SetParent(bone, parent);
-        _transform.SetWorldPosition(bone, Vector3.Transform(boneCompound.Position + offset, restWorld));
-        _transform.SetWorldRotation(bone, Quaternion.Multiply(restRotation, boneCompound.Rotation.ToQuaternion()));
+        _transform.SetWorldPosition(bone, worldPos);
+        _transform.SetWorldRotation(bone, worldRot);
+        
         var boneComp = AddComp<BoneComponent>(bone);
+        boneComp.OriginalPosition = new Vector4(worldPos, 1f);
+        boneComp.OriginalRotation = worldRot;
         boneComp.Skeleton = skeleton;
         
         if(boneCompound.Data is not null)
@@ -90,6 +89,7 @@ public sealed partial class BoneSystem : EntitySystem
             boneComp.Children.Add(CreateBone(child, bone, offset, skeleton, restWorld, restRotation));
         }
 
+        Dirty(bone, boneComp);
         return bone;
     }
 }

@@ -65,8 +65,7 @@ public sealed partial class GameViewport : Control
     private Transform3dVisualsSystem? _transform3dVisuals;
     private ChatSystem? _chatSystem;
     private Font? _chatFont;
-
-    private readonly Label _info;
+    
     private readonly ShaderInstance _skyInstance;
     
     public readonly DrawingInstance DrawingInstance;
@@ -77,14 +76,7 @@ public sealed partial class GameViewport : Control
         RectClipContent = true;
         DrawingInstance = new DrawingInstance(_prototypeManager);
         
-        _info = new Label();
-        _userInterfaceManager.OnScreenChanged += UserInterfaceManagerScreenChanged;
         _skyInstance = _prototypeManager.Index<ShaderPrototype>("SkyShader").InstanceUnique();
-    }
-
-    private void UserInterfaceManagerScreenChanged((UIScreen? Old, UIScreen? New) obj)
-    {
-        obj.New?.AddChild(_info);
     }
     
     private void DrawSkyBox(CameraSystem cameraSystem,DrawingHandleScreen handle)
@@ -216,8 +208,6 @@ public sealed partial class GameViewport : Control
             }
         }
         
-        _info.Text = $"                  Triangles: {DrawingInstance.GetDrawnTriangles()}, Textures pool: {DrawingInstance.TextureBuffer.Length}, Camera position: {camera.Value.Comp2.WorldPosition}, Camera angle {camera.Value.Comp2.WorldAngle}";
-        
         using (_profManager.Group("Flush"))
         {
             drawHandle.Flush(_profManager);
@@ -258,6 +248,12 @@ public sealed partial class GameViewport : Control
                     }
                 }
                 
+                var q2 = _entityManager.EntityQueryEnumerator<Transform3dComponent>();
+                while (q2.MoveNext(out var transform3d))
+                {
+                    drawHandle.DrawCircle(transform3d.WorldPosition, 0.05f);
+                }
+
                 var q = _entityManager.EntityQueryEnumerator<Transform3dComponent, RigidBodyComponent>();
                 while (q.MoveNext(out var transform3d, out var rigidBodyComponent))
                 {

@@ -1,17 +1,21 @@
 ﻿using Content.Shared.Physics.Components;
 using Content.Shared.Physics.Constraints;
 using Content.Shared.Physics.Shapes;
+using Robust.Shared.GameStates;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Bone;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]
 public sealed partial class BonePhysicsComponent : Component
 {
-    [DataField] public Dictionary<string, BonePhysicsProperty> BonePhysics = [];
-    [ViewVariables] public Dictionary<EntityUid, EntityUid> BonesParent = new();
+    [DataField, AutoNetworkedField] public Dictionary<string, BonePhysicsProperty> BonePhysics = [];
+    [ViewVariables, AutoNetworkedField] public Dictionary<EntityUid, EntityUid> BonesParent = new();
+    [ViewVariables] public bool IsBonesInitialized;
 }
 
 [DataDefinition]
+[Serializable, NetSerializable]
 public sealed partial class BonePhysicsProperty
 {
     [DataField] public IPhysicShape Shape = new SphereShape();

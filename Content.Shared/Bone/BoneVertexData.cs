@@ -1,6 +1,8 @@
-﻿namespace Content.Shared.Bone;
+﻿using Robust.Shared.Serialization;
 
-[DataDefinition]
+namespace Content.Shared.Bone;
+
+[DataDefinition, Serializable, NetSerializable]
 public sealed partial class BoneVertexData
 {
     [DataField(required: true)] public int BoneIndices;

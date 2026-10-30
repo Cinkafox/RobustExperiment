@@ -16,7 +16,7 @@ public sealed partial class BoneSkinningSystem : EntitySystem
 
         var boneTransform = Comp<Transform3dComponent>(entity);
         
-        var originalQ = entity.Comp.OriginalRotation.ToQuaternion();
+        var originalQ = entity.Comp.OriginalRotation;
         var invOriginalQ = Quaternion.Inverse(originalQ);
         var currentQ = boneTransform.WorldRotation;
         var deltaRotation = Quaternion.Normalize(currentQ * invOriginalQ);

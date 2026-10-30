@@ -3,13 +3,13 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared.Bone;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class BoneComponent : Component
 {
-    [DataField] public HashSet<BoneVertexData> BoneVertexDatum = new();
-    [DataField] public HashSet<EntityUid> Children = new();
+    [DataField, AutoNetworkedField] public HashSet<BoneVertexData> BoneVertexDatum = new();
+    [DataField, AutoNetworkedField] public HashSet<EntityUid> Children = new();
 
-    [DataField] public Vector4 OriginalPosition;
-    [DataField] public EulerAngles OriginalRotation;
-    [ViewVariables] public EntityUid Skeleton;
+    [DataField, AutoNetworkedField] public Vector4 OriginalPosition;
+    [DataField, AutoNetworkedField] public Quaternion OriginalRotation;
+    [ViewVariables, AutoNetworkedField] public EntityUid Skeleton;
 }

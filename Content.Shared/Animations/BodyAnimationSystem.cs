@@ -52,6 +52,9 @@ public sealed partial class BodyAnimationSystem : EntitySystem
     {
         base.Update(frameTime);
         
+        if(!_gameTiming.IsFirstTimePredicted)
+            return;
+        
         var query = EntityQueryEnumerator<BodyAnimationComponent>();
         while (query.MoveNext(out var uid, out var animation))
         {

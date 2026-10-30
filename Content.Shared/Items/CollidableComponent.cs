@@ -4,19 +4,19 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared.Items;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class CollectibleComponent : Component
 {
     [DataField] public Vector3 Position = Vector3.Zero;
     [DataField] public EulerAngles Rotation = EulerAngles.Zero;
     [DataField] public Vector3 Scale = Vector3.One;
-    [DataField] public TimeSpan CollideDelay;
-    [DataField] public bool TakeAsItem = true;
+    [DataField, AutoNetworkedField] public TimeSpan CollideDelay;
+    [DataField, AutoNetworkedField] public bool TakeAsItem = true;
 
-    [ViewVariables] public EntityUid? TakenBy;
+    [ViewVariables, AutoNetworkedField] public EntityUid? TakenBy;
     [ViewVariables(VVAccess.ReadOnly)] public bool IsTaken => TakenBy != null;
 
-    [ViewVariables] public PhysicsProperty? TakenProperties;
+    [ViewVariables, AutoNetworkedField] public PhysicsProperty? TakenProperties;
 }
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
